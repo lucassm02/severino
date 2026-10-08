@@ -1,0 +1,302 @@
+# Planejamento: Severino
+
+A ideia é cadastrar `callfred.loc → 127.0.0.1:3000` numa janela e deixar a ferramenta fazer o resto: gravar o nome no hosts, rotear o tráfego pelo proxy e, se você quiser, emitir um certificado HTTPS confiável. Nenhum passo exige terminal ou edição manual de arquivo.
+
+Ficam de fora, de propósito: expor serviços na rede ou na internet, Let's Encrypt, mapear domínios públicos, balanceamento de carga e resolução de nomes dentro de containers ou WSL. O proxy escuta só em loopback.
+
+## 1. Arquitetura
+
+```
+ Navegador ──► https://callfred.loc
+                   │  hosts: 127.0.0.1 / ::1
+                   ▼
+  ┌──────────────────────────────────┐
+  │ Severino.exe  (usuário comum)    │
+  │  UI WPF  ◄──►  Proxy YARP/Kestrel│──► 127.0.0.1:3000 (seu app)
+  │  bandeja       :80  :443         │
+  └────────────────┬─────────────────┘
+                   │ named pipe ("sincronizar hosts", e só isso)
+  ┌────────────────▼─────────────────┐
+  │ Severino.Helper (serviço Windows)│──► C:\Windows\System32\drivers\etc\hosts
+  └──────────────────────────────────┘
+```
+
+São dois processos porque só uma parte precisa de administrador. Editar o hosts exige admin. Abrir as portas 80 e 443 não exige, porque o Windows não tem portas privilegiadas para sockets comuns, e o Kestrel usa sockets comuns.
+
+Por isso o único trecho que precisa de admin fica num serviço minúsculo, instalado uma vez pelo instalador. Isso traz três vantagens:
+
+- **Um único UAC**, na instalação, e nunca mais.
+- **O navegador abre normal.** O app principal roda como usuário comum, então "Abrir no navegador" funciona como esperado. Um app elevado abriria o navegador também elevado.
+- **Pouco risco.** O serviço só sabe apontar nomes com sufixos permitidos para loopback. Mesmo que outro programa converse com ele, não consegue fazer nada de útil para um ataque.
+
+A alternativa seria rodar tudo elevado via Agendador de Tarefas. É mais simples de codar, mas pior nesses três pontos.
+
+## 2. Stack e bibliotecas
+
+| Camada | Escolha | Motivo |
+|---|---|---|
+| Runtime | .NET 10 (LTS) | Mesmo runtime do pwsh 7, suporte longo |
+| Interface | WPF + WPF-UI (lepoco) | Visual Fluent do Windows 11, tema claro/escuro automático, controles prontos |
+| MVVM | CommunityToolkit.Mvvm | `[ObservableProperty]` e `[RelayCommand]` via source generator |
+| Bandeja | H.NotifyIcon.Wpf | Ícone, menu e notificações na área de notificação |
+| Proxy | YARP (`Yarp.ReverseProxy`) | Proxy da Microsoft dentro do processo; rotas em memória com atualização a quente; WebSocket e HTTP/2 nativos, então o HMR funciona |
+| Hospedagem | `FrameworkReference Microsoft.AspNetCore.App` no projeto WPF | O Kestrel roda em segundo plano no mesmo processo da UI |
+| Certificados | `System.Security.Cryptography` + `System.Formats.Asn1` | CA e certificados gerados sem mkcert ou OpenSSL |
+| Chave da CA | `System.Security.Cryptography.ProtectedData` (DPAPI) | Chave privada cifrada e atrelada ao seu usuário |
+| Serviço auxiliar | Worker Service + `Microsoft.Extensions.Hosting.WindowsServices` | Serviço Windows enxuto |
+| Comunicação | Named pipe (`System.IO.Pipes`) + JSON | Sem porta de rede; ACL restrita ao seu usuário |
+| Portas em uso | P/Invoke em `GetExtendedTcpTable` (iphlpapi) | Lista portas escutando com PID e nome do processo |
+| Logs | Serilog (arquivo rotativo) + coletor em memória | O arquivo serve para depurar a ferramenta; a memória alimenta a aba de requisições |
+| Configuração | System.Text.Json com source generator | JSON legível, UTF-8 sem BOM |
+| Testes | xUnit | Testes unitários e de integração |
+| Instalador | Inno Setup | Um UAC só: copia os arquivos, registra o serviço, cria atalho |
+
+Considerei três alternativas e descartei:
+
+- **Go + Wails:** o binário fica menor, mas a UI roda em WebView2, que consome mais memória do que parece. E você teria de montar à mão o que o YARP já entrega.
+- **Tauri + Rust:** é a opção mais leve, mas TLS dinâmico por SNI e proxy com WebSocket dão bem mais trabalho.
+- **PowerShell + WinForms + Caddy:** fica no seu ecossistema, mas a UI é limitada e você passa a gerenciar dois processos e a API do Caddy.
+
+No .NET fica tudo num processo, com acesso direto às APIs do Windows de certificados, serviços e registro.
+
+**Peso:** publicando dependente de framework, o executável fica com poucos MB e o instalador garante os runtimes Desktop e ASP.NET Core do .NET 10. A memória em repouso deve ficar em algumas dezenas de MB, mas convém medir já na Fase 1.
+
+## 3. Experiência de uso
+
+### Primeira execução
+
+Um assistente de três telas:
+
+1. **Sufixo padrão.** `.loc` vem pré-selecionado. O assistente desaconselha `.local`, que conflita com mDNS e deixa a resolução lenta.
+2. **Checagem automática.** Mostra ✓ ou ✗ para cada item: portas 80 e 443 livres, serviço auxiliar respondendo e proxy do sistema fora do caminho. Cada ✗ vem com um botão de correção ou uma explicação.
+3. **HTTPS opcional.** O botão "Ativar HTTPS local" gera a CA e abre o diálogo de confirmação do próprio Windows.
+
+O assistente termina em "Criar minha primeira rota".
+
+### Tela principal
+
+```
+┌─ Severino ─────────────────────────────────────── _ □ x ┐
+│  Rotas │ Requisições │ Configurações                    │
+│                                                         │
+│  [+ Nova rota]          Buscar...                       │
+│                                                         │
+│  ●  callfred.loc       →  127.0.0.1:3000  https  [on] ⋯ │
+│  ●  api.callfred.loc   →  127.0.0.1:5000  https  [on] ⋯ │
+│  ◐  admin.loc          →  127.0.0.1:4200         [on] ⋯ │
+│  ○  legado.loc         →  127.0.0.1:8080        [off] ⋯ │
+│                                                         │
+│  Proxy ativo :80 :443 · hosts ok · HTTPS ok             │
+└─────────────────────────────────────────────────────────┘
+  ● destino respondendo   ◐ destino fora do ar   ○ desativada
+```
+
+Como cada elemento funciona:
+
+- **Domínio:** clicar abre no navegador.
+- **Interruptor:** liga e desliga a rota na hora.
+- **Menu ⋯:** editar, duplicar, copiar URL e remover.
+- **Remover:** não pede confirmação. Aparece "Desfazer" por alguns segundos, o que é mais rápido e menos irritante.
+- **Barra inferior:** mostra o estado geral. Clicar num item com problema leva direto à correção.
+
+### Nova rota
+
+```
+┌─ Nova rota ────────────────────────────────┐
+│ Domínio   [ callfred          ] .loc ▾     │
+│ Destino   [ 127.0.0.1 ] : [ 3000      ▾ ]  │
+│               3000 · node (next dev)       │
+│               5173 · node (vite)           │
+│               5000 · dotnet                │
+│ [x] HTTPS    [x] Redirecionar HTTP→HTTPS   │
+│ ▸ Avançado                                 │
+│                       [Cancelar] [Criar]   │
+└────────────────────────────────────────────┘
+```
+
+O formulário ajuda em cada campo:
+
+- **Domínio:** digitar só "callfred" já completa o sufixo.
+- **Porta:** o combo lista as portas que estão escutando, com o nome do processo, então você não precisa lembrar números.
+- **Validação inline:** domínio duplicado aparece em vermelho. Porta sem nada escutando aparece em amarelo, mas não bloqueia: a rota fica aguardando seu servidor subir.
+- **"Avançado":**
+  - preservar o Host original;
+  - ignorar certificado inválido do destino, útil para o `https://localhost:5001` do ASP.NET;
+  - um campo de observações.
+
+Ao clicar em Criar, a rota fica ativa em cerca de um segundo e aparece "callfred.loc pronto · Abrir".
+
+### Requisições
+
+Log ao vivo com hora, domínio, método, caminho, status e duração. Dá para filtrar por domínio e pausar. Guarda as últimas 1000 linhas em memória.
+
+### Configurações
+
+Reúne tudo o que é ajustável:
+
+- **Rede:** portas do proxy e sufixos permitidos.
+- **Inicialização:** iniciar com o Windows (chave `HKCU\...\Run`, sem admin) e iniciar minimizado.
+- **Aparência:** tema.
+- **HTTPS:** status da CA, exportar em PEM para Node e Python (com a linha do `NODE_EXTRA_CA_CERTS` pronta para copiar) e remover a CA.
+- **Manutenção:** exportar e importar rotas, e o botão "Limpar tudo", que remove o bloco do hosts, a CA e a inicialização automática.
+
+### Bandeja
+
+O ícone muda de cor conforme o estado. O menu traz:
+
+- a lista de rotas (clicar abre no navegador);
+- pausar o proxy;
+- abrir a janela;
+- sair.
+
+Fechar a janela só minimiza para a bandeja. Na primeira vez, um aviso explica isso.
+
+## 4. Detalhes técnicos
+
+### Hosts
+
+O serviço auxiliar mantém um bloco delimitado e nunca toca no resto do arquivo:
+
+```
+# >>> Severino: bloco gerenciado, não edite
+127.0.0.1  callfred.loc
+::1        callfred.loc
+# <<< Severino
+```
+
+A cada sincronização, o serviço faz o seguinte:
+
+1. Lê o arquivo e substitui só o bloco, preservando quebras CRLF.
+2. Grava num arquivo temporário e troca com `File.Replace`, gerando `hosts.severino.bak`.
+3. Remove e restaura o atributo somente-leitura, se ele existir.
+4. Grava em ASCII sem BOM.
+5. Chama `DnsFlushResolverCache`, que equivale ao `ipconfig /flushdns`.
+
+Domínios com acento viram punycode via `IdnMapping`. O serviço valida tudo por conta própria, sem confiar no app: regex de hostname, sufixo na lista permitida, limite de entradas e IP sempre loopback.
+
+O hosts não aceita curinga, então no MVP cada subdomínio precisa de rota própria.
+
+### Proxy
+
+O Kestrel escuta em `127.0.0.1` e `[::1]`. Cada rota vira uma `RouteConfig` do YARP com `Match.Hosts = [domínio]` e um cluster apontando para o destino. Alterações chamam `InMemoryConfigProvider.Update`, sem reiniciar nada.
+
+Ajustes pensados para dev:
+
+- **Timeout longo.** O `ActivityTimeout` fica em 10 minutos. Um breakpoint no backend segura a requisição, e o padrão de 100 segundos devolveria 504 no meio da depuração.
+- **Sem limite de corpo.** O limite de tamanho da requisição fica desligado, para permitir uploads grandes.
+- **Host reescrito por padrão.** O Host vai como o do destino, acompanhado de `X-Forwarded-Host/Proto/For`. Isso agrada o Vite e o webpack-dev-server, que bloqueiam Host desconhecido. A opção "Preservar Host original" cobre apps que geram URLs absolutas.
+- **Redirecionamento temporário.** HTTP→HTTPS usa 307, nunca 301, e o proxy nunca envia HSTS. Os dois ficam gravados no navegador e viram dor de cabeça quando você desliga o HTTPS.
+- **Páginas de erro próprias.** Domínio desconhecido mostra um 404 com a lista de rotas. Destino fora do ar mostra um 502 dizendo `callfred.loc → 127.0.0.1:3000 não respondeu. Seu servidor está rodando?`
+- **Proteção contra loop.** O destino não pode ser o próprio proxy.
+
+### HTTPS
+
+Na ativação, o app gera uma CA raiz ECDSA P-256 com validade de 10 anos.
+
+- **Name Constraints:** a CA fica limitada aos sufixos permitidos. Mesmo que a chave vaze, ela não serve para falsificar `banco.com.br`. Se você adicionar um sufixo novo depois, a UI explica que é preciso reemitir a CA e faz isso em um clique.
+- **Chave privada:** cifrada com DPAPI.
+- **Instalação:** a CA vai para `CurrentUser\Root`. Isso dispara o aviso de segurança do Windows, que funciona como consentimento explícito, sem exigir admin.
+
+Os certificados de cada domínio são emitidos sob demanda no primeiro acesso, pelo `ServerCertificateSelector` do Kestrel (via SNI). Eles valem 397 dias, ficam em cache na memória e no disco e são renovados automaticamente quando faltam 30 dias.
+
+Há uma armadilha conhecida do Windows: certificado com chave efêmera criado em memória falha no SslStream. Antes de entregar ao Kestrel, é preciso exportar para PFX e recarregar com `X509CertificateLoader.LoadPkcs12`.
+
+Edge e Chrome usam o repositório do Windows. O Firefox pode precisar de `security.enterprise_roots.enabled = true`; o app detecta isso e mostra o passo.
+
+### Diagnósticos
+
+**Porta ocupada.** Se a 80 ou a 443 estiver em uso, a UI mostra qual processo é o dono. PID 4 ("System") significa http.sys, quase sempre IIS ou outro serviço registrado. Outros suspeitos comuns são XAMPP, Docker publicando a 80 e VMware na 443. Como alternativa, o app oferece usar 8080 e 8443, e as URLs passam a levar a porta.
+
+**Proxy do sistema.** Com proxy configurado no Windows, comum em VPN corporativa, o navegador mandaria `*.loc` para fora. O app detecta isso nas Internet Settings do HKCU e oferece adicionar `*.loc` às exceções.
+
+**Saúde dos destinos.** Um teste de conexão TCP a cada 5 segundos por rota ativa alimenta a bolinha de status.
+
+### Desinstalação limpa
+
+O desinstalador faz três coisas, nesta ordem:
+
+1. Pede ao serviço para remover o bloco do hosts.
+2. Roda `Severino.exe --cleanup` como o usuário original (flag `runasoriginaluser` do Inno Setup), para tirar a CA do repositório do seu usuário.
+3. Remove o serviço.
+
+## 5. Modelo de dados
+
+Fica em `%LOCALAPPDATA%\Severino\config.json`, com as últimas 5 versões guardadas como backup:
+
+```json
+{
+  "version": 1,
+  "settings": {
+    "httpPort": 80,
+    "httpsPort": 443,
+    "defaultSuffix": ".loc",
+    "allowedSuffixes": [".loc", ".test", ".localhost"],
+    "startWithWindows": true,
+    "startMinimized": true,
+    "theme": "auto"
+  },
+  "routes": [
+    {
+      "id": "3f2c9a1e-7b44-4d0e-9c1a-2e5b8f6d0a11",
+      "domain": "callfred.loc",
+      "target": "http://127.0.0.1:3000",
+      "enabled": true,
+      "https": true,
+      "redirectToHttps": true,
+      "preserveHost": false,
+      "ignoreTargetCertErrors": false,
+      "notes": ""
+    }
+  ]
+}
+```
+
+## 6. Estrutura da solução
+
+```
+Severino/
+├─ src/
+│  ├─ Severino.App/        WPF: janelas, bandeja, ViewModels, hospeda o proxy
+│  ├─ Severino.Core/       modelos, configuração, validação, cliente do pipe
+│  ├─ Severino.Proxy/      YARP, Kestrel, CA e emissão de certificados, páginas de erro
+│  ├─ Severino.Contracts/  mensagens do pipe e validador de domínio (compartilhado)
+│  └─ Severino.Helper/     serviço Windows: hosts + flush de DNS
+├─ tests/
+│  └─ Severino.Tests/
+└─ installer/
+   └─ severino.iss
+```
+
+O `Contracts` existe para que app e serviço usem exatamente o mesmo validador. O serviço não depende de mais nada.
+
+## 7. Roadmap
+
+| Fase | Entrega | Pronto quando |
+|---|---|---|
+| 0. Esqueleto | Solução, janela WPF-UI com abas, bandeja, instância única, carregar e salvar config | O app abre, minimiza para a bandeja e reabre sem duplicar |
+| 1. MVP HTTP | CRUD de rotas, YARP, serviço auxiliar + bloco no hosts, status de saúde, páginas de erro, detecção de porta ocupada | `http://callfred.loc` abre seu app e o HMR do Vite funciona |
+| 2. HTTPS | CA com Name Constraints, emissão por SNI, redirecionamento, exportar CA | `https://callfred.loc` abre no Edge e no Chrome sem aviso |
+| 3. Polimento | Assistente de primeira execução, aba de requisições, combo de portas com processo, detector de proxy do sistema, iniciar com Windows, importar e exportar, "Limpar tudo", instalador | Alguém que nunca viu a ferramenta instala e cria uma rota sem ajuda |
+| 4. Extras | Curinga via DNS embutido + regra NRPT para `.loc` (a validar), rotas por caminho (`/api`), importar entradas 127.0.0.1 já existentes no hosts, grupos de rotas, módulo PowerShell opcional | Conforme a necessidade |
+
+## 8. Riscos restantes
+
+| Risco | Mitigação |
+|---|---|
+| Defender alertar sobre mudanças no hosts | O alerta costuma mirar redirecionamento de domínios conhecidos; só gravar sufixos de dev reduz bastante o risco |
+| DNS-over-HTTPS no navegador | Os navegadores consultam o hosts antes do DoH; se algo falhar, o diagnóstico sugere testar com `.localhost` |
+| SmartScreen em executável sem assinatura | Aceitável para uso próprio; certificado de assinatura só se for distribuir |
+| Containers e WSL não enxergam `.loc` | Fora do escopo, documentado |
+| Porta 53 ocupada no DNS da Fase 4 | Validar antes de implementar o curinga |
+
+## 9. Testes
+
+Os testes unitários cobrem os pontos onde um erro custa caro:
+
+- **Mesclagem do hosts:** idempotência, preservação das linhas fora do bloco, CRLF/LF misturados, arquivo somente-leitura, bloco corrompido.
+- **Validador de domínio:** sufixos, punycode, tentativas de injeção de linha.
+- **Migração de versões da configuração.**
+
+Os testes de integração sobem Kestrel e YARP em portas aleatórias com um backend falso. Eles verificam o roteamento por Host, a passagem de WebSocket, a página 502 e o redirecionamento 307. O teste de certificados confere se a folha encadeia na CA, se o SAN está correto e se a Name Constraint rejeita domínios fora dos sufixos.
+
+Para fechar cada fase, um checklist manual curto: porta 80 ocupada, serviço parado, HMR do Vite, Firefox e desinstalação limpa.
