@@ -221,7 +221,7 @@ O desinstalador faz três coisas, nesta ordem:
 
 ## 5. Modelo de dados
 
-Fica em `%LOCALAPPDATA%\Severino\config.json`, com as últimas 5 versões guardadas como backup:
+Fica em `%LOCALAPPDATA%\Severino\config.json`, com as últimas 5 versões guardadas como backup em `backups\`. A gravação é atômica (arquivo temporário + troca). Um arquivo ilegível é movido para `config.invalid-<data>.json` e o app sobe com a configuração padrão; um arquivo de versão mais nova que a suportada não é tocado, e o app avisa e fecha. O bloco `state` guarda marcas internas do app, como o aviso de "fechar minimiza para a bandeja" já exibido; não aparece em Configurações.
 
 ```json
 {
@@ -234,6 +234,9 @@ Fica em `%LOCALAPPDATA%\Severino\config.json`, com as últimas 5 versões guarda
     "startWithWindows": true,
     "startMinimized": true,
     "theme": "auto"
+  },
+  "state": {
+    "closeToTrayHintShown": true
   },
   "routes": [
     {

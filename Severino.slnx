@@ -1,0 +1,9 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/Severino.App/Severino.App.csproj" />
+    <Project Path="src/Severino.Core/Severino.Core.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/Severino.Tests/Severino.Tests.csproj" />
+  </Folder>
+</Solution>

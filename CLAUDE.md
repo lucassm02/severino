@@ -13,6 +13,20 @@ App desktop Windows para mapear domínios locais de dev (`callfred.loc → 127.0
 - CA ECDSA P-256 com Name Constraints nos sufixos permitidos, chave via DPAPI, instalada em `CurrentUser\Root`.
 - Fora do escopo: expor na rede/internet, Let's Encrypt, domínios públicos, load balancing, containers/WSL.
 
+## Comandos
+
+```bash
+dotnet build
+dotnet test
+dotnet run --project src/Severino.App
+```
+
+## Convenções
+
+- Commits: Conventional Commits em inglês.
+- Versões de pacotes ficam em `Directory.Packages.props`; `Directory.Build.props` liga `TreatWarningsAsErrors`.
+- Modelos de config usam `{ get; set; }`, não `init` (ver comentário em `SeverinoConfig.cs`); trate as instâncias como imutáveis e altere com `with` via `ConfigService.Update`.
+
 ## Estado
 
-Repositório vazio; plano ingerido. Próximo passo: Fase 0 (esqueleto) e Fase 1 (MVP HTTP) conforme o roadmap da seção 7.
+Fase 0 concluída: solução, janela WPF-UI com abas, bandeja, instância única, config com backup. Próximo passo: Fase 1 (MVP HTTP), começando por um spec.
