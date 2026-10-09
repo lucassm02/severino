@@ -1,11 +1,13 @@
 using System.Text.Encodings.Web;
+using System.Text.Unicode;
 
 namespace Severino.Proxy;
 
 /// <summary>Self-contained HTML for the proxy's own responses, light and dark.</summary>
 public static class ErrorPages
 {
-    private static readonly HtmlEncoder Html = HtmlEncoder.Default;
+    // Unicode passes through; only markup characters are escaped.
+    private static readonly HtmlEncoder Html = HtmlEncoder.Create(UnicodeRanges.All);
 
     public static string NotFound(string host, IEnumerable<string> domains, int port)
     {

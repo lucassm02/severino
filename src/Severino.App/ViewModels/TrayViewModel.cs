@@ -9,5 +9,5 @@ public sealed partial class TrayViewModel(ShellService shell)
     private void ShowWindow() => shell.ShowMainWindow();
 
     [RelayCommand]
-    private void Exit() => shell.Exit();
+    private Task Exit() => shell.ExitAsync();
 }

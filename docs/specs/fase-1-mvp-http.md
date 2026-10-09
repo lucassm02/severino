@@ -96,7 +96,7 @@ Uma única implementação, usada pela UI e pelo Helper.
 - **Remover:** sem confirmação. Aparece "Desfazer" por 5 s.
 - **Formulário:**
   - domínio completo, com o texto de exemplo `ex.: callfred.sev` e a dica sobre `.test` e `.localhost`;
-  - destino com esquema (`http` ou `https`), host (padrão `127.0.0.1`) e porta;
+  - destino com esquema (`http` ou `https`), host (padrão `localhost`) e porta. O proxy e o teste de saúde tentam todos os endereços do host em paralelo: no Windows, uma conexão recusada em `::1` leva cerca de 2 s para falhar, e servidores de dev costumam escutar só em `127.0.0.1` ou só em `::1`;
   - "Avançado" com as opções da rota e observações;
   - erro em vermelho para nome inválido ou duplicado, que bloqueia;
   - amarelo para porta sem nada escutando e para os avisos de domínio, que não bloqueiam.
@@ -108,7 +108,7 @@ Uma única implementação, usada pela UI e pelo Helper.
 
 ### Avisos de domínio (`Core`)
 
-- **Existe na internet:** `DnsQuery_W` com `DNS_QUERY_NO_HOSTS_FILE | DNS_QUERY_BYPASS_CACHE`, consultando A, AAAA e CNAME, com timeout de 2 s. Roda enquanto você digita, com espera de 500 ms, e de novo ao salvar.
+- **Existe na internet:** `DnsQuery_W` com `DNS_QUERY_NO_HOSTS_FILE | DNS_QUERY_BYPASS_CACHE`, consultando A, AAAA e CNAME, com timeout de 5 s (em DNS lento, a resposta "não existe" para um nome novo passa de 2 s). Roda enquanto você digita, com espera de 500 ms, e de novo ao salvar.
 - **HSTS preload:** lista embutida de TLDs inteiros (`dev`, `app`, `page`, `new`, `day`, `foo` e outros, a partir da lista do Chromium). Nesta fase só há HTTP, então o aviso diz que o domínio só vai abrir quando o HTTPS chegar.
 - **`.local`:** aviso fixo sobre o mDNS.
 
@@ -126,7 +126,7 @@ Conexão TCP a cada 5 s por rota ativa, com timeout de 1 s. O resultado alimenta
 Serilog com arquivo rotativo, mantendo 7 dias:
 
 - o app grava em `%LOCALAPPDATA%\Severino\logs\`;
-- o Helper grava em `%ProgramData%\Severino\logs\`, uma pasta que só o administrador e o SYSTEM podem gravar.
+- o Helper grava em `logs\` ao lado do executável, dentro de `Program Files`. Em `ProgramData`, um usuário comum consegue criar arquivos e plantar links para o SYSTEM gravar por ele.
 
 ## Fora do escopo
 

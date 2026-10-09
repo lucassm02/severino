@@ -3,7 +3,7 @@ using Severino.Core.Domains;
 namespace Severino.Tests.Domains;
 
 /// <summary>
-/// Hits the real DNS: needs network access. A cold lookup can pass the resolver's 2 s timeout
+/// Hits the real DNS: needs network access. A cold lookup can pass the resolver's timeout
 /// and come back as Failed, so each test allows one retry.
 /// </summary>
 [Trait("Category", "Network")]

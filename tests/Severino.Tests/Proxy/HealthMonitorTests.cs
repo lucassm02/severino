@@ -49,6 +49,24 @@ public sealed class HealthMonitorTests
     }
 
     [Fact]
+    public async Task Localhost_target_listening_on_ipv4_only_is_up_within_the_timeout()
+    {
+        // "localhost" resolves to ::1 first; a refused ::1 must not eat the 1 s budget.
+        var listener = new TcpListener(IPAddress.Loopback, 0);
+        listener.Start();
+        try
+        {
+            var port = ((IPEndPoint)listener.LocalEndpoint).Port;
+
+            Assert.True(await HealthMonitor.CanConnectAsync("localhost", port, CancellationToken.None));
+        }
+        finally
+        {
+            listener.Stop();
+        }
+    }
+
+    [Fact]
     public async Task Disabled_routes_are_not_checked()
     {
         var route = new RouteEntry { Domain = "a.sev", Target = "http://127.0.0.1:1", Enabled = false };

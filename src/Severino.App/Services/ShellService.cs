@@ -10,13 +10,15 @@ public sealed class ShellService
     private readonly MainWindow _window;
     private readonly TrayService _tray;
     private readonly ConfigService _config;
+    private readonly ProxyCoordinator _proxy;
     private bool _exiting;
 
-    public ShellService(MainWindow window, TrayService tray, ConfigService config)
+    public ShellService(MainWindow window, TrayService tray, ConfigService config, ProxyCoordinator proxy)
     {
         _window = window;
         _tray = tray;
         _config = config;
+        _proxy = proxy;
 
         _window.Closing += (_, e) =>
         {
@@ -29,6 +31,8 @@ public sealed class ShellService
 
     public void ShowMainWindow()
     {
+        if (_exiting)
+            return;
         if (!_window.IsVisible)
             _window.Show();
         if (_window.WindowState == WindowState.Minimized)
@@ -52,9 +56,14 @@ public sealed class ShellService
         _config.Update(c => c with { State = c.State with { CloseToTrayHintShown = true } });
     }
 
-    public void Exit()
+    /// <summary>Removes the hosts block and stops the proxy before shutting down.</summary>
+    public async Task ExitAsync()
     {
+        if (_exiting)
+            return;
         _exiting = true;
+        _window.Hide();
+        await _proxy.StopAsync();
         Application.Current.Shutdown();
     }
 }

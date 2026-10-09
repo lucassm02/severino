@@ -10,7 +10,33 @@
     d:DataContext="{d:DesignInstance Type=vm:SettingsViewModel}">
     <ScrollViewer VerticalScrollBarVisibility="Auto">
         <StackPanel Margin="0,16,0,0">
-            <ui:TextBlock Margin="0,0,0,8" FontTypography="BodyStrong" Text="Aparência" />
+            <ui:TextBlock Margin="0,0,0,8" FontTypography="BodyStrong" Text="Rede" />
+            <ui:CardControl Margin="0,0,0,4" Icon="{ui:SymbolIcon PlugConnected24}">
+                <ui:CardControl.Header>
+                    <StackPanel>
+                        <ui:TextBlock Text="Porta HTTP do proxy" />
+                        <ui:TextBlock Appearance="Secondary" FontTypography="Caption" Text="Fora da 80, as URLs passam a levar a porta (ex.: :8080)" />
+                        <ui:TextBlock
+                            FontTypography="Caption"
+                            Foreground="{DynamicResource SystemFillColorCriticalBrush}"
+                            Text="{Binding HttpPortError}"
+                            Visibility="{Binding HttpPortError, Converter={StaticResource NullToCollapsed}}" />
+                    </StackPanel>
+                </ui:CardControl.Header>
+                <StackPanel Orientation="Horizontal">
+                    <ui:TextBox
+                        Width="96"
+                        Text="{Binding HttpPort, UpdateSourceTrigger=PropertyChanged}"
+                        AutomationProperties.Name="Porta HTTP">
+                        <ui:TextBox.InputBindings>
+                            <KeyBinding Key="Enter" Command="{Binding ApplyHttpPortCommand}" />
+                        </ui:TextBox.InputBindings>
+                    </ui:TextBox>
+                    <ui:Button Margin="8,0,0,0" Content="Aplicar" Command="{Binding ApplyHttpPortCommand}" />
+                </StackPanel>
+            </ui:CardControl>
+
+            <ui:TextBlock Margin="0,16,0,8" FontTypography="BodyStrong" Text="Aparência" />
             <ui:CardControl Margin="0,0,0,4" Icon="{ui:SymbolIcon DarkTheme24}">
                 <ui:CardControl.Header>
                     <StackPanel>

@@ -27,7 +27,8 @@ public interface IDnsResolver
 /// </summary>
 public sealed partial class WindowsDnsResolver : IDnsResolver
 {
-    private static readonly TimeSpan Timeout = TimeSpan.FromSeconds(2);
+    // NXDOMAIN for a never-seen name can take a few seconds on slow or corporate DNS.
+    private static readonly TimeSpan Timeout = TimeSpan.FromSeconds(5);
 
     private const ushort TypeA = 1;
     private const ushort TypeAaaa = 28;

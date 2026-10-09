@@ -3,6 +3,7 @@
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
+    xmlns:views="clr-namespace:Severino.App.Views"
     ShutdownMode="OnExplicitShutdown">
     <Application.Resources>
         <ResourceDictionary>
@@ -11,6 +12,9 @@
                 <ui:ControlsDictionary />
                 <ResourceDictionary Source="Tray/TrayIconResources.xaml" />
             </ResourceDictionary.MergedDictionaries>
+            <BooleanToVisibilityConverter x:Key="TrueToVisible" />
+            <views:FalseToVisibleConverter x:Key="FalseToVisible" />
+            <views:NullToCollapsedConverter x:Key="NullToCollapsed" />
         </ResourceDictionary>
     </Application.Resources>
 </Application>

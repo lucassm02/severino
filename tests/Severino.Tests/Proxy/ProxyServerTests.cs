@@ -127,6 +127,20 @@ public sealed class ProxyServerTests : IAsyncLifetime
     }
 
     [Fact]
+    public async Task Localhost_target_on_ipv4_only_answers_without_the_refused_ipv6_delay()
+    {
+        // The backend listens on 127.0.0.1 only; "localhost" resolves to ::1 first.
+        _proxy.UpdateRoutes([Route("callfred.sev", $"http://localhost:{_backendPort}")]);
+        using var client = new HttpClient(Handler());
+
+        var watch = System.Diagnostics.Stopwatch.StartNew();
+        var response = await client.GetAsync(Url("callfred.sev", "/echo"));
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        Assert.True(watch.Elapsed < TimeSpan.FromSeconds(1), $"took {watch.Elapsed}");
+    }
+
+    [Fact]
     public async Task Websocket_passes_through()
     {
         using var socket = new ClientWebSocket();

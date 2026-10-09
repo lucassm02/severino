@@ -124,7 +124,11 @@ public sealed class HostsSync : IDisposable
         }
         catch (HelperUnavailableException ex)
         {
-            _logger.LogWarning(ex, "Helper unavailable");
+            // Retried every few seconds while the Helper is missing: log the details only once.
+            if (Status.State == HostsSyncState.HelperUnavailable)
+                _logger.LogDebug("Helper still unavailable: {Reason}", ex.Message);
+            else
+                _logger.LogWarning(ex, "Helper unavailable");
             return new(HostsSyncState.HelperUnavailable, ex.Message);
         }
     }

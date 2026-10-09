@@ -1,5 +1,4 @@
 using System.Collections.Concurrent;
-using System.Net;
 using System.Net.Sockets;
 using Severino.Core.Configuration;
 using Severino.Core.Routes;
@@ -85,15 +84,14 @@ public sealed class HealthMonitor : IAsyncDisposable
             Changed?.Invoke(this, new RouteHealth(route.Id, up));
     }
 
-    private static async Task<bool> CanConnectAsync(string host, int port, CancellationToken cancellationToken)
+    /// <summary>True when a TCP connection to <paramref name="host"/>:<paramref name="port"/> opens within a second.</summary>
+    public static async Task<bool> CanConnectAsync(string host, int port, CancellationToken cancellationToken)
     {
         using var timeout = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
         timeout.CancelAfter(ConnectTimeout);
         try
         {
-            // Dual-stack and every resolved address: dev servers on "localhost" often listen on ::1 only.
-            using var socket = new Socket(SocketType.Stream, ProtocolType.Tcp);
-            await socket.ConnectAsync(new DnsEndPoint(host, port), timeout.Token);
+            using var socket = await ParallelConnect.ConnectAsync(host, port, timeout.Token);
             return true;
         }
         catch (Exception ex) when (ex is SocketException or OperationCanceledException)

@@ -106,6 +106,7 @@ public sealed class ProxyServer(ILoggerFactory loggerFactory) : IAsyncDisposable
             kestrel.AddServerHeader = false;
         });
         builder.Services.AddReverseProxy().LoadFromMemory(yarpRoutes, clusters);
+        builder.Services.AddSingleton<IForwarderHttpClientFactory, ProxyHttpClientFactory>();
 
         var app = builder.Build();
         app.MapReverseProxy(pipeline => pipeline.Use(WriteErrorPageAsync));

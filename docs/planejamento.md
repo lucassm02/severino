@@ -169,7 +169,7 @@ Qualquer hostname válido é aceito. O app checa o nome enquanto você digita (c
 O serviço auxiliar mantém um bloco delimitado e nunca toca no resto do arquivo:
 
 ```
-# >>> Severino: bloco gerenciado, não edite
+# >>> Severino managed block (do not edit)
 127.0.0.1  callfred.sev
 ::1        callfred.sev
 # <<< Severino
@@ -180,7 +180,7 @@ A cada sincronização, o serviço faz o seguinte:
 1. Lê o arquivo e substitui só o bloco, preservando quebras CRLF.
 2. Grava num arquivo temporário e troca com `File.Replace`, gerando `hosts.severino.bak`.
 3. Remove e restaura o atributo somente-leitura, se ele existir.
-4. Grava em ASCII sem BOM.
+4. O bloco é ASCII puro, sem BOM, por isso os marcadores ficam em inglês e sem acento. O resto do arquivo é preservado byte a byte, qualquer que seja a codificação.
 5. Chama `DnsFlushResolverCache`, que equivale ao `ipconfig /flushdns`.
 
 Domínios com acento viram punycode via `IdnMapping`. O serviço valida tudo por conta própria, sem confiar no app: sintaxe de hostname (rótulos e tamanho), nada de quebra de linha ou espaço, limite de entradas e IP sempre loopback. Não há restrição de sufixo.
