@@ -1,6 +1,6 @@
 # Spec: Fase 2, HTTPS
 
-**Status:** rascunho para revisão
+**Status:** aprovado em 2026-10-09, com os padrões das "Decisões a confirmar"
 **Base:** [planejamento.md](../planejamento.md), seção 4 ("Domínios" e "HTTPS") e seção 7. Segue o formato do [spec da Fase 1](fase-1-mvp-http.md). Divergências ficam em "Decisões a confirmar".
 
 ## Objetivo
