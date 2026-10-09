@@ -6,6 +6,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="coverlet.collector" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" />
     <PackageReference Include="xunit" />
@@ -20,6 +24,7 @@
     <ProjectReference Include="..\..\src\Severino.Core\Severino.Core.csproj" />
     <ProjectReference Include="..\..\src\Severino.Contracts\Severino.Contracts.csproj" />
     <ProjectReference Include="..\..\src\Severino.Helper\Severino.Helper.csproj" />
+    <ProjectReference Include="..\..\src\Severino.Proxy\Severino.Proxy.csproj" />
   </ItemGroup>
 
 </Project>

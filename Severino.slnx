@@ -4,6 +4,7 @@
     <Project Path="src/Severino.Contracts/Severino.Contracts.csproj" />
     <Project Path="src/Severino.Core/Severino.Core.csproj" />
     <Project Path="src/Severino.Helper/Severino.Helper.csproj" />
+    <Project Path="src/Severino.Proxy/Severino.Proxy.csproj" />
   </Folder>
   <Folder Name="/tests/">
     <Project Path="tests/Severino.Tests/Severino.Tests.csproj" />
