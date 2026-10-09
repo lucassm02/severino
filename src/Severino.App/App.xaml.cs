@@ -14,6 +14,8 @@ using Severino.Core.Domains;
 using Severino.Core.Helper;
 using Severino.Core.Routes;
 using Severino.Proxy;
+using Severino.Proxy.Certificates;
+using Severino.Core.Certificates;
 
 namespace Severino.App;
 
@@ -125,7 +127,14 @@ public partial class App : Application
         services.AddSingleton<HostsSync>();
         services.AddSingleton<IDnsResolver, WindowsDnsResolver>();
         services.AddSingleton<DomainInspector>();
-        services.AddSingleton<ProxyServer>();
+        services.AddSingleton(TimeProvider.System);
+        services.AddSingleton(_ => new CaStore(CaStore.DefaultDirectory));
+        services.AddSingleton<ITrustStore, WindowsTrustStore>();
+        services.AddSingleton<LocalCa>();
+        services.AddSingleton<TldDirectory>();
+        services.AddSingleton(sp => new ProxyServer(
+            sp.GetRequiredService<ILoggerFactory>(),
+            domain => sp.GetRequiredService<LocalCa>().CertificateFor(domain)));
         services.AddSingleton(_ => new HealthMonitor());
         services.AddSingleton<ProxyCoordinator>();
 
