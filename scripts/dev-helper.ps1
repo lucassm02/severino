@@ -45,7 +45,11 @@ function Remove-HelperService {
         Stop-Service $serviceName -Force
         $service.WaitForStatus('Stopped', [TimeSpan]::FromSeconds(15))
     }
-    Remove-Service $serviceName
+    # sc.exe instead of Remove-Service, which Windows PowerShell 5.1 does not have.
+    sc.exe delete $serviceName | Out-Null
+    for ($i = 0; $i -lt 50 -and (Get-Service $serviceName -ErrorAction SilentlyContinue); $i++) {
+        Start-Sleep -Milliseconds 100
+    }
 }
 
 switch ($Action) {

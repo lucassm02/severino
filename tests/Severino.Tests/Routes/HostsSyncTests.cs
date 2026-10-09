@@ -44,14 +44,32 @@ public sealed class HostsSyncTests : IDisposable
     }
 
     [Fact]
-    public async Task Skips_when_nothing_changed()
+    public async Task Only_pings_when_nothing_changed()
     {
         SetRoutes(Route("a.sev"));
         await _sync.SyncAsync();
 
         await _sync.SyncAsync();
 
-        Assert.Single(_helper.Requests);
+        Assert.Equal([HelperProtocol.SyncCommand, HelperProtocol.PingCommand], _helper.Requests.Select(r => r.Command));
+    }
+
+    [Fact]
+    public async Task Notices_the_helper_stopping_and_resyncs_when_it_returns()
+    {
+        SetRoutes(Route("a.sev"));
+        await _sync.SyncAsync();
+
+        _helper.Unavailable = true;
+        await _sync.SyncAsync();
+        Assert.Equal(HostsSyncState.HelperUnavailable, _sync.Status.State);
+
+        _helper.Unavailable = false;
+        await _sync.SyncAsync();
+
+        Assert.Equal(HostsSyncState.Synced, _sync.Status.State);
+        Assert.Equal(HelperProtocol.SyncCommand, _helper.Requests[^1].Command);
+        Assert.Equal(["a.sev"], _helper.Requests[^1].Domains);
     }
 
     [Fact]

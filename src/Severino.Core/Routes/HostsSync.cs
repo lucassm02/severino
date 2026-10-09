@@ -25,6 +25,7 @@ public sealed class HostsSync : IDisposable
 {
     private static readonly TimeSpan Debounce = TimeSpan.FromMilliseconds(300);
     private static readonly TimeSpan RetryInterval = TimeSpan.FromSeconds(10);
+    private static readonly TimeSpan HeartbeatInterval = TimeSpan.FromSeconds(15);
 
     private readonly ConfigService _config;
     private readonly IHelperClient _helper;
@@ -63,14 +64,22 @@ public sealed class HostsSync : IDisposable
                 return;
 
             var domains = RouteRules.ActiveDomains(_config.Current.Routes);
-            if (Status.State == HostsSyncState.Synced && _synced is not null && _synced.SequenceEqual(domains))
-                return;
+            var upToDate = Status.State == HostsSyncState.Synced && _synced is not null && _synced.SequenceEqual(domains);
 
-            var status = await SendAsync(domains, cancellationToken);
+            // Nothing to write: still ping, so a Helper that stopped shows up in the status bar.
+            var status = upToDate
+                ? await PingAsync(cancellationToken)
+                : await SendAsync(domains, cancellationToken);
+
             if (status.State == HostsSyncState.Synced)
+            {
                 _synced = domains;
+                _timer.Change(HeartbeatInterval, Timeout.InfiniteTimeSpan);
+            }
             else
+            {
                 _timer.Change(RetryInterval, Timeout.InfiniteTimeSpan);
+            }
             SetStatus(status);
         }
         finally
@@ -109,17 +118,27 @@ public sealed class HostsSync : IDisposable
         _timer.Change(Debounce, Timeout.InfiniteTimeSpan);
     }
 
+    private Task<HostsSyncStatus> PingAsync(CancellationToken cancellationToken) =>
+        RequestAsync(HelperRequest.Ping(), cancellationToken);
+
     private async Task<HostsSyncStatus> SendAsync(IReadOnlyList<string> domains, CancellationToken cancellationToken)
+    {
+        var status = await RequestAsync(HelperRequest.Sync(domains), cancellationToken);
+        if (status.State == HostsSyncState.Synced)
+            _logger.LogInformation("Hosts synced with {Count} domains", domains.Count);
+        return status;
+    }
+
+    private async Task<HostsSyncStatus> RequestAsync(HelperRequest request, CancellationToken cancellationToken)
     {
         try
         {
-            var response = await _helper.SendAsync(HelperRequest.Sync(domains), cancellationToken);
+            var response = await _helper.SendAsync(request, cancellationToken);
             if (response.ProtocolVersion != HelperProtocol.Version)
                 return new(HostsSyncState.Failed, $"O serviço auxiliar é de outra versão ({response.HelperVersion}). Reinstale o Severino.");
             if (!response.Ok)
                 return new(HostsSyncState.Failed, response.Error);
 
-            _logger.LogInformation("Hosts synced with {Count} domains", domains.Count);
             return new(HostsSyncState.Synced);
         }
         catch (HelperUnavailableException ex)
