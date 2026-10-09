@@ -13,7 +13,7 @@ public sealed record RouteErrors(string? Domain, string? Target)
 public static class RouteRules
 {
     /// <summary>Checks <paramref name="route"/> against the other routes; ignores the one with the same id.</summary>
-    public static RouteErrors Validate(RouteEntry route, IReadOnlyList<RouteEntry> routes, int proxyPort)
+    public static RouteErrors Validate(RouteEntry route, IReadOnlyList<RouteEntry> routes, int proxyPort, int? httpsPort = null)
     {
         string? domainError = null;
         if (!DomainName.TryNormalize(route.Domain, out var domain, out var reason))
@@ -24,7 +24,7 @@ public static class RouteRules
         string? targetError = null;
         if (!TryParseTarget(route.Target, out var target, out var targetReason))
             targetError = targetReason;
-        else if (IsLoop(target, domain, routes, proxyPort))
+        else if (IsLoop(target, domain, routes, proxyPort, httpsPort))
             targetError = "O destino aponta para o próprio Severino e criaria um loop.";
 
         return new RouteErrors(domainError, targetError);
@@ -55,12 +55,12 @@ public static class RouteRules
     }
 
     /// <summary>
-    /// True when the target would come back into the proxy: same port, and a host that resolves
+    /// True when the target would come back into the proxy: one of its ports, and a host that resolves
     /// to it (loopback, *.localhost, or any routed domain, which the hosts file sends to loopback).
     /// </summary>
-    public static bool IsLoop(Uri target, string? routeDomain, IReadOnlyList<RouteEntry> routes, int proxyPort)
+    public static bool IsLoop(Uri target, string? routeDomain, IReadOnlyList<RouteEntry> routes, int proxyPort, int? httpsPort = null)
     {
-        if (target.Port != proxyPort)
+        if (target.Port != proxyPort && target.Port != httpsPort)
             return false;
 
         var host = target.IdnHost.ToLowerInvariant();

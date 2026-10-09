@@ -9,11 +9,12 @@ public static class ErrorPages
     // Unicode passes through; only markup characters are escaped.
     private static readonly HtmlEncoder Html = HtmlEncoder.Create(UnicodeRanges.All);
 
-    public static string NotFound(string host, IEnumerable<string> domains, int port)
+    public static string NotFound(string host, IEnumerable<string> domains, string scheme, int port)
     {
+        var defaultPort = scheme == "https" ? 443 : 80;
         var links = domains.Select(d =>
         {
-            var url = port == 80 ? $"http://{d}/" : $"http://{d}:{port}/";
+            var url = port == defaultPort ? $"{scheme}://{d}/" : $"{scheme}://{d}:{port}/";
             return $"<li><a href=\"{Html.Encode(url)}\">{Html.Encode(d)}</a></li>";
         }).ToList();
 

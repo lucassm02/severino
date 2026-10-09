@@ -27,7 +27,7 @@ public sealed class ProxyServerTests : IAsyncLifetime
     public async Task InitializeAsync()
     {
         _backend = await StartBackendAsync();
-        _backendPort = new Uri(_backend.Services.GetRequiredService<IServer>().Features.Get<IServerAddressesFeature>()!.Addresses.First()).Port;
+        _backendPort = TestBackend.PortOf(_backend);
         _proxyPort = FreePort();
         _client = new HttpClient(Handler());
         await _proxy.StartAsync(_proxyPort, [Route("callfred.sev", $"http://127.0.0.1:{_backendPort}")]);
@@ -210,55 +210,7 @@ public sealed class ProxyServerTests : IAsyncLifetime
         await proxy.DisposeAsync();
     }
 
-    private static int FreePort()
-    {
-        var listener = new TcpListener(IPAddress.Loopback, 0);
-        listener.Start();
-        var port = ((IPEndPoint)listener.LocalEndpoint).Port;
-        listener.Stop();
-        return port;
-    }
+    private static int FreePort() => TestBackend.FreePort();
 
-    private static async Task<WebApplication> StartBackendAsync()
-    {
-        var builder = WebApplication.CreateSlimBuilder();
-        builder.Logging.ClearProviders();
-        builder.WebHost.ConfigureKestrel(k =>
-        {
-            k.Listen(IPAddress.Loopback, 0);
-            k.Limits.MaxRequestBodySize = null;
-        });
-        var app = builder.Build();
-        app.UseWebSockets();
-
-        app.MapGet("/echo", (HttpRequest r) => string.Join('\n',
-            $"host={r.Host}",
-            $"x-forwarded-host={r.Headers["X-Forwarded-Host"]}",
-            $"x-forwarded-proto={r.Headers["X-Forwarded-Proto"]}",
-            $"x-forwarded-for={r.Headers["X-Forwarded-For"]}"));
-
-        app.MapPost("/size", async (HttpRequest r) =>
-        {
-            long total = 0;
-            var buffer = new byte[81920];
-            int read;
-            while ((read = await r.Body.ReadAsync(buffer)) > 0)
-                total += read;
-            return total.ToString();
-        });
-
-        app.Map("/ws", async (HttpContext context) =>
-        {
-            using var ws = await context.WebSockets.AcceptWebSocketAsync();
-            var buffer = new byte[64];
-            var received = await ws.ReceiveAsync(buffer, CancellationToken.None);
-            var reply = Encoding.UTF8.GetBytes("eco: " + Encoding.UTF8.GetString(buffer, 0, received.Count));
-            await ws.SendAsync(reply, WebSocketMessageType.Text, true, CancellationToken.None);
-            await ws.ReceiveAsync(buffer, CancellationToken.None);
-            await ws.CloseOutputAsync(WebSocketCloseStatus.NormalClosure, null, CancellationToken.None);
-        });
-
-        await app.StartAsync();
-        return app;
-    }
+    private static Task<WebApplication> StartBackendAsync() => TestBackend.StartAsync();
 }

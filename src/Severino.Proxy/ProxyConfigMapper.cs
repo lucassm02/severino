@@ -15,14 +15,14 @@ public static class ProxyConfigMapper
     public static readonly TimeSpan ActivityTimeout = TimeSpan.FromMinutes(10);
 
     /// <summary>Enabled routes only; invalid ones and ones that would loop back into the proxy are skipped.</summary>
-    public static (IReadOnlyList<RouteConfig> Routes, IReadOnlyList<ClusterConfig> Clusters) Map(IReadOnlyList<RouteEntry> routes, int proxyPort)
+    public static (IReadOnlyList<RouteConfig> Routes, IReadOnlyList<ClusterConfig> Clusters) Map(IReadOnlyList<RouteEntry> routes, int proxyPort, int? httpsPort = null)
     {
         var yarpRoutes = new List<RouteConfig>();
         var clusters = new List<ClusterConfig>();
 
         foreach (var route in routes.Where(r => r.Enabled))
         {
-            if (!RouteRules.Validate(route, routes, proxyPort).IsValid || !RouteRules.TryParseTarget(route.Target, out var target, out _))
+            if (!RouteRules.Validate(route, routes, proxyPort, httpsPort).IsValid || !RouteRules.TryParseTarget(route.Target, out var target, out _))
                 continue;
 
             var domain = RouteRules.Normalize(route.Domain)!;

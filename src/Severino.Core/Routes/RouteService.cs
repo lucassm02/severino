@@ -8,7 +8,7 @@ public sealed class RouteService(ConfigService config)
     public IReadOnlyList<RouteEntry> Routes => config.Current.Routes;
 
     public RouteErrors Validate(RouteEntry route) =>
-        RouteRules.Validate(route, Routes, config.Current.Settings.HttpPort);
+        RouteRules.Validate(route, Routes, config.Current.Settings.HttpPort, config.Current.Settings.HttpsPort);
 
     /// <summary>Adds the route, or replaces the one with the same id. Domain is stored normalized.</summary>
     /// <exception cref="ArgumentException">The route does not pass <see cref="Validate"/>.</exception>
