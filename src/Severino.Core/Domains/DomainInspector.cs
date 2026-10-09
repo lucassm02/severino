@@ -26,15 +26,18 @@ public sealed class DomainInspector(IDnsResolver dns)
         "mov", "new", "nexus", "page", "phd", "play", "prof", "rsvp", "search", "youtube", "zip",
     };
 
+    /// <summary>True when browsers only open <paramref name="domain"/> over HTTPS. Must be normalized.</summary>
+    public static bool IsHstsPreloaded(string domain) => HstsPreloadedTlds.Contains(Tld(domain));
+
     /// <summary>Warnings that need no network. <paramref name="domain"/> must be normalized.</summary>
     public IReadOnlyList<DomainWarning> CheckLocal(string domain)
     {
-        var tld = domain[(domain.LastIndexOf('.') + 1)..];
+        var tld = Tld(domain);
         var warnings = new List<DomainWarning>();
 
         if (HstsPreloadedTlds.Contains(tld))
             warnings.Add(new(DomainWarningKind.HstsPreload,
-                $"Domínios .{tld} só abrem com HTTPS nos navegadores (HSTS preload). Esta rota vai funcionar quando o HTTPS chegar ao Severino."));
+                $"Domínios .{tld} só abrem com HTTPS nos navegadores (HSTS preload). Ative o HTTPS em Configurações para usar esta rota."));
 
         if (tld == "local")
             warnings.Add(new(DomainWarningKind.Mdns,
@@ -42,6 +45,8 @@ public sealed class DomainInspector(IDnsResolver dns)
 
         return warnings;
     }
+
+    private static string Tld(string domain) => domain[(domain.LastIndexOf('.') + 1)..];
 
     /// <summary>Asks the public DNS whether the name already exists. <paramref name="domain"/> must be normalized.</summary>
     public async Task<DomainWarning?> CheckInternetAsync(string domain, CancellationToken cancellationToken)

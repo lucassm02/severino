@@ -142,6 +142,8 @@ public partial class App : Application
         services.AddSingleton<ShellService>();
         services.AddSingleton<TrayService>();
         services.AddSingleton<DialogService>();
+        services.AddSingleton<HttpsService>();
+        services.AddSingleton<Navigation>();
 
         services.AddSingleton<MainWindow>();
         services.AddSingleton<MainWindowViewModel>();

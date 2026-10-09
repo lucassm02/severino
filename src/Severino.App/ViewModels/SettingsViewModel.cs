@@ -1,9 +1,12 @@
 using System.Diagnostics;
+using System.Globalization;
 using System.IO;
+using System.Windows;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Severino.App.Services;
 using Severino.Core.Configuration;
+using Severino.Proxy.Certificates;
 
 namespace Severino.App.ViewModels;
 
@@ -17,16 +20,23 @@ public sealed partial class SettingsViewModel : ObservableObject
 {
     private readonly ConfigService _config;
     private readonly ThemeService _themes;
+    private readonly HttpsService _https;
 
-    public SettingsViewModel(ConfigService config, ThemeService themes)
+    public SettingsViewModel(ConfigService config, ThemeService themes, HttpsService https)
     {
         _config = config;
         _themes = themes;
+        _https = https;
 
         var settings = config.Current.Settings;
         Theme = settings.Theme;
         StartMinimized = settings.StartMinimized;
         HttpPort = settings.HttpPort.ToString();
+        HttpsPort = settings.HttpsPort.ToString();
+
+        RefreshHttps();
+        https.Changed += (_, _) => Dispatch(RefreshHttps);
+        config.Changed += (_, _) => Dispatch(RefreshHttps);
     }
 
     public IReadOnlyList<ThemeOption> Themes { get; } =
@@ -69,14 +79,188 @@ public sealed partial class SettingsViewModel : ObservableObject
     [RelayCommand]
     private void ApplyHttpPort()
     {
-        if (!int.TryParse(HttpPort?.Trim(), out var port) || port is < 1 or > 65535)
-        {
-            HttpPortError = "Use um número de 1 a 65535.";
+        HttpPortError = ParsePort(HttpPort, _config.Current.Settings.HttpsPort, out var port);
+        if (HttpPortError is not null)
             return;
-        }
         HttpPort = port.ToString();
         _config.Update(c => c with { Settings = c.Settings with { HttpPort = port } });
     }
+
+    [ObservableProperty]
+    public partial string HttpsPort { get; set; }
+
+    [ObservableProperty]
+    public partial string? HttpsPortError { get; set; }
+
+    partial void OnHttpsPortChanged(string value) => HttpsPortError = null;
+
+    [RelayCommand]
+    private void ApplyHttpsPort()
+    {
+        HttpsPortError = ParsePort(HttpsPort, _config.Current.Settings.HttpPort, out var port);
+        if (HttpsPortError is not null)
+            return;
+        HttpsPort = port.ToString();
+        _config.Update(c => c with { Settings = c.Settings with { HttpsPort = port } });
+    }
+
+    private static string? ParsePort(string? text, int otherPort, out int port)
+    {
+        if (!int.TryParse(text?.Trim(), out port) || port is < 1 or > 65535)
+            return "Use um número de 1 a 65535.";
+        if (port == otherPort)
+            return "HTTP e HTTPS precisam de portas diferentes.";
+        return null;
+    }
+
+    // HTTPS
+
+    [ObservableProperty]
+    [NotifyCanExecuteChangedFor(nameof(ActivateHttpsCommand), nameof(ReissueHttpsCommand), nameof(RemoveHttpsCommand), nameof(ExportCaCommand))]
+    public partial bool HttpsActive { get; set; }
+
+    /// <summary>The CA exists but cannot be used: untrusted by Windows or unreadable.</summary>
+    [ObservableProperty]
+    [NotifyCanExecuteChangedFor(nameof(ActivateHttpsCommand), nameof(RemoveHttpsCommand))]
+    public partial bool HttpsBroken { get; set; }
+
+    [ObservableProperty]
+    [NotifyCanExecuteChangedFor(nameof(ActivateHttpsCommand))]
+    public partial bool HasRoutes { get; set; }
+
+    [ObservableProperty]
+    [NotifyCanExecuteChangedFor(nameof(ActivateHttpsCommand), nameof(ReissueHttpsCommand), nameof(RemoveHttpsCommand), nameof(ExportCaCommand))]
+    public partial bool HttpsBusy { get; set; }
+
+    [ObservableProperty]
+    public partial string HttpsStateText { get; set; } = "";
+
+    /// <summary>"Cobre: .sev, api.empresa.com"; empty while inactive.</summary>
+    [ObservableProperty]
+    public partial string CoverageText { get; set; } = "";
+
+    /// <summary>HTTPS routes the CA does not cover yet; reissuing fixes it.</summary>
+    [ObservableProperty]
+    public partial string? UncoveredText { get; set; }
+
+    /// <summary>The outcome of the last action, shown until the next one.</summary>
+    [ObservableProperty]
+    public partial string? HttpsMessage { get; set; }
+
+    /// <summary>The command that makes Node trust the exported CA.</summary>
+    [ObservableProperty]
+    public partial string? NodeCommand { get; set; }
+
+    /// <summary>Why "Ativar HTTPS" is disabled, when it is because there are no routes.</summary>
+    public string? ActivateHint => HasRoutes || HttpsActive ? null : "Crie uma rota primeiro: a CA só vale para os domínios cadastrados.";
+
+    partial void OnHasRoutesChanged(bool value) => OnPropertyChanged(nameof(ActivateHint));
+    partial void OnHttpsActiveChanged(bool value) => OnPropertyChanged(nameof(ActivateHint));
+
+    private bool CanActivate() => HasRoutes && !HttpsActive && !HttpsBusy;
+    private bool CanUseCa() => HttpsActive && !HttpsBusy;
+    private bool CanRemove() => (HttpsActive || HttpsBroken) && !HttpsBusy;
+
+    [RelayCommand(CanExecute = nameof(CanActivate))]
+    private Task ActivateHttpsAsync() => RunAsync(async () => HttpsMessage = Describe(await _https.ActivateAsync(),
+        done: "HTTPS ativo. As rotas abrem com https://, e o http:// continua funcionando."));
+
+    [RelayCommand(CanExecute = nameof(CanUseCa))]
+    private Task ReissueHttpsAsync() => RunAsync(async () => HttpsMessage = Describe(await _https.ReissueAsync(),
+        done: "CA reemitida. Os certificados das rotas são refeitos no próximo acesso."));
+
+    [RelayCommand(CanExecute = nameof(CanRemove))]
+    private Task RemoveHttpsAsync()
+    {
+        if (!DialogService.Confirm("Remover CA",
+                "O HTTPS para de responder e as chaves da CA são apagadas. O Windows pode pedir confirmação para tirar a CA da lista de confiáveis.\n\nRemover a CA?"))
+            return Task.CompletedTask;
+        return RunAsync(async () =>
+        {
+            NodeCommand = null;
+            HttpsMessage = await _https.RemoveAsync()
+                ? "CA removida."
+                : "As chaves foram apagadas, mas a CA ficou na lista de confiáveis do Windows porque o pedido foi recusado. Sem a chave, ela não assina mais nada.";
+        });
+    }
+
+    [RelayCommand(CanExecute = nameof(CanUseCa))]
+    private void ExportCa()
+    {
+        var path = DialogService.PickSavePath("severino-ca.pem", "Certificado PEM (*.pem)|*.pem");
+        if (path is null)
+            return;
+        try
+        {
+            _https.ExportPem(path);
+            NodeCommand = $"setx NODE_EXTRA_CA_CERTS \"{path}\"";
+            HttpsMessage = null;
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+        {
+            HttpsMessage = $"Não deu para gravar o arquivo: {ex.Message}";
+        }
+    }
+
+    [RelayCommand]
+    private void CopyNodeCommand()
+    {
+        if (NodeCommand is not null)
+            Clipboard.SetText(NodeCommand);
+    }
+
+    private async Task RunAsync(Func<Task> action)
+    {
+        HttpsBusy = true;
+        HttpsMessage = null;
+        try
+        {
+            await action();
+        }
+        catch (Exception ex)
+        {
+            HttpsMessage = $"Algo deu errado: {ex.Message}";
+        }
+        finally
+        {
+            HttpsBusy = false;
+        }
+    }
+
+    private static string Describe(HttpsActionResult result, string done) => result switch
+    {
+        HttpsActionResult.Done => done,
+        HttpsActionResult.DoneOldRootKept => done + " A CA antiga ficou na lista de confiáveis do Windows, mas sem a chave ela não assina mais nada.",
+        HttpsActionResult.Declined => "O Windows não instalou a CA, então nada mudou.",
+        _ => "Crie uma rota primeiro.",
+    };
+
+    private void RefreshHttps()
+    {
+        var status = _https.Status;
+        HasRoutes = _config.Current.Routes.Count > 0;
+        HttpsActive = status.State == LocalCaState.Active;
+        HttpsBroken = status.State is LocalCaState.NotTrusted or LocalCaState.Unreadable;
+        HttpsStateText = status.State switch
+        {
+            LocalCaState.Active => $"Ativo. A CA vale até {status.NotAfter?.LocalDateTime.ToString("d", CultureInfo.CurrentCulture)}.",
+            LocalCaState.NotTrusted => "O Windows não confia mais na CA: ela saiu da lista de confiáveis. Ative de novo ou remova.",
+            LocalCaState.Unreadable => "Não foi possível ler a CA, talvez criada por outro usuário do Windows. Ative de novo ou remova.",
+            _ => "Desativado. As rotas abrem só por http://.",
+        };
+        CoverageText = HttpsActive
+            ? "Cobre: " + string.Join(", ", status.Names.Select(n => n.Contains('.') ? n : "qualquer nome ." + n))
+            : "";
+        var uncovered = _https.Uncovered();
+        UncoveredText = uncovered.Count switch
+        {
+            0 => null,
+            1 => $"{uncovered[0]} está fora da CA e fica sem HTTPS até reemitir.",
+            _ => $"{string.Join(", ", uncovered)} estão fora da CA e ficam sem HTTPS até reemitir.",
+        };
+    }
+
+    private static void Dispatch(Action action) => Application.Current?.Dispatcher.BeginInvoke(action);
 
     [RelayCommand]
     private void OpenConfigFolder()

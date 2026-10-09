@@ -84,6 +84,34 @@
                 Text="{Binding PortWarning}"
                 Visibility="{Binding PortWarning, Converter={StaticResource NullToCollapsed}}" />
 
+            <ui:TextBlock Margin="0,16,0,6" Style="{StaticResource FieldLabel}" Text="HTTPS" />
+            <CheckBox Content="HTTPS" IsChecked="{Binding Https}" IsEnabled="{Binding CanToggleHttps}" />
+            <CheckBox Content="Redirecionar HTTP→HTTPS" IsChecked="{Binding RedirectToHttps}" IsEnabled="{Binding CanToggleRedirect}" />
+            <ui:TextBlock
+                Margin="0,4,0,0"
+                Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                FontTypography="Caption"
+                TextWrapping="Wrap"
+                Text="{Binding HttpsRequiredText}"
+                Visibility="{Binding HttpsRequiredText, Converter={StaticResource NullToCollapsed}}" />
+            <TextBlock
+                Margin="0,4,0,0"
+                FontSize="12"
+                TextWrapping="Wrap"
+                Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                Visibility="{Binding HttpsAvailable, Converter={StaticResource FalseToVisible}}">
+                <Run Text="O HTTPS está desativado." />
+                <Hyperlink Foreground="{DynamicResource AccentTextFillColorPrimaryBrush}" Command="{Binding OpenHttpsSettingsCommand}">Ativar em Configurações</Hyperlink>
+            </TextBlock>
+            <ui:InfoBar
+                Margin="0,8,0,0"
+                IsOpen="True"
+                IsClosable="False"
+                Severity="Warning"
+                Message="{Binding CoverageWarning}"
+                Visibility="{Binding CoverageWarning, Converter={StaticResource NullToCollapsed}}"
+                AutomationProperties.LiveSetting="Polite" />
+
             <Expander Margin="0,16,0,0" Header="Avançado" IsExpanded="{Binding ShowAdvanced}">
                 <StackPanel Margin="0,8,0,0">
                     <CheckBox Content="Preservar o Host original" IsChecked="{Binding PreserveHost}" />

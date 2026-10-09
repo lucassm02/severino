@@ -11,6 +11,15 @@ public enum RouteHealthState
     Disabled,
 }
 
+public enum RouteHttpsState
+{
+    /// <summary>HTTPS off for the route, or the local CA is not active.</summary>
+    Off,
+    On,
+    /// <summary>HTTPS on, but the CA cannot sign for the domain until it is reissued.</summary>
+    Uncovered,
+}
+
 /// <summary>One row of the route list.</summary>
 public sealed partial class RouteItemViewModel : ObservableObject
 {
@@ -30,6 +39,18 @@ public sealed partial class RouteItemViewModel : ObservableObject
     public string TargetDisplay => Uri.TryCreate(Route.Target, UriKind.Absolute, out var uri)
         ? (uri.Scheme == Uri.UriSchemeHttps ? "https://" : "") + uri.Authority
         : Route.Target;
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(HasHttpsBadge), nameof(HttpsBadgeText), nameof(HttpsBadgeTooltip))]
+    public partial RouteHttpsState HttpsState { get; set; }
+
+    public bool HasHttpsBadge => HttpsState != RouteHttpsState.Off;
+
+    public string HttpsBadgeText => HttpsState == RouteHttpsState.Uncovered ? "https ⚠" : "https";
+
+    public string HttpsBadgeTooltip => HttpsState == RouteHttpsState.Uncovered
+        ? "Fora da CA: reemita em Configurações › HTTPS"
+        : Route.RedirectToHttps ? "HTTPS, com http:// redirecionando" : "HTTPS, e http:// também atende";
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(HealthText))]

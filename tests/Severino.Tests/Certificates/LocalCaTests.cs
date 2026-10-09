@@ -171,26 +171,6 @@ public sealed class LocalCaTests : IDisposable
         Assert.Equal(_trust.Roots.Single(), X509Certificate2.CreateFromPem(pem).Thumbprint);
     }
 
-    private sealed class FakeTrustStore : ITrustStore
-    {
-        public List<string> Roots { get; } = [];
-        public bool Decline { get; set; }
-        public bool DeclineRemoval { get; set; }
-
-        public bool Contains(string thumbprint) => Roots.Contains(thumbprint);
-
-        public bool Add(X509Certificate2 root)
-        {
-            if (Decline)
-                return false;
-            Assert.False(root.HasPrivateKey);
-            Roots.Add(root.Thumbprint);
-            return true;
-        }
-
-        public bool Remove(string thumbprint) => !DeclineRemoval && Roots.Remove(thumbprint);
-    }
-
     private sealed class MovableTime(DateTimeOffset now) : TimeProvider
     {
         public DateTimeOffset Now { get; set; } = now;

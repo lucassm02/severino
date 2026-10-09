@@ -70,6 +70,17 @@
             <ui:TextBlock
                 VerticalAlignment="Center"
                 Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                Text="{Binding HttpsText}"
+                Visibility="{Binding HttpsHasProblem, Converter={StaticResource FalseToVisible}}" />
+            <ui:Button
+                Style="{StaticResource StatusLink}"
+                Content="{Binding HttpsText}"
+                Command="{Binding FixHttpsCommand}"
+                Visibility="{Binding HttpsHasProblem, Converter={StaticResource TrueToVisible}}" />
+            <ui:TextBlock Margin="8,0" VerticalAlignment="Center" Foreground="{DynamicResource TextFillColorSecondaryBrush}" Text="·" />
+            <ui:TextBlock
+                VerticalAlignment="Center"
+                Foreground="{DynamicResource TextFillColorSecondaryBrush}"
                 Text="{Binding HostsText}"
                 Visibility="{Binding HostsHasProblem, Converter={StaticResource FalseToVisible}}" />
             <ui:Button

@@ -105,6 +105,30 @@
                                             ToolTip="Abrir no navegador">
                                             <Run Text="{Binding Domain, Mode=OneWay}" />
                                         </Hyperlink>
+                                        <InlineUIContainer BaselineAlignment="Center">
+                                            <Border
+                                                Margin="8,0,0,0"
+                                                Padding="6,0,6,1"
+                                                CornerRadius="4"
+                                                BorderThickness="1"
+                                                BorderBrush="{DynamicResource ControlStrokeColorDefaultBrush}"
+                                                ToolTip="{Binding HttpsBadgeTooltip}"
+                                                AutomationProperties.Name="{Binding HttpsBadgeTooltip}"
+                                                Visibility="{Binding HasHttpsBadge, Converter={StaticResource TrueToVisible}}">
+                                                <TextBlock FontSize="11" FontWeight="Normal" Text="{Binding HttpsBadgeText}">
+                                                    <TextBlock.Style>
+                                                        <Style TargetType="TextBlock">
+                                                            <Setter Property="Foreground" Value="{DynamicResource SystemFillColorSuccessBrush}" />
+                                                            <Style.Triggers>
+                                                                <DataTrigger Binding="{Binding HttpsState}" Value="Uncovered">
+                                                                    <Setter Property="Foreground" Value="{DynamicResource SystemFillColorCautionBrush}" />
+                                                                </DataTrigger>
+                                                            </Style.Triggers>
+                                                        </Style>
+                                                    </TextBlock.Style>
+                                                </TextBlock>
+                                            </Border>
+                                        </InlineUIContainer>
                                     </TextBlock>
                                     <ui:TextBlock
                                         Foreground="{DynamicResource TextFillColorSecondaryBrush}"

@@ -36,6 +36,115 @@
                 </StackPanel>
             </ui:CardControl>
 
+            <ui:TextBlock Margin="0,16,0,8" FontTypography="BodyStrong" Text="HTTPS" />
+            <ui:Card Margin="0,0,0,4" Padding="16">
+                <StackPanel>
+                    <DockPanel>
+                        <ui:SymbolIcon DockPanel.Dock="Left" Margin="0,2,16,0" VerticalAlignment="Top" FontSize="24" Symbol="LockClosed24" />
+                        <StackPanel DockPanel.Dock="Right" Margin="16,0,0,0" VerticalAlignment="Top" Orientation="Horizontal">
+                            <ui:ProgressRing
+                                Width="20"
+                                Height="20"
+                                Margin="0,0,12,0"
+                                IsIndeterminate="True"
+                                Visibility="{Binding HttpsBusy, Converter={StaticResource TrueToVisible}}" />
+                            <ui:Button
+                                Appearance="Primary"
+                                Content="Ativar HTTPS"
+                                Command="{Binding ActivateHttpsCommand}"
+                                Visibility="{Binding HttpsActive, Converter={StaticResource FalseToVisible}}" />
+                            <ui:Button
+                                Content="Exportar CA (PEM)"
+                                Command="{Binding ExportCaCommand}"
+                                Visibility="{Binding HttpsActive, Converter={StaticResource TrueToVisible}}" />
+                        </StackPanel>
+                        <StackPanel>
+                            <ui:TextBlock Text="Certificados locais" />
+                            <ui:TextBlock Foreground="{DynamicResource TextFillColorSecondaryBrush}" FontTypography="Caption" TextWrapping="Wrap" Text="{Binding HttpsStateText}" />
+                            <ui:TextBlock
+                                Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                                FontTypography="Caption"
+                                TextWrapping="Wrap"
+                                Text="{Binding CoverageText}"
+                                Visibility="{Binding CoverageText, Converter={StaticResource NullToCollapsed}}" />
+                            <ui:TextBlock
+                                Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                                FontTypography="Caption"
+                                TextWrapping="Wrap"
+                                Text="{Binding ActivateHint}"
+                                Visibility="{Binding ActivateHint, Converter={StaticResource NullToCollapsed}}" />
+                        </StackPanel>
+                    </DockPanel>
+
+                    <ui:InfoBar
+                        Margin="0,12,0,0"
+                        IsOpen="True"
+                        IsClosable="False"
+                        Severity="Warning"
+                        Message="{Binding UncoveredText}"
+                        Visibility="{Binding UncoveredText, Converter={StaticResource NullToCollapsed}}"
+                        AutomationProperties.LiveSetting="Polite" />
+                    <ui:InfoBar
+                        Margin="0,12,0,0"
+                        IsOpen="True"
+                        IsClosable="False"
+                        Severity="Informational"
+                        Message="{Binding HttpsMessage}"
+                        Visibility="{Binding HttpsMessage, Converter={StaticResource NullToCollapsed}}"
+                        AutomationProperties.LiveSetting="Polite" />
+
+                    <StackPanel Margin="40,12,0,0" Visibility="{Binding NodeCommand, Converter={StaticResource NullToCollapsed}}">
+                        <ui:TextBlock FontTypography="Caption" TextWrapping="Wrap" Text="Para o Node.js confiar na CA, rode uma vez e abra um terminal novo:" />
+                        <DockPanel Margin="0,6,0,0">
+                            <ui:Button DockPanel.Dock="Right" Margin="8,0,0,0" Icon="{ui:SymbolIcon Copy24}" Content="Copiar" Command="{Binding CopyNodeCommandCommand}" />
+                            <ui:TextBox IsReadOnly="True" FontFamily="Cascadia Mono, Consolas" Text="{Binding NodeCommand, Mode=OneWay}" AutomationProperties.Name="Comando do Node.js" />
+                        </DockPanel>
+                    </StackPanel>
+
+                    <StackPanel Margin="40,12,0,0" Orientation="Horizontal" Visibility="{Binding HttpsActive, Converter={StaticResource TrueToVisible}}">
+                        <ui:Button Content="Reemitir" Command="{Binding ReissueHttpsCommand}" ToolTip="Cria uma CA nova para os domínios das rotas com HTTPS de hoje" />
+                        <ui:Button Margin="8,0,0,0" Content="Remover CA" Command="{Binding RemoveHttpsCommand}" />
+                    </StackPanel>
+                    <ui:Button
+                        Margin="40,12,0,0"
+                        HorizontalAlignment="Left"
+                        Content="Remover CA"
+                        Command="{Binding RemoveHttpsCommand}"
+                        Visibility="{Binding HttpsBroken, Converter={StaticResource TrueToVisible}}" />
+
+                    <ui:TextBlock
+                        Margin="40,12,0,0"
+                        Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                        FontTypography="Caption"
+                        TextWrapping="Wrap"
+                        Text="Ao ativar, o Windows pede para confirmar a instalação da CA. Ela só assina os domínios das rotas. O Firefox usa a própria lista de CAs: ligue security.enterprise_roots.enabled em about:config para ele confiar nesta." />
+                </StackPanel>
+            </ui:Card>
+            <ui:CardControl Margin="0,0,0,4" Icon="{ui:SymbolIcon PlugConnected24}">
+                <ui:CardControl.Header>
+                    <StackPanel>
+                        <ui:TextBlock Text="Porta HTTPS do proxy" />
+                        <ui:TextBlock Foreground="{DynamicResource TextFillColorSecondaryBrush}" FontTypography="Caption" Text="Fora da 443, as URLs https:// passam a levar a porta" />
+                        <ui:TextBlock
+                            FontTypography="Caption"
+                            Foreground="{DynamicResource SystemFillColorCriticalBrush}"
+                            Text="{Binding HttpsPortError}"
+                            Visibility="{Binding HttpsPortError, Converter={StaticResource NullToCollapsed}}" />
+                    </StackPanel>
+                </ui:CardControl.Header>
+                <StackPanel Orientation="Horizontal">
+                    <ui:TextBox
+                        Width="96"
+                        Text="{Binding HttpsPort, UpdateSourceTrigger=PropertyChanged}"
+                        AutomationProperties.Name="Porta HTTPS">
+                        <ui:TextBox.InputBindings>
+                            <KeyBinding Key="Enter" Command="{Binding ApplyHttpsPortCommand}" />
+                        </ui:TextBox.InputBindings>
+                    </ui:TextBox>
+                    <ui:Button Margin="8,0,0,0" Content="Aplicar" Command="{Binding ApplyHttpsPortCommand}" />
+                </StackPanel>
+            </ui:CardControl>
+
             <ui:TextBlock Margin="0,16,0,8" FontTypography="BodyStrong" Text="Aparência" />
             <ui:CardControl Margin="0,0,0,4" Icon="{ui:SymbolIcon DarkTheme24}">
                 <ui:CardControl.Header>

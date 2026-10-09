@@ -18,21 +18,24 @@ public sealed partial class RoutesViewModel : ObservableObject
     private readonly ConfigService _config;
     private readonly HealthMonitor _health;
     private readonly DialogService _dialogs;
+    private readonly HttpsService _https;
     private readonly DispatcherTimer _undoTimer;
     private RemovedRoute? _removed;
 
-    public RoutesViewModel(RouteService routes, ConfigService config, HealthMonitor health, DialogService dialogs)
+    public RoutesViewModel(RouteService routes, ConfigService config, HealthMonitor health, DialogService dialogs, HttpsService https)
     {
         _routes = routes;
         _config = config;
         _health = health;
         _dialogs = dialogs;
+        _https = https;
         _undoTimer = new DispatcherTimer { Interval = UndoWindow };
         _undoTimer.Tick += (_, _) => DismissUndo();
 
         Reconcile(config.Current.Routes);
         config.Changed += (_, c) => Dispatch(() => Reconcile(c.Routes));
         health.Changed += (_, h) => Dispatch(() => ApplyHealth(h.RouteId));
+        https.Changed += (_, _) => Dispatch(() => Reconcile(_config.Current.Routes));
     }
 
     public ObservableCollection<RouteItemViewModel> Items { get; } = [];
@@ -59,19 +62,59 @@ public sealed partial class RoutesViewModel : ObservableObject
     partial void OnSearchChanged(string value) => Reconcile(_config.Current.Routes, force: true);
 
     [RelayCommand]
-    private void NewRoute()
+    private async Task NewRouteAsync()
     {
         var saved = _dialogs.EditRoute(null);
-        if (saved is not null)
+        if (saved is not null && !await OfferReissueAsync(saved))
             ShowToast($"{saved.Domain} pronto");
     }
 
     [RelayCommand]
-    private void Edit(RouteItemViewModel item) => _dialogs.EditRoute(item.Route);
+    private async Task EditAsync(RouteItemViewModel item)
+    {
+        if (_dialogs.EditRoute(item.Route) is { } saved)
+            await OfferReissueAsync(saved);
+    }
 
     [RelayCommand]
-    private void Duplicate(RouteItemViewModel item) =>
-        _dialogs.EditRoute(item.Route with { Id = Guid.NewGuid(), Domain = "" }, isCopy: true);
+    private async Task DuplicateAsync(RouteItemViewModel item)
+    {
+        if (_dialogs.EditRoute(item.Route with { Id = Guid.NewGuid(), Domain = "" }, isCopy: true) is { } saved)
+            await OfferReissueAsync(saved);
+    }
+
+    /// <summary>
+    /// A saved HTTPS route outside the CA's coverage needs a new CA. Returns true when it asked,
+    /// so the caller does not toast over the answer.
+    /// </summary>
+    private async Task<bool> OfferReissueAsync(RouteEntry saved)
+    {
+        if (!saved.Https || !_https.IsActive || _https.Covers(saved.Domain))
+            return false;
+
+        if (!DialogService.Confirm("Reemitir a CA",
+                $"A CA atual não cobre {saved.Domain}, então esta rota fica sem HTTPS.\n\n" +
+                "Reemitir cria uma CA nova para todas as rotas com HTTPS. O Windows pede para confirmar a instalação da nova " +
+                "e pode pedir para remover a antiga.\n\nReemitir agora?"))
+        {
+            ShowToast($"{saved.Domain} fica sem HTTPS até reemitir em Configurações.");
+            return true;
+        }
+
+        try
+        {
+            ShowToast((await _https.ReissueAsync()) switch
+            {
+                HttpsActionResult.Done or HttpsActionResult.DoneOldRootKept => $"CA reemitida. {saved.Domain} já abre com https://",
+                _ => $"O Windows não instalou a CA nova. {saved.Domain} fica sem HTTPS até reemitir.",
+            });
+        }
+        catch (Exception ex)
+        {
+            ShowToast($"Não deu para reemitir a CA: {ex.Message}");
+        }
+        return true;
+    }
 
     [RelayCommand]
     private void Open(RouteItemViewModel item) => Browser.Open(Url(item));
@@ -102,7 +145,11 @@ public sealed partial class RoutesViewModel : ObservableObject
         DismissUndo();
     }
 
-    private string Url(RouteItemViewModel item) => Browser.UrlFor(item.Domain, _config.Current.Settings.HttpPort);
+    private string Url(RouteItemViewModel item)
+    {
+        var settings = _config.Current.Settings;
+        return Browser.UrlFor(item.Domain, settings.HttpPort, item.HttpsState == RouteHttpsState.On ? settings.HttpsPort : null);
+    }
 
     private void DismissUndo()
     {
@@ -142,7 +189,12 @@ public sealed partial class RoutesViewModel : ObservableObject
         }
 
         foreach (var item in Items)
+        {
             ApplyHealth(item.Id);
+            item.HttpsState = !item.Route.Https || !_https.IsActive ? RouteHttpsState.Off
+                : _https.Covers(item.Domain) ? RouteHttpsState.On
+                : RouteHttpsState.Uncovered;
+        }
     }
 
     private void ApplyHealth(Guid routeId)

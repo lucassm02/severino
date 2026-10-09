@@ -1,6 +1,7 @@
 using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using Severino.App.Services;
 using Severino.Contracts;
 using Severino.Core.Configuration;
 using Severino.Core.Domains;
@@ -18,18 +19,30 @@ public sealed partial class RouteEditorViewModel : ObservableObject
 
     private readonly RouteService _routes;
     private readonly DomainInspector _inspector;
+    private readonly HttpsService _https;
+    private readonly Navigation _navigation;
     private readonly RouteEntry _original;
     private CancellationTokenSource? _domainCheck;
     private CancellationTokenSource? _portCheck;
     private Task _pendingDomainCheck = Task.CompletedTask;
     private string? _confirmedExistingDomain;
 
-    public RouteEditorViewModel(RouteService routes, DomainInspector inspector, RouteEntry? existing, bool isCopy)
+    public RouteEditorViewModel(RouteService routes, DomainInspector inspector, HttpsService https, Navigation navigation, RouteEntry? existing, bool isCopy)
     {
         _routes = routes;
         _inspector = inspector;
+        _https = https;
+        _navigation = navigation;
         IsNew = existing is null || isCopy;
-        _original = existing ?? new RouteEntry { Domain = "", Target = "http://localhost:3000" };
+        HttpsAvailable = https.IsActive;
+        // New routes get HTTPS and the redirect while the CA is active.
+        _original = existing ?? new RouteEntry
+        {
+            Domain = "",
+            Target = "http://localhost:3000",
+            Https = HttpsAvailable,
+            RedirectToHttps = HttpsAvailable,
+        };
 
         Domain = _original.Domain;
         if (Uri.TryCreate(_original.Target, UriKind.Absolute, out var target))
@@ -44,10 +57,13 @@ public sealed partial class RouteEditorViewModel : ObservableObject
             TargetHost = "localhost";
             TargetPort = "3000";
         }
+        Https = _original.Https;
+        RedirectToHttps = _original.RedirectToHttps;
         PreserveHost = _original.PreserveHost;
         IgnoreTargetCertErrors = _original.IgnoreTargetCertErrors;
         Notes = _original.Notes;
         ShowAdvanced = PreserveHost || IgnoreTargetCertErrors || Notes.Length > 0;
+        UpdateHttpsRules();
         IsReady = true;
         ScheduleChecks();
     }
@@ -67,6 +83,33 @@ public sealed partial class RouteEditorViewModel : ObservableObject
     public event EventHandler<bool>? CloseRequested;
 
     private bool IsReady { get; }
+
+    /// <summary>The local CA is active, so the HTTPS options apply.</summary>
+    public bool HttpsAvailable { get; }
+
+    /// <summary>The TLD is HSTS-preloaded: browsers only open it over HTTPS.</summary>
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(CanToggleHttps), nameof(HttpsRequiredText))]
+    public partial bool HstsRequired { get; set; }
+
+    public bool CanToggleHttps => HttpsAvailable && !HstsRequired;
+
+    public bool CanToggleRedirect => HttpsAvailable && Https;
+
+    public string? HttpsRequiredText => HttpsAvailable && HstsRequired
+        ? "HTTPS obrigatório: navegadores só abrem este domínio com HTTPS (HSTS preload)."
+        : null;
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(CanToggleRedirect))]
+    public partial bool Https { get; set; }
+
+    [ObservableProperty]
+    public partial bool RedirectToHttps { get; set; }
+
+    /// <summary>The domain is outside the CA's Name Constraints; saving offers to reissue.</summary>
+    [ObservableProperty]
+    public partial string? CoverageWarning { get; set; }
 
     [ObservableProperty]
     public partial string Domain { get; set; }
@@ -105,9 +148,12 @@ public sealed partial class RouteEditorViewModel : ObservableObject
 
     private string? NormalizedDomain => RouteRules.Normalize(Domain);
 
+    partial void OnHttpsChanged(bool value) => UpdateCoverageWarning();
+
     partial void OnDomainChanged(string value)
     {
         DomainError = null;
+        UpdateHttpsRules();
         OnPropertyChanged(nameof(SaveLabel));
         if (IsReady)
             ScheduleDomainCheck();
@@ -147,10 +193,33 @@ public sealed partial class RouteEditorViewModel : ObservableObject
     [RelayCommand]
     private void Cancel() => CloseRequested?.Invoke(this, false);
 
+    /// <summary>Closes the form and shows Settings, where HTTPS is turned on.</summary>
+    [RelayCommand]
+    private void OpenHttpsSettings()
+    {
+        CloseRequested?.Invoke(this, false);
+        _navigation.ShowSettings();
+    }
+
+    private void UpdateHttpsRules()
+    {
+        HstsRequired = NormalizedDomain is { } domain && DomainInspector.IsHstsPreloaded(domain);
+        if (HstsRequired && HttpsAvailable)
+            Https = true;
+        UpdateCoverageWarning();
+    }
+
+    private void UpdateCoverageWarning() =>
+        CoverageWarning = HttpsAvailable && Https && NormalizedDomain is { } domain && !_https.Covers(domain)
+            ? $"{domain} está fora da CA atual. Ao salvar, o Severino oferece reemitir a CA, e o Windows pede confirmação."
+            : null;
+
     private RouteEntry Build() => _original with
     {
         Domain = Domain ?? "",
         Target = $"{Scheme}://{FormatHost(TargetHost?.Trim() ?? "")}:{TargetPort?.Trim()}",
+        Https = Https,
+        RedirectToHttps = Https && RedirectToHttps,
         PreserveHost = PreserveHost,
         IgnoreTargetCertErrors = IgnoreTargetCertErrors,
         Notes = Notes ?? "",
@@ -183,7 +252,8 @@ public sealed partial class RouteEditorViewModel : ObservableObject
             return;
         }
 
-        foreach (var warning in _inspector.CheckLocal(domain))
+        // With the CA active, the HSTS warning gives way to the locked HTTPS box.
+        foreach (var warning in _inspector.CheckLocal(domain).Where(w => !(HttpsAvailable && w.Kind == DomainWarningKind.HstsPreload)))
             DomainWarnings.Add(warning);
 
         var cts = _domainCheck = new CancellationTokenSource();
