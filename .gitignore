@@ -480,3 +480,6 @@ $RECYCLE.BIN/
 
 # Vim temporary swap files
 *.swp
+
+# Scratch output from other tools and agents; curated assets live in assets/.
+output/
