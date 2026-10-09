@@ -30,4 +30,4 @@ dotnet run --project src/Severino.App
 
 ## Estado
 
-Fase 0 concluída: solução, janela WPF-UI com abas, bandeja, instância única, config com backup. Próximo passo: Fase 1 (MVP HTTP), começando por um spec.
+Fase 0 concluída. Fase 1 implementada conforme [docs/specs/fase-1-mvp-http.md](docs/specs/fase-1-mvp-http.md); falta o checklist manual com o Helper instalado (`scripts/dev-helper.ps1 install`, em terminal elevado): fluxo com hosts, HMR do Vite e limpeza do bloco ao sair.
