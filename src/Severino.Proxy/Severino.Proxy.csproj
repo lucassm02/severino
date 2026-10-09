@@ -1,7 +1,8 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net10.0</TargetFramework>
+    <!-- Windows only: DPAPI and the Trusted Root store hold the local CA. -->
+    <TargetFramework>net10.0-windows</TargetFramework>
   </PropertyGroup>
 
   <ItemGroup>
@@ -9,6 +10,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="System.Security.Cryptography.ProtectedData" />
     <PackageReference Include="Yarp.ReverseProxy" />
   </ItemGroup>
 
