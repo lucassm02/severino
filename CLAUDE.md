@@ -30,4 +30,4 @@ dotnet run --project src/Severino.App
 
 ## Estado
 
-Fase 0 concluída. Fase 1 implementada conforme [docs/specs/fase-1-mvp-http.md](docs/specs/fase-1-mvp-http.md); falta o checklist manual com o Helper instalado (`scripts/dev-helper.ps1 install`, em terminal elevado): fluxo com hosts, HMR do Vite e limpeza do bloco ao sair.
+Fases 0 e 1 concluídas e verificadas com o Helper instalado (spec em [docs/specs/fase-1-mvp-http.md](docs/specs/fase-1-mvp-http.md)). Próximo passo: Fase 2 (HTTPS). Em desenvolvimento, o Helper se instala com `scripts/dev-helper.ps1 install` num terminal elevado.
