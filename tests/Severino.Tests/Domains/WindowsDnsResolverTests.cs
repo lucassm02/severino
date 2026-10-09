@@ -29,6 +29,18 @@ public sealed class WindowsDnsResolverTests
         Assert.False(System.Net.IPAddress.IsLoopback(result.Address));
     }
 
+    [Theory]
+    [InlineData("com", true)]
+    [InlineData("br", true)]
+    [InlineData("sev", false)]
+    public async Task Tld_existence_comes_from_the_root_zone(string tld, bool expected)
+    {
+        var exists = await _dns.TldExistsAsync(tld, CancellationToken.None)
+            ?? await _dns.TldExistsAsync(tld, CancellationToken.None);
+
+        Assert.Equal(expected, exists);
+    }
+
     [Fact]
     public async Task Name_under_unknown_tld_is_not_found()
     {

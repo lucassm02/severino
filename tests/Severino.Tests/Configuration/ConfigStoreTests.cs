@@ -45,7 +45,7 @@ public sealed class ConfigStoreTests : IDisposable
         Assert.Equal(8080, loaded.Config.Settings.HttpPort);
         Assert.Equal(AppTheme.Dark, loaded.Config.Settings.Theme);
         Assert.True(loaded.Config.Settings.StartMinimized);
-        Assert.Equal(config.State, loaded.Config.State);
+        Assert.Equal(config.State.CloseToTrayHintShown, loaded.Config.State.CloseToTrayHintShown);
         Assert.Equal(config.Routes.Single(), loaded.Config.Routes.Single());
     }
 

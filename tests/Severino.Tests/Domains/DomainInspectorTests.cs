@@ -60,5 +60,8 @@ public sealed class DomainInspectorTests
     {
         public Task<DnsLookupResult> LookupAsync(string name, CancellationToken cancellationToken) =>
             Task.FromResult(result ?? new DnsLookupResult(DnsLookupOutcome.NotFound));
+
+        public Task<bool?> TldExistsAsync(string tld, CancellationToken cancellationToken) =>
+            Task.FromResult<bool?>(null);
     }
 }

@@ -29,6 +29,9 @@ public sealed record AppSettings
 public sealed record AppState
 {
     public bool CloseToTrayHintShown { get; set; }
+
+    /// <summary>TLD -> exists on the internet, cached for the CA coverage (see TldDirectory).</summary>
+    public IReadOnlyDictionary<string, bool> TldExists { get; set; } = new Dictionary<string, bool>();
 }
 
 public sealed record RouteEntry

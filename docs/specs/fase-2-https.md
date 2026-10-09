@@ -30,6 +30,13 @@ São perguntas que mudam o desenho. Vêm antes de tudo, como um teste descartáv
 - **Remover a CA antiga de `CurrentUser\Root` também pede confirmação?** Isso define se a reemissão custa uma ou duas confirmações, e o texto da interface precisa dizer o número certo.
 - **O `SslStream` aceita a chave do PKCS#12 recarregado?** A armadilha do plano é que um certificado com chave efêmera falha no Schannel. O teste confirma que recarregar com `X509CertificateLoader.LoadPkcs12` e `X509KeyStorageFlags` padrão resolve.
 
+**Resultados (2026-10-09, Windows 11, .NET 10.0.12):**
+
+- **Name Constraints na raiz:** a cadeia do Windows aplica. Com `CustomRootTrust`, a folha `banco.com.br` assinada pela CA restrita a `sev` é rejeitada com `HasNotPermittedNameConstraint`, e a mesma folha passa numa CA de controle sem restrição. O critério 6 vira teste automatizado.
+- **Chave efêmera:** confirmada a armadilha. A chave criada em memória com `CopyWithPrivateKey` derruba o handshake. Depois de exportar e recarregar com `LoadPkcs12`, o handshake funciona em TLS 1.2 e 1.3, tanto com as flags padrão quanto com `EphemeralKeySet`. Ficam as flags padrão, como no plano, porque o `EphemeralKeySet` não foi validado em builds antigos do Windows 10.
+- **Validade:** a validade da folha não pode passar da validade da CA; o `CertificateRequest.Create` recusa. A emissão limita o `notAfter` à validade da CA.
+- **Confirmação ao remover:** fica para o checklist manual, porque exige instalar a CA de verdade. Até lá, a interface diz que o Windows "pode pedir confirmação".
+
 ## Escopo
 
 ### Cobertura da CA (`Core`)

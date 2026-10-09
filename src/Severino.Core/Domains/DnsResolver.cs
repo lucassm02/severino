@@ -19,6 +19,12 @@ public interface IDnsResolver
 {
     /// <summary>Looks the name up on the DNS servers, ignoring the hosts file and the cache.</summary>
     Task<DnsLookupResult> LookupAsync(string name, CancellationToken cancellationToken);
+
+    /// <summary>
+    /// Whether <paramref name="tld"/> is delegated in the root zone; null when the DNS did not
+    /// answer.
+    /// </summary>
+    Task<bool?> TldExistsAsync(string tld, CancellationToken cancellationToken);
 }
 
 /// <summary>
@@ -32,8 +38,11 @@ public sealed partial class WindowsDnsResolver : IDnsResolver
 
     private const ushort TypeA = 1;
     private const ushort TypeAaaa = 28;
-    private const uint QueryBypassCache = 0x8;
-    private const uint QueryNoHostsFile = 0x40;
+    private const ushort TypeSoa = 6;
+    // DNS only: no hosts file, no cache, no NetBIOS or multicast (LLMNR/mDNS), and the name taken
+    // as fully qualified. Without the last three a single label like "sev" times out (1460)
+    // waiting on LLMNR instead of returning the DNS server's NXDOMAIN.
+    private const uint QueryOptions = 0x8 | 0x40 | 0x80 | 0x800 | 0x1000;
     private const int Success = 0;
     private const int NameError = 9003;   // DNS_ERROR_RCODE_NAME_ERROR (NXDOMAIN)
     private const int NoRecords = 9501;   // DNS_INFO_NO_RECORDS
@@ -53,6 +62,34 @@ public sealed partial class WindowsDnsResolver : IDnsResolver
         }
     }
 
+    public async Task<bool?> TldExistsAsync(string tld, CancellationToken cancellationToken)
+    {
+        // The trailing dot makes it absolute: a single label would otherwise get the network's
+        // DNS suffix appended and ask about "sev.empresa.local".
+        var lookup = Task.Run(() => SoaExists(tld.TrimEnd('.') + "."), CancellationToken.None);
+        try
+        {
+            return await lookup.WaitAsync(Timeout, cancellationToken);
+        }
+        catch (TimeoutException)
+        {
+            return null;
+        }
+    }
+
+    private static bool? SoaExists(string zone)
+    {
+        var status = DnsQuery(zone, TypeSoa, QueryOptions, 0, out var records, 0);
+        if (records != 0)
+            DnsRecordListFree(records, FreeRecordList);
+        return status switch
+        {
+            Success or NoRecords => true,
+            NameError => false,
+            _ => null,
+        };
+    }
+
     private static DnsLookupResult Lookup(string name)
     {
         var a = Query(name, TypeA);
@@ -63,7 +100,7 @@ public sealed partial class WindowsDnsResolver : IDnsResolver
 
     private static DnsLookupResult Query(string name, ushort type)
     {
-        var status = DnsQuery(name, type, QueryBypassCache | QueryNoHostsFile, 0, out var records, 0);
+        var status = DnsQuery(name, type, QueryOptions, 0, out var records, 0);
         try
         {
             if (status is NameError or NoRecords)
