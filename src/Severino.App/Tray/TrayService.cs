@@ -14,8 +14,20 @@ public sealed class TrayService(IServiceProvider services) : IDisposable
     {
         _icon = (TaskbarIcon)Application.Current.FindResource("TrayIcon");
         // Resolved lazily: TrayViewModel needs ShellService, which needs this service.
-        _icon.DataContext = services.GetRequiredService<TrayViewModel>();
+        Bind(_icon, services.GetRequiredService<TrayViewModel>());
         _icon.ForceCreate(enablesEfficiencyMode: false);
+    }
+
+    /// <summary>
+    /// Points the icon and its menu at <paramref name="viewModel"/>. The menu opens in its own
+    /// popup tree, so it gets the view model directly instead of relying on the icon to pass
+    /// its DataContext along.
+    /// </summary>
+    public static void Bind(TaskbarIcon icon, object viewModel)
+    {
+        icon.DataContext = viewModel;
+        if (icon.ContextMenu is { } menu)
+            menu.DataContext = viewModel;
     }
 
     public void ShowInfo(string title, string message) =>

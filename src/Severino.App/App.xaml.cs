@@ -39,6 +39,7 @@ public partial class App : Application
         _host = BuildHost(e.Args);
         _host.Start();
         _logger = _host.Services.GetRequiredService<ILogger<App>>();
+        BindingErrorListener.Register(_logger);
 
         var config = _host.Services.GetRequiredService<ConfigService>();
         ConfigLoadResult loaded;
