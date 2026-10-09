@@ -79,6 +79,16 @@ public sealed class HealthMonitorTests
         Assert.Null(monitor.IsUp(route.Id));
     }
 
+    [Fact]
+    public async Task Disposing_twice_is_harmless()
+    {
+        var monitor = new HealthMonitor();
+        monitor.Start();
+
+        await monitor.DisposeAsync();
+        await monitor.DisposeAsync();
+    }
+
     private static async Task WaitUntil(Func<bool> condition)
     {
         for (var i = 0; i < 60 && !condition(); i++)

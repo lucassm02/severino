@@ -16,6 +16,7 @@ public sealed class HealthMonitor : IAsyncDisposable
     private readonly Lock _gate = new();
     private IReadOnlyList<RouteEntry> _routes = [];
     private Task? _loop;
+    private bool _disposed;
 
     public HealthMonitor(TimeSpan? interval = null) => _interval = interval ?? TimeSpan.FromSeconds(5);
 
@@ -36,8 +37,12 @@ public sealed class HealthMonitor : IAsyncDisposable
         _ = CheckAllAsync(_stop.Token);
     }
 
+    /// <summary>Safe to call more than once.</summary>
     public async ValueTask DisposeAsync()
     {
+        if (_disposed)
+            return;
+        _disposed = true;
         await _stop.CancelAsync();
         if (_loop is not null)
             await _loop.ConfigureAwait(ConfigureAwaitOptions.SuppressThrowing);

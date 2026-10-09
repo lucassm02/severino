@@ -42,7 +42,8 @@ public sealed class ProxyCoordinator(ConfigService config, ProxyServer proxy, He
                 // The Helper did not answer in time; the next start rewrites the block anyway.
             }
         }
-        await proxy.DisposeAsync();
+        // Stop, not dispose: the DI container disposes the proxy when the host shuts down.
+        await proxy.StopAsync();
         await health.DisposeAsync();
     }
 

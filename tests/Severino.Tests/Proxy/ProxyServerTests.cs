@@ -198,6 +198,18 @@ public sealed class ProxyServerTests : IAsyncLifetime
         Assert.Equal(HttpStatusCode.OK, (await _client.GetAsync(Url("callfred.sev", "/echo"))).StatusCode);
     }
 
+    [Fact]
+    public async Task Disposing_twice_is_harmless()
+    {
+        // The app stops the proxy on exit, then the DI container disposes it again.
+        var proxy = new ProxyServer(NullLoggerFactory.Instance);
+        await proxy.StartAsync(FreePort(), []);
+
+        await proxy.StopAsync();
+        await proxy.DisposeAsync();
+        await proxy.DisposeAsync();
+    }
+
     private static int FreePort()
     {
         var listener = new TcpListener(IPAddress.Loopback, 0);

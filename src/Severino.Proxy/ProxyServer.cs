@@ -36,6 +36,7 @@ public sealed class ProxyServer(ILoggerFactory loggerFactory) : IAsyncDisposable
     private WebApplication? _app;
     private InMemoryConfigProvider? _config;
     private IReadOnlyList<RouteEntry> _routes = [];
+    private bool _disposed;
 
     public ProxyStatus Status { get; private set; } = new(ProxyState.Stopped, 0);
 
@@ -81,9 +82,13 @@ public sealed class ProxyServer(ILoggerFactory loggerFactory) : IAsyncDisposable
         }
     }
 
+    /// <summary>Safe to call more than once.</summary>
     public async ValueTask DisposeAsync()
     {
+        if (_disposed)
+            return;
         await StopAsync();
+        _disposed = true;
         _gate.Dispose();
     }
 
