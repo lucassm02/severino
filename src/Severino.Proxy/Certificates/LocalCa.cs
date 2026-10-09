@@ -58,13 +58,17 @@ public sealed class LocalCa(CaStore store, ITrustStore trust, TimeProvider time,
         lock (_gate) return _ca?.Covers(domain) ?? false;
     }
 
+    /// <summary>A new root for <paramref name="names"/>, not trusted or saved yet; see <see cref="Activate(CertificateAuthority)"/>.</summary>
+    public CertificateAuthority Prepare(IReadOnlyCollection<string> names) => CertificateAuthority.Create(names, time);
+
+    public ActivationResult Activate(IReadOnlyCollection<string> names) => Activate(Prepare(names));
+
     /// <summary>
-    /// Creates a root for <paramref name="names"/> and asks Windows to trust it, then retires the
-    /// previous root. Blocks while Windows shows its warning, so call it off the UI thread.
+    /// Asks Windows to trust <paramref name="ca"/>, then retires the previous root. Takes ownership
+    /// of <paramref name="ca"/>. Blocks while Windows shows its warning.
     /// </summary>
-    public ActivationResult Activate(IReadOnlyCollection<string> names)
+    public ActivationResult Activate(CertificateAuthority ca)
     {
-        var ca = CertificateAuthority.Create(names, time);
         using (var root = ca.PublicCertificate())
         {
             if (!trust.Add(root))

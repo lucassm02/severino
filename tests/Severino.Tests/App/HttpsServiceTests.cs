@@ -41,13 +41,52 @@ public sealed class HttpsServiceTests : IDisposable
 
     private RouteEntry Route(string domain) => _config.Current.Routes.Single(r => r.Domain == domain);
 
+    private readonly List<TrustPrompt> _prompts = [];
+
+    private Task<bool> Accept(TrustPrompt prompt)
+    {
+        _prompts.Add(prompt);
+        return Task.FromResult(true);
+    }
+
+    [Fact]
+    public async Task Prompt_shows_what_windows_will_show_before_it_does()
+    {
+        AddRoute("a.sev");
+        await _https.ActivateAsync(Accept);
+        AddRoute("api.empresa.com", https: true);
+        await _https.ReissueAsync(Accept);
+
+        var (first, second) = (_prompts[0], _prompts[1]);
+        Assert.StartsWith("Severino Local CA (", first.Name);
+        Assert.Equal(["sev"], first.Names);
+        Assert.False(first.ReplacesCurrent);
+        Assert.True(second.ReplacesCurrent);
+        Assert.Equal(["api.empresa.com", "sev"], second.Names);
+        // Windows prints the SHA-1 in groups of 8.
+        Assert.Equal(_trust.Roots.Single(), second.Thumbprint.Replace(" ", ""));
+        Assert.Matches("^([0-9A-F]{8} ){4}[0-9A-F]{8}$", second.Thumbprint);
+    }
+
+    [Fact]
+    public async Task Cancelling_the_explanation_skips_windows_warning()
+    {
+        AddRoute("a.sev");
+
+        Assert.Equal(HttpsActionResult.Cancelled, await _https.ActivateAsync(_ => Task.FromResult(false)));
+
+        Assert.Empty(_trust.Roots);
+        Assert.False(_https.IsActive);
+        Assert.False(Route("a.sev").Https);
+    }
+
     [Fact]
     public async Task Activation_turns_https_on_for_every_route_without_adding_redirects()
     {
         AddRoute("a.sev");
         AddRoute("b.sev", https: true, redirect: true);
 
-        Assert.Equal(HttpsActionResult.Done, await _https.ActivateAsync());
+        Assert.Equal(HttpsActionResult.Done, await _https.ActivateAsync(Accept));
 
         Assert.True(_https.IsActive);
         Assert.Equal(["sev"], _https.Status.Names);
@@ -62,7 +101,7 @@ public sealed class HttpsServiceTests : IDisposable
         AddRoute("a.sev");
         _trust.Decline = true;
 
-        Assert.Equal(HttpsActionResult.Declined, await _https.ActivateAsync());
+        Assert.Equal(HttpsActionResult.Declined, await _https.ActivateAsync(Accept));
 
         Assert.False(_https.IsActive);
         Assert.False(Route("a.sev").Https);
@@ -71,7 +110,7 @@ public sealed class HttpsServiceTests : IDisposable
     [Fact]
     public async Task Activation_needs_a_route()
     {
-        Assert.Equal(HttpsActionResult.NoRoutes, await _https.ActivateAsync());
+        Assert.Equal(HttpsActionResult.NoRoutes, await _https.ActivateAsync(Accept));
         Assert.Empty(_trust.Roots);
     }
 
@@ -79,17 +118,17 @@ public sealed class HttpsServiceTests : IDisposable
     public async Task Reissue_adds_new_domains_and_drops_removed_ones()
     {
         AddRoute("a.sev");
-        await _https.ActivateAsync();
+        await _https.ActivateAsync(Accept);
         AddRoute("api.empresa.com", https: true);
         Assert.Equal(["api.empresa.com"], _https.Uncovered());
         Assert.False(_https.Covers("api.empresa.com"));
 
-        Assert.Equal(HttpsActionResult.Done, await _https.ReissueAsync());
+        Assert.Equal(HttpsActionResult.Done, await _https.ReissueAsync(Accept));
         Assert.Equal(["api.empresa.com", "sev"], _https.Status.Names);
         Assert.Empty(_https.Uncovered());
 
         RemoveRoute("a.sev");
-        await _https.ReissueAsync();
+        await _https.ReissueAsync(Accept);
         Assert.Equal(["api.empresa.com"], _https.Status.Names);
         Assert.Single(_trust.Roots);
     }
@@ -98,7 +137,7 @@ public sealed class HttpsServiceTests : IDisposable
     public async Task Remove_keeps_the_route_flags_for_the_next_activation()
     {
         AddRoute("a.sev", https: true, redirect: true);
-        await _https.ActivateAsync();
+        await _https.ActivateAsync(Accept);
 
         Assert.True(await _https.RemoveAsync());
 
@@ -111,7 +150,7 @@ public sealed class HttpsServiceTests : IDisposable
     public async Task Export_writes_the_root_without_its_key()
     {
         AddRoute("a.sev");
-        await _https.ActivateAsync();
+        await _https.ActivateAsync(Accept);
         var path = Path.Combine(_dir, "ca.pem");
 
         _https.ExportPem(path);
@@ -128,7 +167,7 @@ public sealed class HttpsServiceTests : IDisposable
         Assert.False(Editor().CanToggleHttps);
 
         AddRoute("a.sev");
-        await _https.ActivateAsync();
+        await _https.ActivateAsync(Accept);
         var form = Editor();
 
         Assert.True(form.Https);
@@ -140,7 +179,7 @@ public sealed class HttpsServiceTests : IDisposable
     public async Task Hsts_preloaded_domain_locks_https_on()
     {
         AddRoute("a.sev");
-        await _https.ActivateAsync();
+        await _https.ActivateAsync(Accept);
         var form = Editor();
         form.Https = false;
 
@@ -156,7 +195,7 @@ public sealed class HttpsServiceTests : IDisposable
     public async Task Domain_outside_the_ca_is_flagged_in_the_form()
     {
         AddRoute("a.sev");
-        await _https.ActivateAsync();
+        await _https.ActivateAsync(Accept);
         var form = Editor();
 
         form.Domain = "b.sev";

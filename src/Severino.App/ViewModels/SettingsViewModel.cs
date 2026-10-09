@@ -162,27 +162,27 @@ public sealed partial class SettingsViewModel : ObservableObject
     private bool CanRemove() => (HttpsActive || HttpsBroken) && !HttpsBusy;
 
     [RelayCommand(CanExecute = nameof(CanActivate))]
-    private Task ActivateHttpsAsync() => RunAsync(async () => HttpsMessage = Describe(await _https.ActivateAsync(),
+    private Task ActivateHttpsAsync() => RunAsync(async () => HttpsMessage = Describe(
+        await _https.ActivateAsync(prompt => DialogService.ConfirmTrustAsync("Ativar HTTPS", prompt)),
         done: "HTTPS ativo. As rotas abrem com https://, e o http:// continua funcionando."));
 
     [RelayCommand(CanExecute = nameof(CanUseCa))]
-    private Task ReissueHttpsAsync() => RunAsync(async () => HttpsMessage = Describe(await _https.ReissueAsync(),
+    private Task ReissueHttpsAsync() => RunAsync(async () => HttpsMessage = Describe(
+        await _https.ReissueAsync(prompt => DialogService.ConfirmTrustAsync("Reemitir a CA", prompt)),
         done: "CA reemitida. Os certificados das rotas são refeitos no próximo acesso."));
 
     [RelayCommand(CanExecute = nameof(CanRemove))]
-    private Task RemoveHttpsAsync()
+    private Task RemoveHttpsAsync() => RunAsync(async () =>
     {
-        if (!DialogService.Confirm("Remover CA",
-                "O HTTPS para de responder e as chaves da CA são apagadas. O Windows pode pedir confirmação para tirar a CA da lista de confiáveis.\n\nRemover a CA?"))
-            return Task.CompletedTask;
-        return RunAsync(async () =>
-        {
-            NodeCommand = null;
-            HttpsMessage = await _https.RemoveAsync()
-                ? "CA removida."
-                : "As chaves foram apagadas, mas a CA ficou na lista de confiáveis do Windows porque o pedido foi recusado. Sem a chave, ela não assina mais nada.";
-        });
-    }
+        if (!await DialogService.ConfirmAsync("Remover CA",
+                "O HTTPS para de responder e as chaves da CA são apagadas. O Windows pode pedir confirmação para tirar a CA da lista de confiáveis.",
+                "Remover"))
+            return;
+        NodeCommand = null;
+        HttpsMessage = await _https.RemoveAsync()
+            ? "CA removida."
+            : "As chaves foram apagadas, mas a CA ficou na lista de confiáveis do Windows porque o pedido foi recusado. Sem a chave, ela não assina mais nada.";
+    });
 
     [RelayCommand(CanExecute = nameof(CanUseCa))]
     private void ExportCa()
@@ -227,11 +227,12 @@ public sealed partial class SettingsViewModel : ObservableObject
         }
     }
 
-    private static string Describe(HttpsActionResult result, string done) => result switch
+    private static string? Describe(HttpsActionResult result, string done) => result switch
     {
         HttpsActionResult.Done => done,
         HttpsActionResult.DoneOldRootKept => done + " A CA antiga ficou na lista de confiáveis do Windows, mas sem a chave ela não assina mais nada.",
         HttpsActionResult.Declined => "O Windows não instalou a CA, então nada mudou.",
+        HttpsActionResult.Cancelled => null,
         _ => "Crie uma rota primeiro.",
     };
 
@@ -249,7 +250,7 @@ public sealed partial class SettingsViewModel : ObservableObject
             _ => "Desativado. As rotas abrem só por http://.",
         };
         CoverageText = HttpsActive
-            ? "Cobre: " + string.Join(", ", status.Names.Select(n => n.Contains('.') ? n : "qualquer nome ." + n))
+            ? "Cobre: " + HttpsService.DescribeNames(status.Names)
             : "";
         var uncovered = _https.Uncovered();
         UncoveredText = uncovered.Count switch

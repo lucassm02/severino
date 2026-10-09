@@ -92,20 +92,13 @@ public sealed partial class RoutesViewModel : ObservableObject
         if (!saved.Https || !_https.IsActive || _https.Covers(saved.Domain))
             return false;
 
-        if (!DialogService.Confirm("Reemitir a CA",
-                $"A CA atual não cobre {saved.Domain}, então esta rota fica sem HTTPS.\n\n" +
-                "Reemitir cria uma CA nova para todas as rotas com HTTPS. O Windows pede para confirmar a instalação da nova " +
-                "e pode pedir para remover a antiga.\n\nReemitir agora?"))
-        {
-            ShowToast($"{saved.Domain} fica sem HTTPS até reemitir em Configurações.");
-            return true;
-        }
-
         try
         {
-            ShowToast((await _https.ReissueAsync()) switch
+            var lead = $"A CA atual não cobre {saved.Domain}. Para esta rota ter HTTPS, o Severino cria uma CA nova para todas as rotas com HTTPS.";
+            ShowToast((await _https.ReissueAsync(prompt => DialogService.ConfirmTrustAsync("Reemitir a CA", prompt, lead))) switch
             {
                 HttpsActionResult.Done or HttpsActionResult.DoneOldRootKept => $"CA reemitida. {saved.Domain} já abre com https://",
+                HttpsActionResult.Cancelled => $"{saved.Domain} fica sem HTTPS até reemitir em Configurações.",
                 _ => $"O Windows não instalou a CA nova. {saved.Domain} fica sem HTTPS até reemitir.",
             });
         }
