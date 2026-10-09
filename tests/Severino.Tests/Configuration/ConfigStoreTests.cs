@@ -24,7 +24,7 @@ public sealed class ConfigStoreTests : IDisposable
 
         Assert.Equal(ConfigLoadStatus.Defaults, result.Status);
         Assert.Equal(80, result.Config.Settings.HttpPort);
-        Assert.Equal(".loc", result.Config.Settings.DefaultSuffix);
+        Assert.Equal(443, result.Config.Settings.HttpsPort);
         Assert.False(Directory.Exists(_dir));
     }
 
@@ -35,7 +35,7 @@ public sealed class ConfigStoreTests : IDisposable
         {
             Settings = new AppSettings { HttpPort = 8080, Theme = AppTheme.Dark, StartMinimized = true },
             State = new AppState { CloseToTrayHintShown = true },
-            Routes = [new RouteEntry { Domain = "callfred.loc", Target = "http://127.0.0.1:3000", Https = true }],
+            Routes = [new RouteEntry { Domain = "callfred.sev", Target = "http://127.0.0.1:3000", Https = true }],
         };
 
         _store.Save(config);
@@ -45,7 +45,6 @@ public sealed class ConfigStoreTests : IDisposable
         Assert.Equal(8080, loaded.Config.Settings.HttpPort);
         Assert.Equal(AppTheme.Dark, loaded.Config.Settings.Theme);
         Assert.True(loaded.Config.Settings.StartMinimized);
-        Assert.Equal(config.Settings.AllowedSuffixes, loaded.Config.Settings.AllowedSuffixes);
         Assert.Equal(config.State, loaded.Config.State);
         Assert.Equal(config.Routes.Single(), loaded.Config.Routes.Single());
     }

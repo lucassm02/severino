@@ -20,8 +20,6 @@ public sealed record AppSettings
 {
     public int HttpPort { get; set; } = 80;
     public int HttpsPort { get; set; } = 443;
-    public string DefaultSuffix { get; set; } = ".loc";
-    public IReadOnlyList<string> AllowedSuffixes { get; set; } = [".loc", ".test", ".localhost"];
     public bool StartWithWindows { get; set; }
     public bool StartMinimized { get; set; }
     public AppTheme Theme { get; set; } = AppTheme.Auto;
