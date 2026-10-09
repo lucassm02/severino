@@ -175,7 +175,7 @@ public sealed partial class SettingsViewModel : ObservableObject
     private Task RemoveHttpsAsync() => RunAsync(async () =>
     {
         if (!await DialogService.ConfirmAsync("Remover CA",
-                "O HTTPS para de responder e as chaves da CA são apagadas. O Windows pode pedir confirmação para tirar a CA da lista de confiáveis.",
+                "O HTTPS para de responder e as chaves da CA são apagadas. O Windows pede confirmação para tirar a CA da lista de confiáveis.",
                 "Remover"))
             return;
         NodeCommand = null;

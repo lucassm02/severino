@@ -35,7 +35,8 @@ São perguntas que mudam o desenho. Vêm antes de tudo, como um teste descartáv
 - **Name Constraints na raiz:** a cadeia do Windows aplica. Com `CustomRootTrust`, a folha `banco.com.br` assinada pela CA restrita a `sev` é rejeitada com `HasNotPermittedNameConstraint`, e a mesma folha passa numa CA de controle sem restrição. O critério 6 vira teste automatizado.
 - **Chave efêmera:** confirmada a armadilha. A chave criada em memória com `CopyWithPrivateKey` derruba o handshake. Depois de exportar e recarregar com `LoadPkcs12`, o handshake funciona em TLS 1.2 e 1.3, tanto com as flags padrão quanto com `EphemeralKeySet`. Ficam as flags padrão, como no plano, porque o `EphemeralKeySet` não foi validado em builds antigos do Windows 10.
 - **Validade:** a validade da folha não pode passar da validade da CA; o `CertificateRequest.Create` recusa. A emissão limita o `notAfter` à validade da CA.
-- **Confirmação ao remover:** fica para o checklist manual, porque exige instalar a CA de verdade. Até lá, a interface diz que o Windows "pode pedir confirmação".
+- **Confirmação ao remover:** pede. Verificado no checklist manual: a reemissão custa duas confirmações do Windows, uma para instalar a CA nova e outra para remover a antiga, e "Remover CA" custa uma. A interface diz isso antes do aviso.
+- **Dono do aviso (achado no checklist):** o aviso do Windows abre sem janela dona, chamado de qualquer thread, e pode ficar atrás do app. O app chama da thread da interface, prende cada aviso à janela principal enquanto ele está aberto e, antes dele, mostra um diálogo próprio com o nome e a impressão digital que o Windows vai exibir.
 
 ## Escopo
 
@@ -77,7 +78,7 @@ Uma função pura calcula o conjunto de nomes permitidos a partir dos domínios 
 
 1. A CA nova é gerada com a cobertura nova e instalada, e o Windows pede confirmação.
 2. Os arquivos da CA nova substituem os da antiga, e o cache de folhas é esvaziado. As folhas são reemitidas sob demanda no próximo acesso.
-3. A CA antiga é removida do repositório. Se o Windows pedir confirmação e o usuário recusar, ela fica lá, órfã mas inofensiva, porque a chave dela foi apagada. A interface avisa.
+3. A CA antiga é removida do repositório, e o Windows pede confirmação de novo. Se o usuário recusar, ela fica lá, órfã mas inofensiva, porque a chave dela foi apagada. A interface avisa.
 
 Remover rotas não dispara reemissão. Configurações › HTTPS mostra os nomes cobertos e oferece "Reemitir" para enxugar a lista.
 

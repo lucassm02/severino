@@ -51,7 +51,7 @@ public sealed class DialogService(RouteService routes, DomainInspector inspector
         });
         content.Children.Add(Paragraph($"Esta CA só consegue assinar: {HttpsService.DescribeNames(prompt.Names)}."));
         if (prompt.ReplacesCurrent)
-            content.Children.Add(Paragraph("Depois o Windows pode pedir para remover a CA antiga. Clique em Sim também."));
+            content.Children.Add(Paragraph("Depois o Windows pede para remover a CA antiga. Clique em Sim também: sem a chave, ela não serve para mais nada."));
         return ShowAsync(title, content, "Continuar");
     }
 

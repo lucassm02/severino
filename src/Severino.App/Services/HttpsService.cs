@@ -24,7 +24,7 @@ public enum HttpsActionResult
 /// <param name="Name">The name Windows says the CA "claims to represent".</param>
 /// <param name="Thumbprint">SHA-1, in groups of 8 as Windows prints it.</param>
 /// <param name="Names">What the CA can sign for.</param>
-/// <param name="ReplacesCurrent">A root is already trusted, and Windows may also ask to remove it.</param>
+/// <param name="ReplacesCurrent">A root is already trusted, and Windows will also ask to remove it.</param>
 public sealed record TrustPrompt(string Name, string Thumbprint, IReadOnlyList<string> Names, bool ReplacesCurrent);
 
 /// <summary>
