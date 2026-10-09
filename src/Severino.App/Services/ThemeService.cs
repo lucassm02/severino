@@ -10,6 +10,18 @@ public sealed class ThemeService
 {
     private Window? _window;
     private bool _watching;
+    private bool _applying;
+
+    public ThemeService()
+    {
+        // The system theme watcher switches themes on its own, after which the accent brushes
+        // still hold the old theme's colours. Apply the accent and swap the theme again.
+        ApplicationThemeManager.Changed += (theme, _) =>
+        {
+            if (!_applying)
+                ApplyResources(theme);
+        };
+    }
 
     public void Attach(Window window, AppTheme theme)
     {
@@ -29,7 +41,7 @@ public sealed class ThemeService
             AppTheme.Light => ApplicationTheme.Light,
             _ => SystemPrefersDark() ? ApplicationTheme.Dark : ApplicationTheme.Light,
         };
-        ApplicationThemeManager.Apply(resolved, WindowBackdropType.Mica);
+        ApplyResources(resolved);
 
         if (_window is null)
             return;
@@ -37,7 +49,7 @@ public sealed class ThemeService
         if (theme == AppTheme.Auto)
         {
             if (!_watching)
-                SystemThemeWatcher.Watch(_window, WindowBackdropType.Mica);
+                SystemThemeWatcher.Watch(_window, WindowBackdropType.Mica, updateAccents: false);
             _watching = true;
         }
         else
@@ -46,6 +58,24 @@ public sealed class ThemeService
             if (_watching)
                 SystemThemeWatcher.UnWatch(_window);
             _watching = false;
+        }
+    }
+
+    /// <summary>
+    /// Accent first, then the theme: swapping the theme dictionary is what rebuilds the accent
+    /// brushes, and they take whatever accent colours are in place at that moment.
+    /// </summary>
+    private void ApplyResources(ApplicationTheme theme)
+    {
+        _applying = true;
+        try
+        {
+            Brand.ApplyAccent(theme);
+            ApplicationThemeManager.Apply(theme, WindowBackdropType.Mica, updateAccent: false);
+        }
+        finally
+        {
+            _applying = false;
         }
     }
 

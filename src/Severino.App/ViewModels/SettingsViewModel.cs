@@ -38,6 +38,9 @@ public sealed partial class SettingsViewModel : ObservableObject
 
     public string ConfigDirectory => _config.Directory;
 
+    public string Version { get; } =
+        typeof(SettingsViewModel).Assembly.GetName().Version?.ToString(3) ?? "";
+
     [ObservableProperty]
     public partial AppTheme Theme { get; set; }
 

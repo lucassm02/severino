@@ -27,6 +27,8 @@ dotnet run --project src/Severino.App
 - Commits: Conventional Commits em inglês.
 - Versões de pacotes ficam em `Directory.Packages.props`; `Directory.Build.props` liga `TreatWarningsAsErrors`.
 - Modelos de config usam `{ get; set; }`, não `init` (ver comentário em `SeverinoConfig.cs`); trate as instâncias como imutáveis e altere com `with` via `ConfigService.Update`.
+- Ícones: `src/Severino.App/Assets/severino.ico` e `severino-512.png` são gerados por `dotnet run scripts/build-icons.cs` a partir de `assets/branding/severino-rosto.png`. Não edite os gerados à mão.
+- Cores de texto do WPF-UI: use `Foreground="{DynamicResource TextFillColorSecondaryBrush}"`, não `Appearance="Secondary"`, que fixa a cor na criação e quebra a troca de tema com o app aberto. A cor de destaque é a da marca (`Services/Brand.cs`), aplicada antes de trocar o tema.
 
 ## Estado
 

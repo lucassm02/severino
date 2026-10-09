@@ -3,19 +3,13 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:tb="clr-namespace:H.NotifyIcon;assembly=H.NotifyIcon.Wpf">
 
+    <!-- The image is set by TrayService from Assets/severino.ico, at the size the tray uses. -->
     <tb:TaskbarIcon
         x:Key="TrayIcon"
         ToolTipText="Severino"
         NoLeftClickDelay="True"
         LeftClickCommand="{Binding ShowWindowCommand}"
         MenuActivation="RightClick">
-        <tb:TaskbarIcon.IconSource>
-            <tb:GeneratedIconSource
-                Text="S"
-                FontWeight="SemiBold"
-                Foreground="White"
-                Background="#0F6CBD" />
-        </tb:TaskbarIcon.IconSource>
         <tb:TaskbarIcon.ContextMenu>
             <ContextMenu>
                 <MenuItem Header="Abrir Severino" FontWeight="SemiBold" Command="{Binding ShowWindowCommand}" />

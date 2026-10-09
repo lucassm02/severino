@@ -15,6 +15,7 @@
     ShowInTaskbar="False"
     WindowStartupLocation="CenterOwner"
     WindowBackdropType="Mica"
+    Icon="/Assets/severino.ico"
     ExtendsContentIntoTitleBar="True">
     <ui:FluentWindow.Resources>
         <Style x:Key="FieldLabel" TargetType="ui:TextBlock">
@@ -40,7 +41,7 @@
                 Text="{Binding Domain, UpdateSourceTrigger=PropertyChanged}" />
             <ui:TextBlock
                 Margin="0,4,0,0"
-                Appearance="Secondary"
+                Foreground="{DynamicResource TextFillColorSecondaryBrush}"
                 FontTypography="Caption"
                 TextWrapping="Wrap"
                 Text="Qualquer nome vale. .test e .localhost são reservados e nunca colidem com a internet." />
@@ -88,14 +89,14 @@
                     <CheckBox Content="Preservar o Host original" IsChecked="{Binding PreserveHost}" />
                     <ui:TextBlock
                         Margin="28,0,0,8"
-                        Appearance="Secondary"
+                        Foreground="{DynamicResource TextFillColorSecondaryBrush}"
                         FontTypography="Caption"
                         TextWrapping="Wrap"
                         Text="Para apps que geram URLs absolutas. Desligado, o destino recebe o próprio host, o que agrada o Vite e o webpack." />
                     <CheckBox Content="Ignorar certificado inválido do destino" IsChecked="{Binding IgnoreTargetCertErrors}" />
                     <ui:TextBlock
                         Margin="28,0,0,8"
-                        Appearance="Secondary"
+                        Foreground="{DynamicResource TextFillColorSecondaryBrush}"
                         FontTypography="Caption"
                         TextWrapping="Wrap"
                         Text="Útil para destinos https de desenvolvimento, como o https://localhost:5001 do ASP.NET." />

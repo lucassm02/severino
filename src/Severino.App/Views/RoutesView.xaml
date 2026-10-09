@@ -12,8 +12,9 @@
     <UserControl.Resources>
         <views:BindingProxy x:Key="Root" Data="{Binding}" />
 
+        <!-- Dot and label share the colour; the label carries the meaning on its own. -->
         <Style x:Key="HealthDot" TargetType="TextBlock">
-            <Setter Property="FontSize" Value="14" />
+            <Setter Property="FontSize" Value="12" />
             <Setter Property="VerticalAlignment" Value="Center" />
             <Setter Property="Text" Value="●" />
             <Setter Property="Foreground" Value="{DynamicResource TextFillColorTertiaryBrush}" />
@@ -30,65 +31,92 @@
                 </DataTrigger>
             </Style.Triggers>
         </Style>
+        <Style x:Key="HealthLabel" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="12" />
+            <Setter Property="VerticalAlignment" Value="Center" />
+            <Setter Property="Foreground" Value="{DynamicResource TextFillColorSecondaryBrush}" />
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding Health}" Value="Up">
+                    <Setter Property="Foreground" Value="{DynamicResource SystemFillColorSuccessBrush}" />
+                </DataTrigger>
+                <DataTrigger Binding="{Binding Health}" Value="Down">
+                    <Setter Property="Foreground" Value="{DynamicResource SystemFillColorCautionBrush}" />
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
     </UserControl.Resources>
 
-    <Grid Margin="0,16,0,0">
+    <Grid Margin="0,20,0,0">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
             <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
 
-        <Grid Grid.Row="0" Margin="0,0,0,12" Visibility="{Binding HasRoutes, Converter={StaticResource TrueToVisible}}">
+        <Grid Grid.Row="0" Margin="0,0,0,16" Visibility="{Binding HasRoutes, Converter={StaticResource TrueToVisible}}">
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="Auto" />
                 <ColumnDefinition Width="*" />
                 <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="Auto" />
             </Grid.ColumnDefinitions>
+            <StackPanel Grid.Column="0" VerticalAlignment="Center">
+                <ui:TextBlock FontTypography="Subtitle" Text="Rotas" />
+                <ui:TextBlock Foreground="{DynamicResource TextFillColorSecondaryBrush}" FontTypography="Caption" Text="{Binding Summary}" />
+            </StackPanel>
+            <ui:TextBox
+                Grid.Column="1"
+                Width="220"
+                Margin="0,0,8,0"
+                VerticalAlignment="Center"
+                PlaceholderText="Buscar domínio"
+                Icon="{ui:SymbolIcon Search24}"
+                AutomationProperties.Name="Buscar rotas"
+                Text="{Binding Search, UpdateSourceTrigger=PropertyChanged}" />
             <ui:Button
-                Grid.Column="0"
+                Grid.Column="2"
+                VerticalAlignment="Center"
                 Appearance="Primary"
                 Icon="{ui:SymbolIcon Add24}"
                 Content="Nova rota"
                 Command="{Binding NewRouteCommand}" />
-            <ui:TextBox
-                Grid.Column="2"
-                Width="240"
-                PlaceholderText="Buscar..."
-                Icon="{ui:SymbolIcon Search24}"
-                AutomationProperties.Name="Buscar rotas"
-                Text="{Binding Search, UpdateSourceTrigger=PropertyChanged}" />
         </Grid>
 
         <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" Visibility="{Binding HasRoutes, Converter={StaticResource TrueToVisible}}">
             <ItemsControl ItemsSource="{Binding Items}">
                 <ItemsControl.ItemTemplate>
                     <DataTemplate DataType="{x:Type vm:RouteItemViewModel}">
-                        <ui:Card Margin="0,0,0,4" Padding="16,8">
+                        <ui:Card Margin="0,0,0,6" Padding="16,10">
                             <Grid>
                                 <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="28" />
+                                    <ColumnDefinition Width="24" />
                                     <ColumnDefinition Width="*" />
                                     <ColumnDefinition Width="Auto" />
                                     <ColumnDefinition Width="Auto" />
                                     <ColumnDefinition Width="Auto" />
                                 </Grid.ColumnDefinitions>
-                                <TextBlock Grid.Column="0" Style="{StaticResource HealthDot}" ToolTip="{Binding HealthTooltip}" />
-                                <TextBlock Grid.Column="1" VerticalAlignment="Center" FontSize="14" TextTrimming="CharacterEllipsis">
-                                    <Hyperlink
-                                        Foreground="{DynamicResource AccentTextFillColorPrimaryBrush}"
-                                        Command="{Binding Data.OpenCommand, Source={StaticResource Root}}"
-                                        CommandParameter="{Binding}"
-                                        ToolTip="Abrir no navegador">
-                                        <Run Text="{Binding Domain, Mode=OneWay}" />
-                                    </Hyperlink>
-                                </TextBlock>
-                                <ui:TextBlock
+                                <TextBlock Grid.Column="0" Style="{StaticResource HealthDot}" />
+                                <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                                    <TextBlock FontSize="14" FontWeight="SemiBold" TextTrimming="CharacterEllipsis">
+                                        <Hyperlink
+                                            Foreground="{DynamicResource AccentTextFillColorPrimaryBrush}"
+                                            TextDecorations="{x:Null}"
+                                            Command="{Binding Data.OpenCommand, Source={StaticResource Root}}"
+                                            CommandParameter="{Binding}"
+                                            ToolTip="Abrir no navegador">
+                                            <Run Text="{Binding Domain, Mode=OneWay}" />
+                                        </Hyperlink>
+                                    </TextBlock>
+                                    <ui:TextBlock
+                                        Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                                        FontTypography="Caption"
+                                        TextTrimming="CharacterEllipsis"
+                                        Text="{Binding TargetDisplay, StringFormat='→ {0}'}" />
+                                </StackPanel>
+                                <TextBlock
                                     Grid.Column="2"
                                     Margin="16,0"
-                                    VerticalAlignment="Center"
-                                    Appearance="Secondary"
-                                    Text="{Binding TargetDisplay, StringFormat='→  {0}'}" />
+                                    Style="{StaticResource HealthLabel}"
+                                    Text="{Binding HealthText}" />
                                 <ui:ToggleSwitch
                                     Grid.Column="3"
                                     VerticalAlignment="Center"
@@ -103,9 +131,11 @@
                                     Click="OnMoreClick">
                                     <ui:Button.ContextMenu>
                                         <ContextMenu>
+                                            <MenuItem Header="Abrir no navegador" Command="{Binding Data.OpenCommand, Source={StaticResource Root}}" CommandParameter="{Binding}" />
+                                            <MenuItem Header="Copiar URL" Command="{Binding Data.CopyUrlCommand, Source={StaticResource Root}}" CommandParameter="{Binding}" />
+                                            <Separator />
                                             <MenuItem Header="Editar" Command="{Binding Data.EditCommand, Source={StaticResource Root}}" CommandParameter="{Binding}" />
                                             <MenuItem Header="Duplicar" Command="{Binding Data.DuplicateCommand, Source={StaticResource Root}}" CommandParameter="{Binding}" />
-                                            <MenuItem Header="Copiar URL" Command="{Binding Data.CopyUrlCommand, Source={StaticResource Root}}" CommandParameter="{Binding}" />
                                             <Separator />
                                             <MenuItem Header="Remover" Command="{Binding Data.RemoveCommand, Source={StaticResource Root}}" CommandParameter="{Binding}" />
                                         </ContextMenu>
@@ -120,17 +150,29 @@
 
         <StackPanel
             Grid.Row="1"
+            MaxWidth="420"
             HorizontalAlignment="Center"
             VerticalAlignment="Center"
             Visibility="{Binding IsEmpty, Converter={StaticResource TrueToVisible}}">
-            <ui:SymbolIcon Symbol="Globe24" FontSize="40" HorizontalAlignment="Center" />
-            <ui:TextBlock Margin="0,12,0,4" HorizontalAlignment="Center" FontTypography="Subtitle" Text="Nenhuma rota ainda" />
+            <Image
+                Width="112"
+                Height="112"
+                Source="/Assets/severino-512.png"
+                RenderOptions.BitmapScalingMode="HighQuality"
+                AutomationProperties.Name="Severino, o porteiro" />
+            <ui:TextBlock
+                Margin="0,16,0,4"
+                HorizontalAlignment="Center"
+                FontTypography="Subtitle"
+                Text="O Severino está na portaria" />
             <ui:TextBlock
                 HorizontalAlignment="Center"
-                Appearance="Secondary"
-                Text="Aponte um domínio, como callfred.sev, para o seu servidor local." />
+                TextAlignment="Center"
+                TextWrapping="Wrap"
+                Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                Text="Diga a ele qual domínio leva a qual servidor, como callfred.sev para localhost:3000, e ele cuida do resto." />
             <ui:Button
-                Margin="0,16,0,0"
+                Margin="0,20,0,0"
                 HorizontalAlignment="Center"
                 Appearance="Primary"
                 Icon="{ui:SymbolIcon Add24}"

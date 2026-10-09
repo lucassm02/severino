@@ -43,6 +43,10 @@ public sealed partial class RoutesViewModel : ObservableObject
 
     public bool IsEmpty => !HasRoutes;
 
+    /// <summary>"3 rotas · 2 ligadas".</summary>
+    [ObservableProperty]
+    public partial string Summary { get; set; } = "";
+
     [ObservableProperty]
     public partial string Search { get; set; } = "";
 
@@ -118,6 +122,8 @@ public sealed partial class RoutesViewModel : ObservableObject
     private void Reconcile(IReadOnlyList<RouteEntry> routes, bool force = false)
     {
         HasRoutes = routes.Count > 0;
+        var enabled = routes.Count(r => r.Enabled);
+        Summary = $"{routes.Count} {(routes.Count == 1 ? "rota" : "rotas")} · {enabled} {(enabled == 1 ? "ligada" : "ligadas")}";
         var visible = routes
             .Where(r => Search.Length == 0 || r.Domain.Contains(Search.Trim(), StringComparison.OrdinalIgnoreCase))
             .ToList();

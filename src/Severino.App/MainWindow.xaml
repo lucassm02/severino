@@ -16,6 +16,7 @@
     MinHeight="420"
     WindowStartupLocation="CenterScreen"
     WindowBackdropType="Mica"
+    Icon="/Assets/severino.ico"
     ExtendsContentIntoTitleBar="True">
     <ui:FluentWindow.Resources>
         <Style x:Key="StatusLink" TargetType="ui:Button" BasedOn="{StaticResource {x:Type ui:Button}}">
@@ -32,7 +33,11 @@
             <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
 
-        <ui:TitleBar Grid.Row="0" Title="Severino" ShowMaximize="True" />
+        <ui:TitleBar Grid.Row="0" Title="Severino" ShowMaximize="True">
+            <ui:TitleBar.Icon>
+                <ui:ImageIcon Source="/Assets/severino-512.png" RenderOptions.BitmapScalingMode="HighQuality" />
+            </ui:TitleBar.Icon>
+        </ui:TitleBar>
 
         <TabControl Grid.Row="1" Margin="16,0,16,8" SelectedIndex="{Binding SelectedTab}">
             <TabItem Header="Rotas">
@@ -53,7 +58,7 @@
             Orientation="Horizontal">
             <ui:TextBlock
                 VerticalAlignment="Center"
-                Appearance="Secondary"
+                Foreground="{DynamicResource TextFillColorSecondaryBrush}"
                 Text="{Binding ProxyText}"
                 Visibility="{Binding ProxyHasProblem, Converter={StaticResource FalseToVisible}}" />
             <ui:Button
@@ -61,10 +66,10 @@
                 Content="{Binding ProxyText}"
                 Command="{Binding FixProxyCommand}"
                 Visibility="{Binding ProxyHasProblem, Converter={StaticResource TrueToVisible}}" />
-            <ui:TextBlock Margin="8,0" VerticalAlignment="Center" Appearance="Secondary" Text="·" />
+            <ui:TextBlock Margin="8,0" VerticalAlignment="Center" Foreground="{DynamicResource TextFillColorSecondaryBrush}" Text="·" />
             <ui:TextBlock
                 VerticalAlignment="Center"
-                Appearance="Secondary"
+                Foreground="{DynamicResource TextFillColorSecondaryBrush}"
                 Text="{Binding HostsText}"
                 Visibility="{Binding HostsHasProblem, Converter={StaticResource FalseToVisible}}" />
             <ui:Button

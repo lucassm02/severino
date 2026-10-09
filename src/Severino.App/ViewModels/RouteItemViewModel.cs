@@ -32,15 +32,16 @@ public sealed partial class RouteItemViewModel : ObservableObject
         : Route.Target;
 
     [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(HealthTooltip))]
+    [NotifyPropertyChangedFor(nameof(HealthText))]
     public partial RouteHealthState Health { get; set; }
 
-    public string HealthTooltip => Health switch
+    /// <summary>Spelled out next to the dot, so the state does not rely on colour alone.</summary>
+    public string HealthText => Health switch
     {
-        RouteHealthState.Up => "Destino respondendo",
-        RouteHealthState.Down => "Destino fora do ar",
-        RouteHealthState.Disabled => "Rota desligada",
-        _ => "Verificando o destino",
+        RouteHealthState.Up => "Respondendo",
+        RouteHealthState.Down => "Fora do ar",
+        RouteHealthState.Disabled => "Desligada",
+        _ => "Verificando…",
     };
 
     public bool Enabled

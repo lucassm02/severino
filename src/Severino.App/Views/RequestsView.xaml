@@ -12,7 +12,7 @@
             Text="Nenhuma requisição" />
         <ui:TextBlock
             HorizontalAlignment="Center"
-            Appearance="Secondary"
+            Foreground="{DynamicResource TextFillColorSecondaryBrush}"
             Text="As requisições que passarem pelo proxy aparecem aqui." />
     </StackPanel>
 </UserControl>

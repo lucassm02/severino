@@ -15,7 +15,7 @@
                 <ui:CardControl.Header>
                     <StackPanel>
                         <ui:TextBlock Text="Porta HTTP do proxy" />
-                        <ui:TextBlock Appearance="Secondary" FontTypography="Caption" Text="Fora da 80, as URLs passam a levar a porta (ex.: :8080)" />
+                        <ui:TextBlock Foreground="{DynamicResource TextFillColorSecondaryBrush}" FontTypography="Caption" Text="Fora da 80, as URLs passam a levar a porta (ex.: :8080)" />
                         <ui:TextBlock
                             FontTypography="Caption"
                             Foreground="{DynamicResource SystemFillColorCriticalBrush}"
@@ -41,7 +41,7 @@
                 <ui:CardControl.Header>
                     <StackPanel>
                         <ui:TextBlock Text="Tema" />
-                        <ui:TextBlock Appearance="Secondary" FontTypography="Caption" Text="Claro, escuro ou igual ao Windows" />
+                        <ui:TextBlock Foreground="{DynamicResource TextFillColorSecondaryBrush}" FontTypography="Caption" Text="Claro, escuro ou igual ao Windows" />
                     </StackPanel>
                 </ui:CardControl.Header>
                 <ComboBox
@@ -57,7 +57,7 @@
                 <ui:CardControl.Header>
                     <StackPanel>
                         <ui:TextBlock Text="Iniciar minimizado" />
-                        <ui:TextBlock Appearance="Secondary" FontTypography="Caption" Text="Abre direto na bandeja, sem mostrar a janela" />
+                        <ui:TextBlock Foreground="{DynamicResource TextFillColorSecondaryBrush}" FontTypography="Caption" Text="Abre direto na bandeja, sem mostrar a janela" />
                     </StackPanel>
                 </ui:CardControl.Header>
                 <ui:ToggleSwitch IsChecked="{Binding StartMinimized}" />
@@ -68,11 +68,27 @@
                 <ui:CardControl.Header>
                     <StackPanel>
                         <ui:TextBlock Text="Pasta de configuração" />
-                        <ui:TextBlock Appearance="Secondary" FontTypography="Caption" Text="{Binding ConfigDirectory}" TextTrimming="CharacterEllipsis" />
+                        <ui:TextBlock Foreground="{DynamicResource TextFillColorSecondaryBrush}" FontTypography="Caption" Text="{Binding ConfigDirectory}" TextTrimming="CharacterEllipsis" />
                     </StackPanel>
                 </ui:CardControl.Header>
                 <ui:Button Content="Abrir pasta" Command="{Binding OpenConfigFolderCommand}" />
             </ui:CardControl>
+
+            <ui:TextBlock Margin="0,16,0,8" FontTypography="BodyStrong" Text="Sobre" />
+            <ui:Card Margin="0,0,0,16" Padding="16">
+                <StackPanel Orientation="Horizontal">
+                    <Image
+                        Width="56"
+                        Height="56"
+                        Source="/Assets/severino-512.png"
+                        RenderOptions.BitmapScalingMode="HighQuality"
+                        AutomationProperties.Name="Severino" />
+                    <StackPanel Margin="16,0,0,0" VerticalAlignment="Center">
+                        <ui:TextBlock FontTypography="BodyStrong" Text="{Binding Version, StringFormat='Severino {0}'}" />
+                        <ui:TextBlock Foreground="{DynamicResource TextFillColorSecondaryBrush}" TextWrapping="Wrap" Text="O porteiro dos seus domínios de desenvolvimento." />
+                    </StackPanel>
+                </StackPanel>
+            </ui:Card>
         </StackPanel>
     </ScrollViewer>
 </UserControl>
