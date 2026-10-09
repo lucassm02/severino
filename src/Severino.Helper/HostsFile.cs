@@ -1,4 +1,5 @@
 using System.Runtime.InteropServices;
+using System.Security.AccessControl;
 using System.Text;
 
 namespace Severino.Helper;
@@ -34,24 +35,25 @@ public sealed partial class HostsFile(string path, Action? flushDns = null) : IH
             File.WriteAllBytes(tempPath, Encoding.Latin1.GetBytes(merged));
             try
             {
-                if (!File.Exists(path))
+                var readOnly = false;
+                if (File.Exists(path))
                 {
-                    File.Move(tempPath, path);
-                }
-                else
-                {
-                    var readOnly = ClearReadOnly(path);
                     ClearReadOnly(BackupPath);
-                    try
-                    {
-                        // Replace keeps the ACL and attributes of the original file.
-                        File.Replace(tempPath, path, BackupPath, ignoreMetadataErrors: true);
-                    }
-                    finally
-                    {
-                        if (readOnly)
-                            File.SetAttributes(path, File.GetAttributes(path) | FileAttributes.ReadOnly);
-                    }
+                    File.Copy(path, BackupPath, overwrite: true);
+                    CopyAccessRules(path, tempPath);
+                    readOnly = ClearReadOnly(path);
+                }
+
+                // A single rename over the old file: readers never see it missing. File.Replace
+                // would move the original away first, leaving a moment with no hosts file at all.
+                try
+                {
+                    MoveWithRetry(tempPath, path);
+                }
+                finally
+                {
+                    if (readOnly)
+                        File.SetAttributes(path, File.GetAttributes(path) | FileAttributes.ReadOnly);
                 }
             }
             finally
@@ -62,6 +64,37 @@ public sealed partial class HostsFile(string path, Action? flushDns = null) : IH
             _flushDns();
             return true;
         }
+    }
+
+    /// <summary>
+    /// Renames over the target, retrying for up to a second: the DNS Client and antivirus open
+    /// the hosts file right after it changes, and the rename is refused while they hold it.
+    /// </summary>
+    private static void MoveWithRetry(string from, string to)
+    {
+        const int attempts = 20;
+        for (var attempt = 1; ; attempt++)
+        {
+            try
+            {
+                File.Move(from, to, overwrite: true);
+                return;
+            }
+            catch (Exception ex) when (ex is IOException or UnauthorizedAccessException && attempt < attempts)
+            {
+                Thread.Sleep(50);
+            }
+        }
+    }
+
+    /// <summary>Gives the new file the same DACL as the one it replaces.</summary>
+    private static void CopyAccessRules(string from, string to)
+    {
+        var sddl = new FileInfo(from).GetAccessControl(AccessControlSections.Access)
+            .GetSecurityDescriptorSddlForm(AccessControlSections.Access);
+        var security = new FileSecurity();
+        security.SetSecurityDescriptorSddlForm(sddl, AccessControlSections.Access);
+        new FileInfo(to).SetAccessControl(security);
     }
 
     private static bool ClearReadOnly(string file)

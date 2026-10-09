@@ -1,3 +1,5 @@
+using System.Security.AccessControl;
+using System.Security.Principal;
 using System.Text;
 using Severino.Helper;
 
@@ -72,6 +74,57 @@ public sealed class HostsFileTests : IDisposable
 
         Assert.True(File.GetAttributes(_path).HasFlag(FileAttributes.ReadOnly));
         Assert.Contains("b.sev", File.ReadAllText(_path));
+    }
+
+    [Fact]
+    public async Task File_never_goes_missing_while_rewritten()
+    {
+        File.WriteAllText(_path, "127.0.0.1  manual.host\r\n");
+        var missing = 0;
+        using var stop = new CancellationTokenSource();
+
+        var reader = Task.Run(() =>
+        {
+            while (!stop.IsCancellationRequested)
+            {
+                try
+                {
+                    File.ReadAllBytes(_path);
+                }
+                catch (FileNotFoundException)
+                {
+                    Interlocked.Increment(ref missing);
+                }
+                catch (IOException)
+                {
+                    // Sharing violation while the rename lands: the file is there.
+                }
+            }
+        });
+
+        for (var i = 0; i < 100; i++)
+            _hosts.Write(i % 2 == 0 ? ["a.sev"] : ["a.sev", "b.sev"]);
+        await stop.CancelAsync();
+        await reader;
+
+        Assert.Equal(0, missing);
+    }
+
+    [Fact]
+    public void Keeps_the_original_access_rules()
+    {
+        File.WriteAllText(_path, "");
+        var guests = new SecurityIdentifier(WellKnownSidType.BuiltinGuestsSid, null);
+        var security = new FileInfo(_path).GetAccessControl();
+        security.AddAccessRule(new FileSystemAccessRule(guests, FileSystemRights.ReadData, AccessControlType.Allow));
+        new FileInfo(_path).SetAccessControl(security);
+
+        _hosts.Write(["a.sev"]);
+
+        var rules = new FileInfo(_path).GetAccessControl()
+            .GetAccessRules(includeExplicit: true, includeInherited: false, typeof(SecurityIdentifier))
+            .Cast<FileSystemAccessRule>();
+        Assert.Contains(rules, r => r.IdentityReference.Equals(guests) && r.FileSystemRights.HasFlag(FileSystemRights.ReadData));
     }
 
     [Fact]

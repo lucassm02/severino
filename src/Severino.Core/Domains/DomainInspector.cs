@@ -8,7 +8,11 @@ public enum DomainWarningKind
     LookupFailed,
 }
 
-public sealed record DomainWarning(DomainWarningKind Kind, string Message);
+public sealed record DomainWarning(DomainWarningKind Kind, string Message)
+{
+    // Screen readers and UI Automation read list items through ToString.
+    public override string ToString() => Message;
+}
 
 /// <summary>Non-blocking warnings about a domain the user is about to route.</summary>
 public sealed class DomainInspector(IDnsResolver dns)
