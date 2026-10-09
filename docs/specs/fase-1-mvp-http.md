@@ -1,6 +1,6 @@
 # Spec: Fase 1, MVP HTTP
 
-**Status:** rascunho para revisão
+**Status:** aprovado em 2026-10-09, com os padrões das "Decisões a confirmar"
 **Base:** [planejamento.md](../planejamento.md), seções 1, 3, 4 e 7. Este spec detalha a Fase 1 e não muda o plano. Divergências ficam em "Decisões a confirmar".
 
 ## Objetivo

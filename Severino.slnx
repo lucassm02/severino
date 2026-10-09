@@ -1,7 +1,9 @@
 <Solution>
   <Folder Name="/src/">
     <Project Path="src/Severino.App/Severino.App.csproj" />
+    <Project Path="src/Severino.Contracts/Severino.Contracts.csproj" />
     <Project Path="src/Severino.Core/Severino.Core.csproj" />
+    <Project Path="src/Severino.Helper/Severino.Helper.csproj" />
   </Folder>
   <Folder Name="/tests/">
     <Project Path="tests/Severino.Tests/Severino.Tests.csproj" />
