@@ -1,13 +1,15 @@
 # Planejamento: Severino
 
-A ideia é cadastrar `callfred.loc → 127.0.0.1:3000` numa janela e deixar a ferramenta fazer o resto: gravar o nome no hosts, rotear o tráfego pelo proxy e, se você quiser, emitir um certificado HTTPS confiável. Nenhum passo exige terminal ou edição manual de arquivo.
+A ideia é cadastrar `callfred.sev → 127.0.0.1:3000` numa janela e deixar a ferramenta fazer o resto: gravar o nome no hosts, rotear o tráfego pelo proxy e, se você quiser, emitir um certificado HTTPS confiável. Nenhum passo exige terminal ou edição manual de arquivo.
 
-Ficam de fora, de propósito: expor serviços na rede ou na internet, Let's Encrypt, mapear domínios públicos, balanceamento de carga e resolução de nomes dentro de containers ou WSL. O proxy escuta só em loopback.
+O domínio é livre. Vale qualquer nome válido, inclusive um que já exista na internet: enquanto a rota estiver ativa, ele passa a apontar para a sua máquina, e o app avisa antes (veja "Domínios" na seção 4). Nos exemplos usamos `.sev`.
+
+Ficam de fora, de propósito: expor serviços na rede ou na internet, Let's Encrypt, balanceamento de carga e resolução de nomes dentro de containers ou WSL. O proxy escuta só em loopback.
 
 ## 1. Arquitetura
 
 ```
- Navegador ──► https://callfred.loc
+ Navegador ──► https://callfred.sev
                    │  hosts: 127.0.0.1 / ::1
                    ▼
   ┌──────────────────────────────────┐
@@ -27,7 +29,7 @@ Por isso o único trecho que precisa de admin fica num serviço minúsculo, inst
 
 - **Um único UAC**, na instalação, e nunca mais.
 - **O navegador abre normal.** O app principal roda como usuário comum, então "Abrir no navegador" funciona como esperado. Um app elevado abriria o navegador também elevado.
-- **Pouco risco.** O serviço só sabe apontar nomes com sufixos permitidos para loopback. Mesmo que outro programa converse com ele, não consegue fazer nada de útil para um ataque.
+- **Pouco risco.** O serviço só sabe apontar nomes para loopback. Mesmo que outro programa converse com ele, o pior que consegue é desviar um site para a sua própria máquina.
 
 A alternativa seria rodar tudo elevado via Agendador de Tarefas. É mais simples de codar, mas pior nesses três pontos.
 
@@ -65,11 +67,10 @@ No .NET fica tudo num processo, com acesso direto às APIs do Windows de certifi
 
 ### Primeira execução
 
-Um assistente de três telas:
+Um assistente de duas telas:
 
-1. **Sufixo padrão.** `.loc` vem pré-selecionado. O assistente desaconselha `.local`, que conflita com mDNS e deixa a resolução lenta.
-2. **Checagem automática.** Mostra ✓ ou ✗ para cada item: portas 80 e 443 livres, serviço auxiliar respondendo e proxy do sistema fora do caminho. Cada ✗ vem com um botão de correção ou uma explicação.
-3. **HTTPS opcional.** O botão "Ativar HTTPS local" gera a CA e abre o diálogo de confirmação do próprio Windows.
+1. **Checagem automática.** Mostra ✓ ou ✗ para cada item: portas 80 e 443 livres, serviço auxiliar respondendo e proxy do sistema fora do caminho. Cada ✗ vem com um botão de correção ou uma explicação.
+2. **HTTPS opcional.** O botão "Ativar HTTPS local" gera a CA e abre o diálogo de confirmação do próprio Windows.
 
 O assistente termina em "Criar minha primeira rota".
 
@@ -81,10 +82,10 @@ O assistente termina em "Criar minha primeira rota".
 │                                                         │
 │  [+ Nova rota]          Buscar...                       │
 │                                                         │
-│  ●  callfred.loc       →  127.0.0.1:3000  https  [on] ⋯ │
-│  ●  api.callfred.loc   →  127.0.0.1:5000  https  [on] ⋯ │
-│  ◐  admin.loc          →  127.0.0.1:4200         [on] ⋯ │
-│  ○  legado.loc         →  127.0.0.1:8080        [off] ⋯ │
+│  ●  callfred.sev       →  127.0.0.1:3000  https  [on] ⋯ │
+│  ●  api.callfred.sev   →  127.0.0.1:5000  https  [on] ⋯ │
+│  ◐  admin.sev          →  127.0.0.1:4200         [on] ⋯ │
+│  ○  legado.sev         →  127.0.0.1:8080        [off] ⋯ │
 │                                                         │
 │  Proxy ativo :80 :443 · hosts ok · HTTPS ok             │
 └─────────────────────────────────────────────────────────┘
@@ -103,7 +104,7 @@ Como cada elemento funciona:
 
 ```
 ┌─ Nova rota ────────────────────────────────┐
-│ Domínio   [ callfred          ] .loc ▾     │
+│ Domínio   [ callfred.sev               ]   │
 │ Destino   [ 127.0.0.1 ] : [ 3000      ▾ ]  │
 │               3000 · node (next dev)       │
 │               5173 · node (vite)           │
@@ -116,15 +117,16 @@ Como cada elemento funciona:
 
 O formulário ajuda em cada campo:
 
-- **Domínio:** digitar só "callfred" já completa o sufixo.
+- **Domínio:** nome completo e livre, como `callfred.sev` ou `api.empresa.com`. O texto de exemplo do campo sugere `.sev`, e uma dica lembra que `.test` e `.localhost` são reservados e nunca colidem com a internet.
 - **Porta:** o combo lista as portas que estão escutando, com o nome do processo, então você não precisa lembrar números.
-- **Validação inline:** domínio duplicado aparece em vermelho. Porta sem nada escutando aparece em amarelo, mas não bloqueia: a rota fica aguardando seu servidor subir.
+- **Validação inline:** nome inválido ou duplicado aparece em vermelho e bloqueia. Porta sem nada escutando aparece em amarelo, mas não bloqueia: a rota fica aguardando seu servidor subir.
+- **Avisos de domínio:** aparecem em amarelo e nunca bloqueiam. Os casos estão em "Domínios", na seção 4: nome que já existe na internet, HSTS preload, `.local`, e domínio fora da cobertura da CA.
 - **"Avançado":**
   - preservar o Host original;
   - ignorar certificado inválido do destino, útil para o `https://localhost:5001` do ASP.NET;
   - um campo de observações.
 
-Ao clicar em Criar, a rota fica ativa em cerca de um segundo e aparece "callfred.loc pronto · Abrir".
+Ao clicar em Criar, a rota fica ativa em cerca de um segundo e aparece "callfred.sev pronto · Abrir".
 
 ### Requisições
 
@@ -134,7 +136,7 @@ Log ao vivo com hora, domínio, método, caminho, status e duração. Dá para f
 
 Reúne tudo o que é ajustável:
 
-- **Rede:** portas do proxy e sufixos permitidos.
+- **Rede:** portas do proxy.
 - **Inicialização:** iniciar com o Windows (chave `HKCU\...\Run`, sem admin) e iniciar minimizado.
 - **Aparência:** tema.
 - **HTTPS:** status da CA, exportar em PEM para Node e Python (com a linha do `NODE_EXTRA_CA_CERTS` pronta para copiar) e remover a CA.
@@ -153,14 +155,23 @@ Fechar a janela só minimiza para a bandeja. Na primeira vez, um aviso explica i
 
 ## 4. Detalhes técnicos
 
+### Domínios
+
+Qualquer hostname válido é aceito. O app checa o nome enquanto você digita (com atraso de meio segundo) e de novo ao salvar, e mostra avisos sem bloquear:
+
+- **O nome já existe na internet.** O app consulta o DNS ignorando o hosts e o cache, com `DnsQuery_W` e as flags `DNS_QUERY_NO_HOSTS_FILE | DNS_QUERY_BYPASS_CACHE`, para A, AAAA e CNAME. Uma consulta comum não serviria, porque depois que o Severino grava o nome ela devolve 127.0.0.1. Se o nome resolve, o aviso diz: "`api.empresa.com` existe na internet (resolve para 203.0.113.10). Enquanto esta rota estiver ativa, esta máquina não acessa o site real." Sem rede ou com timeout, o app diz que não conseguiu verificar, sem alarde.
+- **HSTS preload.** Alguns TLDs inteiros, como `.dev`, `.app` e `.page`, estão na lista de HSTS preload dos navegadores, então só abrem com HTTPS. O app traz essa lista de TLDs embutida. Nesses casos, liga o HTTPS da rota e explica o motivo. Para nomes que já existem na internet com HTTPS desligado, o aviso acrescenta que o site real pode usar HSTS e exigir HTTPS.
+- **`.local`.** Conflita com mDNS e deixa a resolução lenta.
+- **Fora da cobertura da CA.** Com HTTPS ativo, cadastrar um domínio que a CA atual não cobre exige reemitir a CA (veja "HTTPS").
+
 ### Hosts
 
 O serviço auxiliar mantém um bloco delimitado e nunca toca no resto do arquivo:
 
 ```
 # >>> Severino: bloco gerenciado, não edite
-127.0.0.1  callfred.loc
-::1        callfred.loc
+127.0.0.1  callfred.sev
+::1        callfred.sev
 # <<< Severino
 ```
 
@@ -172,7 +183,7 @@ A cada sincronização, o serviço faz o seguinte:
 4. Grava em ASCII sem BOM.
 5. Chama `DnsFlushResolverCache`, que equivale ao `ipconfig /flushdns`.
 
-Domínios com acento viram punycode via `IdnMapping`. O serviço valida tudo por conta própria, sem confiar no app: regex de hostname, sufixo na lista permitida, limite de entradas e IP sempre loopback.
+Domínios com acento viram punycode via `IdnMapping`. O serviço valida tudo por conta própria, sem confiar no app: sintaxe de hostname (rótulos e tamanho), nada de quebra de linha ou espaço, limite de entradas e IP sempre loopback. Não há restrição de sufixo.
 
 O hosts não aceita curinga, então no MVP cada subdomínio precisa de rota própria.
 
@@ -186,14 +197,17 @@ Ajustes pensados para dev:
 - **Sem limite de corpo.** O limite de tamanho da requisição fica desligado, para permitir uploads grandes.
 - **Host reescrito por padrão.** O Host vai como o do destino, acompanhado de `X-Forwarded-Host/Proto/For`. Isso agrada o Vite e o webpack-dev-server, que bloqueiam Host desconhecido. A opção "Preservar Host original" cobre apps que geram URLs absolutas.
 - **Redirecionamento temporário.** HTTP→HTTPS usa 307, nunca 301, e o proxy nunca envia HSTS. Os dois ficam gravados no navegador e viram dor de cabeça quando você desliga o HTTPS.
-- **Páginas de erro próprias.** Domínio desconhecido mostra um 404 com a lista de rotas. Destino fora do ar mostra um 502 dizendo `callfred.loc → 127.0.0.1:3000 não respondeu. Seu servidor está rodando?`
+- **Páginas de erro próprias.** Domínio desconhecido mostra um 404 com a lista de rotas. Destino fora do ar mostra um 502 dizendo `callfred.sev → 127.0.0.1:3000 não respondeu. Seu servidor está rodando?`
 - **Proteção contra loop.** O destino não pode ser o próprio proxy.
 
 ### HTTPS
 
 Na ativação, o app gera uma CA raiz ECDSA P-256 com validade de 10 anos.
 
-- **Name Constraints:** a CA fica limitada aos sufixos permitidos. Mesmo que a chave vaze, ela não serve para falsificar `banco.com.br`. Se você adicionar um sufixo novo depois, a UI explica que é preciso reemitir a CA e faz isso em um clique.
+- **Name Constraints:** a CA só vale para os domínios cadastrados. Mesmo que a chave vaze, ela não serve para falsificar `banco.com.br`, a menos que você mesmo tenha cadastrado esse domínio. A cobertura é calculada assim:
+  - **TLD que não existe na internet** (`.sev`, ou os reservados `.test`, `.localhost` e `.internal`): a CA cobre o TLD inteiro. Assim, novas rotas `*.sev` nunca pedem reemissão. Para saber se o TLD existe, o app consulta o SOA dele na raiz do DNS.
+  - **TLD real** (`api.empresa.com`): a CA cobre exatamente o nome cadastrado, com seus subdomínios.
+- **Reemissão:** cadastrar um domínio fora da cobertura exige uma CA nova. A UI explica e, num clique, gera a CA, instala (o Windows pede confirmação de novo), remove a antiga e reemite os certificados das rotas. Remover rotas não reemite nada, para não pedir confirmação à toa. Configurações › HTTPS mostra os domínios cobertos e permite reemitir para enxugar a lista.
 - **Chave privada:** cifrada com DPAPI.
 - **Instalação:** a CA vai para `CurrentUser\Root`. Isso dispara o aviso de segurança do Windows, que funciona como consentimento explícito, sem exigir admin.
 
@@ -207,7 +221,7 @@ Edge e Chrome usam o repositório do Windows. O Firefox pode precisar de `securi
 
 **Porta ocupada.** Se a 80 ou a 443 estiver em uso, a UI mostra qual processo é o dono. PID 4 ("System") significa http.sys, quase sempre IIS ou outro serviço registrado. Outros suspeitos comuns são XAMPP, Docker publicando a 80 e VMware na 443. Como alternativa, o app oferece usar 8080 e 8443, e as URLs passam a levar a porta.
 
-**Proxy do sistema.** Com proxy configurado no Windows, comum em VPN corporativa, o navegador mandaria `*.loc` para fora. O app detecta isso nas Internet Settings do HKCU e oferece adicionar `*.loc` às exceções.
+**Proxy do sistema.** Com proxy configurado no Windows, comum em VPN corporativa, o navegador mandaria os domínios das rotas para fora. O app detecta isso nas Internet Settings do HKCU e oferece adicionar esses domínios às exceções.
 
 **Saúde dos destinos.** Um teste de conexão TCP a cada 5 segundos por rota ativa alimenta a bolinha de status.
 
@@ -229,8 +243,6 @@ Fica em `%LOCALAPPDATA%\Severino\config.json`, com as últimas 5 versões guarda
   "settings": {
     "httpPort": 80,
     "httpsPort": 443,
-    "defaultSuffix": ".loc",
-    "allowedSuffixes": [".loc", ".test", ".localhost"],
     "startWithWindows": true,
     "startMinimized": true,
     "theme": "auto"
@@ -241,7 +253,7 @@ Fica em `%LOCALAPPDATA%\Severino\config.json`, com as últimas 5 versões guarda
   "routes": [
     {
       "id": "3f2c9a1e-7b44-4d0e-9c1a-2e5b8f6d0a11",
-      "domain": "callfred.loc",
+      "domain": "callfred.sev",
       "target": "http://127.0.0.1:3000",
       "enabled": true,
       "https": true,
@@ -277,19 +289,21 @@ O `Contracts` existe para que app e serviço usem exatamente o mesmo validador. 
 | Fase | Entrega | Pronto quando |
 |---|---|---|
 | 0. Esqueleto | Solução, janela WPF-UI com abas, bandeja, instância única, carregar e salvar config | O app abre, minimiza para a bandeja e reabre sem duplicar |
-| 1. MVP HTTP | CRUD de rotas, YARP, serviço auxiliar + bloco no hosts, status de saúde, páginas de erro, detecção de porta ocupada | `http://callfred.loc` abre seu app e o HMR do Vite funciona |
-| 2. HTTPS | CA com Name Constraints, emissão por SNI, redirecionamento, exportar CA | `https://callfred.loc` abre no Edge e no Chrome sem aviso |
+| 1. MVP HTTP | CRUD de rotas, YARP, serviço auxiliar + bloco no hosts, avisos de domínio, status de saúde, páginas de erro, detecção de porta ocupada | `http://callfred.sev` abre seu app e o HMR do Vite funciona |
+| 2. HTTPS | CA com Name Constraints nos domínios cadastrados e reemissão, emissão por SNI, redirecionamento, exportar CA | `https://callfred.sev` abre no Edge e no Chrome sem aviso |
 | 3. Polimento | Assistente de primeira execução, aba de requisições, combo de portas com processo, detector de proxy do sistema, iniciar com Windows, importar e exportar, "Limpar tudo", instalador | Alguém que nunca viu a ferramenta instala e cria uma rota sem ajuda |
-| 4. Extras | Curinga via DNS embutido + regra NRPT para `.loc` (a validar), rotas por caminho (`/api`), importar entradas 127.0.0.1 já existentes no hosts, grupos de rotas, módulo PowerShell opcional | Conforme a necessidade |
+| 4. Extras | Curinga via DNS embutido + regra NRPT para os domínios das rotas (a validar), rotas por caminho (`/api`), importar entradas 127.0.0.1 já existentes no hosts, grupos de rotas, módulo PowerShell opcional | Conforme a necessidade |
 
 ## 8. Riscos restantes
 
 | Risco | Mitigação |
 |---|---|
-| Defender alertar sobre mudanças no hosts | O alerta costuma mirar redirecionamento de domínios conhecidos; só gravar sufixos de dev reduz bastante o risco |
+| Defender acusar o hosts de sequestro (HostsFileHijack) | O alerta mira redirecionamento de domínios conhecidos. Nomes inexistentes, como `*.sev`, não devem disparar. Para nomes que existem na internet, o aviso do formulário menciona esse risco |
+| TLD `.sev` passar a existir (nova rodada de TLDs da ICANN) | O hosts continua tendo prioridade. O aviso de "domínio existe" passa a aparecer, e a cobertura da CA cai de TLD inteiro para nome a nome na próxima reemissão |
+| Barra de endereço tratar TLD desconhecido como busca | "Abrir no navegador" sempre usa a URL completa. Na primeira vez, digitar `http://` ou a barra final; depois o histórico resolve |
 | DNS-over-HTTPS no navegador | Os navegadores consultam o hosts antes do DoH; se algo falhar, o diagnóstico sugere testar com `.localhost` |
 | SmartScreen em executável sem assinatura | Aceitável para uso próprio; certificado de assinatura só se for distribuir |
-| Containers e WSL não enxergam `.loc` | Fora do escopo, documentado |
+| Containers e WSL não enxergam `.sev` | Fora do escopo, documentado |
 | Porta 53 ocupada no DNS da Fase 4 | Validar antes de implementar o curinga |
 
 ## 9. Testes
@@ -297,9 +311,10 @@ O `Contracts` existe para que app e serviço usem exatamente o mesmo validador. 
 Os testes unitários cobrem os pontos onde um erro custa caro:
 
 - **Mesclagem do hosts:** idempotência, preservação das linhas fora do bloco, CRLF/LF misturados, arquivo somente-leitura, bloco corrompido.
-- **Validador de domínio:** sufixos, punycode, tentativas de injeção de linha.
+- **Validador de domínio:** rótulos e tamanho, punycode, tentativas de injeção de linha.
+- **Cobertura da CA:** TLD inexistente vira TLD inteiro, TLD real vira nome exato, sem duplicar nomes já cobertos.
 - **Migração de versões da configuração.**
 
-Os testes de integração sobem Kestrel e YARP em portas aleatórias com um backend falso. Eles verificam o roteamento por Host, a passagem de WebSocket, a página 502 e o redirecionamento 307. O teste de certificados confere se a folha encadeia na CA, se o SAN está correto e se a Name Constraint rejeita domínios fora dos sufixos.
+Os testes de integração sobem Kestrel e YARP em portas aleatórias com um backend falso. Eles verificam o roteamento por Host, a passagem de WebSocket, a página 502 e o redirecionamento 307. O teste de certificados confere se a folha encadeia na CA, se o SAN está correto e se a Name Constraint rejeita domínios não cobertos.
 
 Para fechar cada fase, um checklist manual curto: porta 80 ocupada, serviço parado, HMR do Vite, Firefox e desinstalação limpa.
