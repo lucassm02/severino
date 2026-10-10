@@ -1,6 +1,6 @@
 # Spec: Fase 6, DNS e extras
 
-**Status:** rascunho de 2026-10-10, aguardando as decisões e as perguntas do fim
+**Status:** aprovado em 2026-10-10: decisão 1 pela opção C, decisões 2 a 4 no padrão, decisão 5 com a fase inteira; respostas no fim
 **Base:** pedido de 2026-10-10: "inclua nela uma aba para apenas gerenciamento de DNS, ou seja, apenas cadastrar/editar/deletar uma resolução de IP. Faça em seguida uma melhor integração com esses DNSs já previamente cadastrados com a parte de rotas e serviços". Junta os extras listados no [planejamento](../planejamento.md), que a pessoa aprovou todos.
 **Pré-requisito:** a Fase 4 implementada. O checklist dela e a primeira release da Fase 5 ficam para depois, por decisão de 2026-10-10.
 
@@ -133,15 +133,17 @@ Cada um com o seu critério de pronto, na ordem de implementação.
 10. Módulo PowerShell.
 11. Checklist manual.
 
-## Decisões a confirmar
+## Decisões
 
-1. **Quem grava IP de rede no hosts.** *Padrão: A, um processo elevado com UAC a cada "Aplicar"; o Helper continua só loopback.* Ver "Segurança".
-2. **Entradas DNS persistem com o app fechado ou pausado.** *Padrão: sim.* Substituem edições à mão; pausar continua tirando só rotas e serviços.
-3. **Importar comenta as linhas originais, e desinstalar as devolve.** *Padrão: sim.*
-4. **Destinos guardam o nome, não o IP.** *Padrão: sim.* Quem resolve é o Windows; mudar o IP na aba DNS basta.
-5. **A fase inteira de uma vez, ou dividir.** *Padrão: dividir.* A Fase 6 fica com os passos 1 a 4 (DNS e integração) mais rotas por caminho e grupos. O curinga, o `port-forward`, o acompanhamento e o módulo PowerShell vão para uma Fase 7. O site da Fase 5 é complementado ao fim de cada uma.
+Respondidas em 2026-10-10:
 
-## Perguntas em aberto
+1. **Quem grava IP de rede no hosts: opção C.** O Helper grava o bloco DNS com loopback e faixas privadas (`10/8`, `172.16/12`, `192.168/16`, `100.64/10`, `169.254/16`, `fc00::/7`, `fe80::/10`) sem confirmação. Um IP público só entra depois de aprovado por um processo elevado, com o aviso do UAC; a aprovação de cada par `nome → IP` fica guardada no `HKLM`, que só administrador escreve, e o Helper confere essa lista. A decisão fixa do `CLAUDE.md` passa a dizer isso.
+2. **Entradas DNS persistem com o app fechado ou pausado.** Pausar continua tirando só rotas e serviços.
+3. **Importar comenta as linhas originais, e desinstalar ou "Limpar tudo" as devolve.**
+4. **Destinos guardam o nome, não o IP.**
+5. **A fase inteira de uma vez**, nos 11 passos da ordem de implementação. O site da Fase 5 é complementado no fim.
 
-1. **As 20 entradas do seu hosts** são todas da VPN do trabalho, ou há alguma que precise ficar fora do Severino (de outro programa, de antivírus, de bloqueio de anúncios)?
-2. **IP público:** você usa o hosts para apontar um domínio real para um servidor novo, antes de trocar o DNS de verdade? Isso pesa na decisão 1, opção C.
+## Perguntas respondidas
+
+1. **As entradas do hosts:** algumas não são da pessoa (podem ser de outros programas). A importação só oferece as linhas; nenhuma vem marcada, e linhas dentro de blocos de outras ferramentas (como o do Docker Desktop) aparecem com a origem.
+2. **IP público:** coberto pela opção C, com UAC.

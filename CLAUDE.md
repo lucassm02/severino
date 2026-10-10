@@ -8,7 +8,7 @@ App desktop Windows para apontar domínios para apps locais de dev (`callfred.se
 
 - .NET 10, WPF + WPF-UI, CommunityToolkit.Mvvm, YARP/Kestrel no mesmo processo da UI.
 - Dois processos: `Severino.App` roda como usuário comum; `Severino.Helper` (serviço Windows) é o único elevado e só sincroniza o bloco do hosts + flush de DNS, via named pipe.
-- `Severino.Contracts` contém o validador de domínio compartilhado; o Helper não depende de mais nada e revalida tudo (sintaxe do nome, limite de entradas, IP sempre loopback).
+- `Severino.Contracts` contém o validador de domínio compartilhado; o Helper não depende de mais nada e revalida tudo (sintaxe do nome, limite de entradas, endereços). O bloco das rotas e serviços só aceita loopback. O bloco DNS da Fase 6 aceita loopback e faixas privadas; IP público só depois de aprovado por UAC ([spec](docs/specs/fase-6-dns-e-extras.md)).
 - Domínio livre, sem lista de sufixos; pode sobrescrever um domínio real. O app só avisa (DNS consultado sem o hosts, HSTS preload, `.local`). Os exemplos usam `.sev`.
 - Proxy escuta só em `127.0.0.1` e `[::1]`. HTTP→HTTPS com 307, nunca 301, nunca HSTS.
 - CA ECDSA P-256 com Name Constraints nos domínios cadastrados (TLD inteiro quando o TLD não existe na internet; nome exato quando existe), chave via DPAPI, instalada em `CurrentUser\Root`. Domínio fora da cobertura exige reemitir a CA.

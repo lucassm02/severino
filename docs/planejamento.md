@@ -8,7 +8,7 @@ Ficam de fora, de propósito: expor serviços na rede ou na internet, Let's Encr
 
 A primeira versão do plano deixava o WSL inteiro de fora. Em 2026-10-09 isso mudou: a Fase 4 traz os serviços do Kubernetes e os containers do Docker para a máquina pelos nomes que eles têm no cluster ou no Compose, descobertos no Windows ou dentro das distros do WSL, e atende apps rodando no WSL (veja o [spec da Fase 4](specs/fase-4-servicos.md)).
 
-Em 2026-10-10 o roadmap ganhou uma Fase 5 de site e publicação (site, deploy pelo GitHub Actions e release com o instalador). Os extras passaram para a Fase 6.
+Em 2026-10-10 o roadmap ganhou uma Fase 5 de site e publicação (site, deploy pelo GitHub Actions e release com o instalador). Os extras passaram para a Fase 6, que ganhou também a aba DNS e deixa o Helper gravar faixas privadas no bloco DNS (IP público só com UAC).
 
 ## 1. Arquitetura
 
@@ -187,7 +187,7 @@ A cada sincronização, o serviço faz o seguinte:
 4. O bloco é ASCII puro, sem BOM, por isso os marcadores ficam em inglês e sem acento. O resto do arquivo é preservado byte a byte, qualquer que seja a codificação.
 5. Chama `DnsFlushResolverCache`, que equivale ao `ipconfig /flushdns`.
 
-Domínios com acento viram punycode via `IdnMapping`. O serviço valida tudo por conta própria, sem confiar no app: sintaxe de hostname (rótulos e tamanho), nada de quebra de linha ou espaço, limite de entradas e IP sempre loopback. Não há restrição de sufixo.
+Domínios com acento viram punycode via `IdnMapping`. O serviço valida tudo por conta própria, sem confiar no app: sintaxe de hostname (rótulos e tamanho), nada de quebra de linha ou espaço, limite de entradas e endereços: loopback no bloco das rotas e serviços; no bloco DNS da Fase 6, loopback e faixas privadas, e IP público só com aprovação por UAC. Não há restrição de sufixo.
 
 O hosts não aceita curinga, então no MVP cada subdomínio precisa de rota própria.
 
@@ -298,7 +298,7 @@ O `Contracts` existe para que app e serviço usem exatamente o mesmo validador. 
 | 3. Polimento | Assistente de primeira execução, aba de requisições, combo de portas com processo, detector de proxy do sistema, iniciar com Windows, importar e exportar, "Limpar tudo", instalador | Alguém que nunca viu a ferramenta instala e cria uma rota sem ajuda |
 | 4. Serviços | Rotas de serviço com encaminhamento TCP e loopback dedicado; descoberta de services do Kubernetes e containers do Docker, no Windows e no WSL, ou colando a saída dos comandos; nomes no `/etc/hosts` das distros | Um app no Windows ou no WSL chama `pedidos:8080` e chega ao serviço no cluster, pelo gateway, com o nome original |
 | 5. Site e publicação | Site do Severino; pipeline do GitHub Actions que publica o site; pipeline de build que gera a versão e cria a release no GitHub com o instalador `.exe` anexado ([spec](specs/fase-5-site.md)) | O site está no ar, e um clique no Actions publica a próxima versão com o `.exe` |
-| 6. Extras | Curinga via DNS embutido + regra NRPT para os domínios das rotas (a validar), rotas por caminho (`/api`), importar entradas 127.0.0.1 já existentes no hosts, grupos de rotas, módulo PowerShell opcional, `kubectl port-forward` gerenciado, acompanhar mudanças do cluster e do Docker sozinho | Conforme a necessidade |
+| 6. DNS e extras | Aba DNS para entradas `nome → IP` persistentes, importando o hosts feito à mão, e integrada a rotas e serviços (nome como destino); curinga via DNS embutido + regra NRPT (a validar), rotas por caminho (`/api`), grupos de rotas, `kubectl port-forward` gerenciado, acompanhar mudanças do cluster e do Docker sozinho, módulo PowerShell ([spec](specs/fase-6-dns-e-extras.md)) | Os critérios do spec |
 
 ## 8. Riscos restantes
 
