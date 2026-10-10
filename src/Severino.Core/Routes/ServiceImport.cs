@@ -50,7 +50,7 @@ public static class ServiceImport
         foreach (var candidate in candidates)
         {
             var service = candidate.Service;
-            if (!service.CanImport)
+            if (!service.CanImport && !service.CanForward)
             {
                 plan.Add(new(candidate, null, null, [], service.Unreachable ?? "Sem acesso de fora."));
                 continue;
@@ -58,7 +58,8 @@ public static class ServiceImport
 
             if (services.FirstOrDefault(s => s.Origin is { } o && SameService(o, candidate.Origin)) is { } existing)
             {
-                plan.Add(new(candidate, existing with { Ports = service.Ports, Origin = candidate.Origin }, existing, [], null));
+                // A port-forwarded one keeps its local ports; the rest get the ports of now.
+                plan.Add(new(candidate, existing with { Ports = service.CanImport ? service.Ports : existing.Ports, Origin = candidate.Origin }, existing, [], null));
                 continue;
             }
 
@@ -70,12 +71,17 @@ public static class ServiceImport
                 continue;
             }
 
+            // ClusterIP only: each port goes through a kubectl port-forward on a local port of its own.
+            var ports = service.CanImport ? service.Ports
+                : [.. service.ClusterPorts!.Zip(ServiceRules.NextForwardPorts(addresses, service.ClusterPorts!.Count),
+                    (port, local) => new ServicePort { Port = port, TargetHost = "127.0.0.1", TargetPort = local })];
             var route = new ServiceRoute
             {
                 Names = names,
                 Address = ServiceRules.NextAddress(addresses),
-                Ports = service.Ports,
+                Ports = ports,
                 Origin = candidate.Origin,
+                PortForward = !service.CanImport,
             };
             addresses.Add(route);
             taken.UnionWith(names);
@@ -94,9 +100,11 @@ public static class ServiceImport
         var missing = new List<ServiceRoute>();
         foreach (var route in services.Where(s => s.Origin is { } o && SameSource(o, source)))
         {
-            var match = found.FirstOrDefault(f => f.Namespace == route.Origin!.Namespace && f.Name == route.Origin.Name && f.CanImport);
+            var match = found.FirstOrDefault(f => f.Namespace == route.Origin!.Namespace && f.Name == route.Origin.Name && (f.CanImport || f.CanForward));
             if (match is null)
                 missing.Add(route);
+            else if (route.PortForward)
+                continue; // its targets are local ports of the port-forward, which stay
             else if (!match.Ports.SequenceEqual(route.Ports))
                 updated.Add(route with { Ports = match.Ports });
         }

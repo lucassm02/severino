@@ -21,6 +21,13 @@ public sealed partial class RoutesViewModel : ObservableObject
     private readonly ServiceDiscovery _discovery;
     private readonly DnsService? _dns;
     private readonly HostsSync? _hosts;
+    private readonly PortForwards? _forwards;
+
+    private void ApplyForwards()
+    {
+        foreach (var item in ServiceGroups.SelectMany(g => g.Items))
+            item.ApplyForward(_forwards?.StatusOf(item.Id));
+    }
     private readonly ConfigService _config;
     private readonly HealthMonitor _health;
     private readonly DialogService _dialogs;
@@ -31,13 +38,16 @@ public sealed partial class RoutesViewModel : ObservableObject
     private Func<string?>? _undo;
 
     public RoutesViewModel(RouteService routes, ServiceRouteService services, ServiceDiscovery discovery, ConfigService config, HealthMonitor health, DialogService dialogs, HttpsService https,
-        DnsService? dns = null, HostsSync? hosts = null)
+        DnsService? dns = null, HostsSync? hosts = null, PortForwards? forwards = null)
     {
         _routes = routes;
         _services = services;
         _discovery = discovery;
         _dns = dns;
         _hosts = hosts;
+        _forwards = forwards;
+        if (forwards is not null)
+            forwards.Changed += (_, _) => Dispatch(ApplyForwards);
         if (hosts is not null)
         {
             hosts.StatusChanged += (_, _) => Dispatch(UpdateWildcardPending);
@@ -462,7 +472,10 @@ public sealed partial class RoutesViewModel : ObservableObject
                     group.Items.Add(new ServiceItemViewModel(service, (row, enabled) => _services.SetEnabled(row.Id, enabled)));
             }
             foreach (var item in group.Items)
+            {
                 ApplyHealth(item.Id);
+                item.ApplyForward(_forwards?.StatusOf(item.Id));
+            }
         }
     }
 

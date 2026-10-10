@@ -397,7 +397,7 @@ public sealed partial class ImportServicesViewModel : ObservableObject
 
     private void UpdateNamespaceLabel()
     {
-        var items = _all.Where(i => i.Namespace == SelectedNamespace && i.CanImport).ToList();
+        var items = _all.Where(i => i.Namespace == SelectedNamespace && i.Direct).ToList();
         SelectNamespaceLabel = items.Count > 0 && items.All(i => i.IsSelected) ? "Desmarcar o namespace" : "Marcar o namespace inteiro";
     }
 
@@ -420,7 +420,7 @@ public sealed partial class ImportServicesViewModel : ObservableObject
     [RelayCommand]
     private void SelectNamespace()
     {
-        var items = _all.Where(i => i.Namespace == SelectedNamespace && i.CanImport).ToList();
+        var items = _all.Where(i => i.Namespace == SelectedNamespace && i.Direct).ToList();
         var mark = !items.All(i => i.IsSelected);
         _batch = true;
         foreach (var item in items)
@@ -501,8 +501,16 @@ public sealed partial class CandidateItemViewModel(ServiceCandidate candidate, A
     public string Namespace => Service.Namespace.Length > 0 ? Service.Namespace : "(sem projeto)";
 
     public string KindText => Service.Source == ServiceKind.Docker ? "Docker" : Service.Kind;
-    public bool CanImport => Service.CanImport;
-    public string Detail => CanImport ? string.Join("   ", Service.Ports) : Service.Unreachable ?? "";
+    public bool CanImport => Service.CanImport || Service.CanForward;
+
+    /// <summary>
+    /// Reachable without a port-forward. "Marcar o namespace inteiro" takes only these: each
+    /// port-forward is a kubectl kept running, so those are marked one by one.
+    /// </summary>
+    public bool Direct => Service.CanImport;
+    public string Detail => Service.CanImport ? string.Join("   ", Service.Ports)
+        : Service.CanForward ? $"Por kubectl port-forward, que o Severino mantém rodando: {string.Join(", ", Service.ClusterPorts!)}"
+        : Service.Unreachable ?? "";
     public string NamesText => string.Join(", ", Service.Names);
     public bool NoReadyPods => CanImport && Service.Ready == false;
 

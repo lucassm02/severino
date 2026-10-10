@@ -204,6 +204,8 @@ public partial class App : Application
         services.AddSingleton<DnsService>();
         services.AddSingleton<IWslShell>(_ => new WslShell());
         services.AddSingleton<WslCallers>();
+        services.AddSingleton<IPortForwardRunner, ProcessPortForwardRunner>();
+        services.AddSingleton<PortForwards>();
         services.AddSingleton<IHelperClient>(_ => new HelperClient());
         services.AddSingleton<HostsSync>();
         services.AddSingleton<IDnsResolver, WindowsDnsResolver>();

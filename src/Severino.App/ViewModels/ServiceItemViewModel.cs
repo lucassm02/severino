@@ -68,6 +68,25 @@ public sealed partial class ServiceItemViewModel : ObservableObject
 
     public string Detail => $"{Route.Address}   " + string.Join("   ", Route.Ports);
 
+    /// <summary>"Port-forward rodando", or why it is starting over; null for a route without one.</summary>
+    [ObservableProperty]
+    public partial string? ForwardText { get; set; }
+
+    [ObservableProperty]
+    public partial bool ForwardProblem { get; set; }
+
+    public void ApplyForward(Severino.Core.Discovery.PortForwardStatus? status)
+    {
+        ForwardProblem = status?.State == Severino.Core.Discovery.PortForwardState.Restarting;
+        ForwardText = !Route.PortForward ? null : status?.State switch
+        {
+            Severino.Core.Discovery.PortForwardState.Running => "kubectl port-forward rodando",
+            Severino.Core.Discovery.PortForwardState.Restarting => $"port-forward reiniciando: {status.Detail}",
+            Severino.Core.Discovery.PortForwardState.Starting => "port-forward iniciando…",
+            _ => Route.Enabled ? "port-forward parado" : null,
+        };
+    }
+
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(HealthText))]
     public partial RouteHealthState Health { get; set; }

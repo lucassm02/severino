@@ -46,6 +46,16 @@ public static partial class ServiceRules
     [System.Text.RegularExpressions.GeneratedRegex(@"^\s*(\d{1,5})\s*(?:→|->|=|\s)\s*(\[[0-9A-Fa-f:.]+\]|[^\s:\[\]]+):(\d{1,5})\s*$")]
     private static partial System.Text.RegularExpressions.Regex PortLine();
 
+    /// <summary>Where port-forwards listen: 127.0.0.1 on ports from here up, kept per service route.</summary>
+    public const int FirstForwardPort = 42000;
+
+    /// <summary>The next <paramref name="count"/> local ports no port-forward of <paramref name="existing"/> uses.</summary>
+    public static IReadOnlyList<int> NextForwardPorts(IEnumerable<ServiceRoute> existing, int count)
+    {
+        var taken = existing.Where(s => s.PortForward).SelectMany(s => s.Ports).Select(p => p.TargetPort).ToHashSet();
+        return [.. Enumerable.Range(FirstForwardPort, 65535 - FirstForwardPort).Where(p => !taken.Contains(p)).Take(count)];
+    }
+
     public static bool IsServiceAddress(string? address) =>
         IPAddress.TryParse(address, out var ip) && ip.ToString().StartsWith(AddressPrefix, StringComparison.Ordinal);
 

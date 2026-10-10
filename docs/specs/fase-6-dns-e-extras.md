@@ -132,6 +132,12 @@ Cada um com o seu critério de pronto, na ordem de implementação.
 
 - **O que é:** para services só ClusterIP, que hoje aparecem como "sem acesso de fora", o Severino mantém um `kubectl port-forward` rodando (no Windows ou no WSL, onde o `kubectl` estiver) e aponta o serviço para ele. Reinicia se cair, e para quando o serviço é desligado.
 - **Critério:** um service ClusterIP importado responde pelo nome, e volta a responder sozinho depois de a VPN cair e voltar.
+- **Como ficou:**
+  - cada port-forward escuta em `127.0.0.1`, em portas locais a partir de 42000, guardadas na rota para não mudarem; o serviço aponta para elas, então o nome e a porta originais continuam valendo;
+  - o comando fixa o contexto e o namespace (`kubectl --context … -n … port-forward svc/…`); no WSL ele roda com um nome próprio (`exec -a severino-pf-<id>`), e parar também roda um `pkill` com esse nome na distro, porque encerrar o `wsl.exe` pode não alcançar o `kubectl`;
+  - reinicia com espera de 1 s a 30 s, e a linha do serviço mostra "port-forward rodando" ou "reiniciando" com o último erro;
+  - pausar, sair e desligar o serviço param o port-forward;
+  - "Marcar o namespace inteiro" deixa de fora os que precisam de port-forward: cada um é um processo rodando o tempo todo, então eles são marcados um por um.
 
 ### Acompanhar mudanças sozinho
 

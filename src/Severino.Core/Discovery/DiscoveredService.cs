@@ -12,6 +12,7 @@ namespace Severino.Core.Discovery;
 /// <param name="Ports">Empty when it cannot be reached from outside; <paramref name="Unreachable"/> says why.</param>
 /// <param name="Ready">Kubernetes: whether any pod is ready; null when unknown or for Docker.</param>
 /// <param name="Kind">How it is reached, as shown in the list: "NodePort", "LoadBalancer", "Docker"…</param>
+/// <param name="ClusterPorts">A ClusterIP-only service's TCP ports, reachable through a kubectl port-forward.</param>
 public sealed record DiscoveredService(
     ServiceKind Source,
     string Namespace,
@@ -20,9 +21,14 @@ public sealed record DiscoveredService(
     IReadOnlyList<ServicePort> Ports,
     bool? Ready,
     string Kind,
-    string? Unreachable = null)
+    string? Unreachable = null,
+    IReadOnlyList<int>? ClusterPorts = null)
 {
+    /// <summary>Reachable as it is: a node port, a load balancer, a published container port.</summary>
     public bool CanImport => Ports.Count > 0;
+
+    /// <summary>Only inside the cluster, but a kubectl port-forward that Severino keeps running reaches it.</summary>
+    public bool CanForward => !CanImport && ClusterPorts is { Count: > 0 };
 
     /// <summary>
     /// The same services with <paramref name="address"/> as destination replaced by <paramref name="name"/>,

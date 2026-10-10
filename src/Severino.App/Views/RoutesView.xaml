@@ -295,6 +295,18 @@
                                                                 FontFamily="Cascadia Mono, Consolas"
                                                                 TextTrimming="CharacterEllipsis"
                                                                 Text="{Binding Detail}" />
+                                                            <TextBlock FontSize="12" TextTrimming="CharacterEllipsis" Text="{Binding ForwardText}" ToolTip="{Binding ForwardText}" Visibility="{Binding ForwardText, Converter={StaticResource NullToCollapsed}}">
+                                                                <TextBlock.Style>
+                                                                    <Style TargetType="TextBlock">
+                                                                        <Setter Property="Foreground" Value="{DynamicResource TextFillColorSecondaryBrush}" />
+                                                                        <Style.Triggers>
+                                                                            <DataTrigger Binding="{Binding ForwardProblem}" Value="True">
+                                                                                <Setter Property="Foreground" Value="{DynamicResource SystemFillColorCautionBrush}" />
+                                                                            </DataTrigger>
+                                                                        </Style.Triggers>
+                                                                    </Style>
+                                                                </TextBlock.Style>
+                                                            </TextBlock>
                                                         </StackPanel>
                                                         <TextBlock
                                                             Grid.Column="2"

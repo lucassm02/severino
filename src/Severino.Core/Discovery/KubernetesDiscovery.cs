@@ -87,6 +87,7 @@ public static class KubernetesDiscovery
                 : null;
 
             var ports = new List<ServicePort>();
+            var clusterPorts = new List<int>();
             var kind = type;
             if (spec.TryGetProperty("ports", out var portList) && portList.ValueKind == JsonValueKind.Array)
             {
@@ -96,6 +97,7 @@ public static class KubernetesDiscovery
                     if (!string.Equals(protocol, "TCP", StringComparison.OrdinalIgnoreCase))
                         continue;
                     var number = port.GetProperty("port").GetInt32();
+                    clusterPorts.Add(number);
                     if (loadBalancer is not null)
                         ports.Add(new() { Port = number, TargetHost = loadBalancer, TargetPort = number });
                     else if (external is not null)
@@ -115,7 +117,9 @@ public static class KubernetesDiscovery
                 : type == "ExternalName" ? "ExternalName: aponta para fora do cluster."
                 : type is "NodePort" or "LoadBalancer" && nodeAddress is null ? "Escolha um nó para usar a NodePort."
                 : "Só ClusterIP: não tem acesso de fora do cluster.";
-            result.Add(new(ServiceKind.Kubernetes, @namespace, name, NameVariants(name, @namespace), ports, isReady, kind, unreachable));
+            // ClusterIP only: a kubectl port-forward that Severino keeps running reaches it.
+            var forwardable = ports.Count == 0 && type == "ClusterIP" && clusterPorts.Count > 0 ? clusterPorts : null;
+            result.Add(new(ServiceKind.Kubernetes, @namespace, name, NameVariants(name, @namespace), ports, isReady, kind, unreachable, forwardable));
         }
         return [.. result.OrderBy(s => s.Namespace, StringComparer.Ordinal).ThenBy(s => s.Name, StringComparer.Ordinal)];
     }

@@ -6,7 +6,8 @@ using Severino.Proxy.Certificates;
 namespace Severino.App.Services;
 
 /// <summary>Keeps the proxy, the health monitor, the hosts block, HTTPS and the WSL distros in step with the config.</summary>
-public sealed class ProxyCoordinator(ConfigService config, ProxyServer proxy, HealthMonitor health, HostsSync hosts, LocalCa ca, ServiceForwarder services, WslCallers wsl)
+public sealed class ProxyCoordinator(ConfigService config, ProxyServer proxy, HealthMonitor health, HostsSync hosts, LocalCa ca, ServiceForwarder services, WslCallers wsl,
+    Severino.Core.Discovery.PortForwards? forwards = null)
 {
     private static readonly TimeSpan ClearTimeout = TimeSpan.FromSeconds(3);
 
@@ -25,6 +26,7 @@ public sealed class ProxyCoordinator(ConfigService config, ProxyServer proxy, He
         await proxy.StartAsync(current.Settings.HttpPort, HttpsPort, current.Routes);
         await services.UpdateAsync(current.Services);
         wsl.Start();
+        forwards?.Start();
     }
 
     /// <summary>Tries the configured ports again, e.g. after the user freed them. Does nothing while paused.</summary>
@@ -58,6 +60,8 @@ public sealed class ProxyCoordinator(ConfigService config, ProxyServer proxy, He
         await proxy.StopAsync();
         await services.StopAsync();
         await wsl.PauseAsync();
+        if (forwards is not null)
+            await forwards.PauseAsync();
     }
 
     public async Task ResumeAsync()
@@ -70,6 +74,7 @@ public sealed class ProxyCoordinator(ConfigService config, ProxyServer proxy, He
         await proxy.StartAsync(config.Current.Settings.HttpPort, HttpsPort, config.Current.Routes);
         await services.UpdateAsync(config.Current.Services);
         await wsl.ResumeAsync();
+        forwards?.Resume();
     }
 
     /// <summary>Removes the hosts block and stops listening. Waits at most a few seconds for the Helper.</summary>
@@ -85,6 +90,8 @@ public sealed class ProxyCoordinator(ConfigService config, ProxyServer proxy, He
         await proxy.StopAsync();
         await services.StopAsync();
         await wsl.StopAsync(ClearTimeout);
+        if (forwards is not null)
+            await forwards.StopAsync();
         await health.DisposeAsync();
     }
 

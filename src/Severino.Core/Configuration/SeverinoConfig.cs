@@ -112,6 +112,12 @@ public sealed record ServiceRoute
     /// <summary>Where it was imported from, for "Atualizar"; null for one made by hand.</summary>
     public ServiceOrigin? Origin { get; set; }
 
+    /// <summary>
+    /// A ClusterIP-only Kubernetes service: Severino keeps a kubectl port-forward running where the
+    /// origin's kubectl is, and the ports' targets are its local ports on 127.0.0.1.
+    /// </summary>
+    public bool PortForward { get; set; }
+
     public string Notes { get; set; } = "";
 }
 
