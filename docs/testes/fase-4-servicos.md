@@ -9,7 +9,7 @@ Cada teste diz o que fazer, o que tem de acontecer e qual critério ele prova. A
 - Os comandos marcados como **PowerShell** rodam num terminal comum do Windows. Os marcados como **WSL** rodam dentro da distro, num terminal aberto com `wsl -d Ubuntu-22.04`.
 - `curl.exe`, com `.exe`, é o curl do Windows. No PowerShell, `curl` sem `.exe` é outro comando.
 - Para fechar o Severino, use **Sair** no ícone da bandeja. Fechar a janela só esconde o app.
-- Os endereços `127.77.x.y` são dados na ordem da importação. Os exemplos supõem que `algaractivationmicroservice` é o primeiro serviço importado, em `127.77.0.2`. Confira o seu na aba Rotas, na linha de baixo de cada serviço.
+- Os endereços `127.77.x.y` são dados na ordem da importação. Os exemplos supõem que `algaractivationmicroservice` é o primeiro serviço importado, em `127.77.0.2`. Confira o seu na aba Serviços: fica na dica de ferramenta das portas de cada serviço, e no editor.
 
 ## 0. Preparação
 
@@ -55,11 +55,11 @@ Cada teste diz o que fazer, o que tem de acontecer e qual critério ele prova. A
 
 Prova o critério 1.
 
-1. Rotas › **Importar serviços**. Esperado:
+1. Serviços › **Importar**. Esperado:
    - a janela abre em **WSL · Ubuntu-22.04**, sem nenhum comando digitado;
    - ao lado de **Kubernetes**: `kubernetes-admin@kubernetes · 119 services, 111 com acesso de fora` (os números podem ter mudado);
    - ao lado de **Docker**: `1 container rodando`;
-   - **Nó das NodePorts** em `192.168.203.100`.
+   - **Endereço do cluster** em `192.168.203.100`.
 2. Na lista, confira:
    - `postgres  database · NodePort` com `5432 → 192.168.203.100:30711` e os quatro nomes, de `postgres` a `postgres.database.svc.cluster.local`;
    - `orchestrator  callfred · Docker` com `4000 → 127.0.0.1:24600`;
@@ -84,9 +84,9 @@ Prova os critérios 4 e 5.
 
 1. Importar serviços. Em `staging`, marque `algaractivationmicroservice`. Em `database`, marque `postgres`. Em `callfred`, marque `orchestrator`. Esperado: o botão mostra **Importar 3**.
 2. **Importar 3**. Esperado:
-   - o aviso "3 serviços importados · apps em WSL · Ubuntu-22.04 também chamam pelos nomes (Configurações › WSL)";
-   - na aba Rotas, a seção **Serviços** com dois grupos: "Kubernetes · kubernetes-admin@kubernetes · WSL · Ubuntu-22.04" e "Docker · WSL · Ubuntu-22.04";
-   - em cada serviço, o endereço `127.77.0.x` e as portas, e em alguns segundos "Respondendo".
+   - o aviso "3 serviços importados. Apps no WSL · Ubuntu-22.04 também chamam pelos nomes.";
+   - na aba **Serviços**, dois grupos: "Kubernetes · kubernetes-admin@kubernetes · WSL · Ubuntu-22.04" e "Docker · WSL · Ubuntu-22.04";
+   - em cada serviço, as portas (`5432 → 192.168.203.100:30711`), com o endereço `127.77.0.x` na dica de ferramenta, e em alguns segundos "Respondendo".
 3. **HTTP pela NodePort, com o nome intacto.** No **PowerShell**:
 
    ```powershell

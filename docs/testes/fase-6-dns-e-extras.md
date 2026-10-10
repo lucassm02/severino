@@ -40,9 +40,9 @@ Cada teste diz o que fazer, o que tem de acontecer e qual critério ele prova. A
 Prova os critérios 1 e 2.
 
 1. Abra a aba **DNS**. Esperado:
-   - em **No hosts, fora do Severino**, as linhas que você escreveu à mão, cada uma com "Fora do Severino: não foi criada por ele" e a borda laranja;
+   - em **No hosts, fora do Severino**, as linhas que você escreveu à mão, cada uma com o selo "fora do Severino" e a barra laranja à esquerda; uma linha que o Severino já editou leva também o selo "editada pelo Severino";
    - linhas dentro de blocos de outros programas mostram "Perto de:" com o comentário do bloco.
-2. **Nova entrada**: nome `sql-teste.interno`, endereço `10.123.0.8`. Esperado: "rede privada: vai para o hosts na hora", e a entrada aparece "Valendo".
+2. **Nova entrada**: nome `sql-teste.interno`, endereço `10.123.0.8`. Esperado: "rede privada: vai para o hosts na hora", e a entrada aparece "Ativa".
 3. No **PowerShell**:
 
    ```powershell
@@ -105,7 +105,7 @@ Prova o critério 4.
 
 1. **Nova entrada**: `destino-teste.interno` → `127.0.0.1`. Suba algo na porta 8000 (no **PowerShell**: `python -m http.server 8000`).
 2. **Nova rota** `destino.sev`. No host do destino, abra a lista: `destino-teste.interno` aparece, com o IP. Escolha-o, porta `8000`. Esperado: `http://destino.sev/` abre a listagem do Python.
-3. Na aba DNS, a entrada mostra "Destino de 1 rota". Remover pede confirmação e lista `destino.sev`. Cancele.
+3. Na aba DNS, a entrada mostra "Destino de 1 rota", com "1 rota" como link: clicar abre a aba Rotas filtrada por esse nome. Na aba Rotas, a linha de `destino.sev` mostra o IP ao lado do destino. Remover a entrada pede confirmação e lista `destino.sev`. Cancele.
 4. ⋯ › **Transformar em rota…** numa entrada DNS: abre o formulário de rota com o nome e o IP preenchidos. Cancele: a entrada continua.
 5. Numa rota cujo destino é um IP, ⋯ › **Transformar em entrada DNS…**: a confirmação explica que a porta, o HTTPS e o log deixam de valer. Cancele.
 
@@ -130,7 +130,7 @@ Prova o critério do curinga.
 
 ## 7. Rotas por caminho
 
-1. Rota `caminho.sev` → `http://localhost:8000` e outra rota `caminho.sev`, em **Avançado** › **Caminho** `/api`, → `http://localhost:8001`, com **Tirar o caminho antes de repassar**.
+1. Rota `caminho.sev` → `http://localhost:8000` e outra rota com o endereço `caminho.sev/api` → `http://localhost:8001`, com **Tirar /api antes de repassar** (a caixa só aparece quando o endereço tem caminho).
 2. Suba algo na 8001 (`python -m http.server 8001` noutra pasta). Esperado:
    - `http://caminho.sev/api/` lista a pasta da 8001;
    - `http://caminho.sev/` e `http://caminho.sev/apix` vão à 8000.
@@ -138,7 +138,7 @@ Prova o critério do curinga.
 
 ## 8. Grupos
 
-1. Edite duas rotas e ponha o grupo `teste` (Avançado › Grupo). Esperado: elas aparecem sob o cabeçalho **teste**, com a contagem e uma chave do grupo.
+1. Edite duas rotas e ponha o grupo `teste` (campo **Grupo**). Esperado: elas aparecem sob o cabeçalho **teste**, com a contagem, uma chave do grupo e o menu "…" (Nova rota neste grupo, Renomear grupo, Desfazer o grupo).
 2. Desligue a chave do grupo. Esperado: as duas desligam de uma vez, e os domínios saem do hosts.
 
 ## 9. Acompanhar sozinho
@@ -153,8 +153,8 @@ Prova o critério de acompanhar.
 
 Prova o critério do port-forward.
 
-1. Importar serviços: um service só ClusterIP (como `kube-dns`, ou um `ClusterIP` do seu cluster) agora tem caixa, com "Por kubectl port-forward…". "Marcar o namespace inteiro" não o marca. Marque-o à mão e importe.
-2. Esperado: a linha do serviço mostra "kubectl port-forward rodando", e as portas apontam para `127.0.0.1:42000` em diante.
+1. Serviços › **Importar**: um service só ClusterIP (como `kube-dns`, ou um `ClusterIP` do seu cluster) agora tem caixa, com "<porta> → kubectl port-forward, que o Severino mantém rodando". "Marcar o namespace inteiro" não o marca. Marque-o à mão e importe.
+2. Esperado: a linha do serviço mostra "<porta> → port-forward" e "kubectl port-forward rodando"; no editor, as portas apontam para `127.0.0.1:42000` em diante.
 3. Chame o serviço pelo nome e porta originais (`curl.exe http://<service>.<ns>:<porta>/`, ou `Test-NetConnection`). Esperado: responde.
 4. **Desligue a VPN.** Esperado: "port-forward reiniciando" com o erro do `kubectl`. **Ligue a VPN.** Esperado: volta a "rodando" sozinho, em até 30 s.
 5. Desligue o serviço. No **WSL**: `pgrep -af severino-pf` não mostra nada.
@@ -187,6 +187,18 @@ Prova o critério 3.
 2. Para o desinstalador: além disso, `reg query HKLM\SOFTWARE\Severino\Helper\ApprovedDns` não existe mais.
 3. Compare com o retrato do passo 0: só podem ter mudado as linhas de teste que você mesmo criou e apagou.
 
+## 13. Organização da UI
+
+Prova a [revisão da UI](../specs/revisao-ui.md).
+
+1. As abas são **Rotas, Serviços, DNS, Requisições, Configurações**, e cada uma das três primeiras diz embaixo do título para que serve. Com uma configuração vazia (pasta de configuração nova), Rotas e Serviços mostram o quadro "Rota, serviço ou DNS: qual usar".
+2. **Nova rota** com o destino `localhost:5432`. Esperado: o aviso de que 5432 é a porta do PostgreSQL, com **Criar como serviço**. Clicar abre o editor de serviço já com o nome e a porta; ao salvar, o aviso "virou um serviço" com **Ver em Serviços**.
+3. **Nova rota** `sql2.interno` com o destino `http://10.123.0.9:80`. Esperado: **Criar entrada DNS**, que abre o editor de DNS já preenchido. Cancele.
+4. Na aba Serviços, um serviço que vai para `gateway.k8s` mostra "gateway.k8s é <IP>" como link, que abre o DNS filtrado. Na aba DNS, "Destino de N serviços" abre a aba Serviços filtrada.
+5. Importação com Ingress marcado: o rodapé conta "… serviços marcados · 1 rota de Ingress", e o aviso no fim tem **Ver em Rotas**.
+6. Configurações › **Backup** › Exportar. Abra o JSON: tem `routes`, `services` e `dnsEntries`, com `"severino": 2`. Em outra pasta de configuração (ou depois de apagar uma entrada), **Importar** traz o que falta e lista o que ficou de fora por nome repetido.
+7. Configurações › **Terminal**: com o instalador, diz "Instalado"; **Copiar** põe os três exemplos na área de transferência.
+
 ## Limpeza
 
 - Apague as entradas, rotas e o grupo de teste.
@@ -210,3 +222,4 @@ Prova o critério 3.
 | 10 | kubectl port-forward | port-forward | ☐ | |
 | 11 | Módulo PowerShell | PowerShell | ☐ | |
 | 12 | Limpar tudo e desinstalar | 3 | ☐ | |
+| 13 | Organização da UI | revisão da UI | ☐ | |

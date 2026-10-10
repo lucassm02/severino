@@ -1,6 +1,6 @@
 # Revisão da UI depois das Fases 4 e 6
 
-Status: aprovada em 2026-10-10, com todas as recomendações (ver "Decisões" no fim).
+Status: aprovada em 2026-10-10, com todas as recomendações (ver "Decisões" no fim), e implementada no mesmo dia. Falta o teste manual, na seção 13 do [roteiro da Fase 6](../testes/fase-6-dns-e-extras.md).
 
 Base: telas renderizadas do app real com dados de exemplo (rotas com grupo, caminho e curinga; serviços do Kubernetes e do Docker; entradas DNS e linhas de fora; janela de importação com Ingress; editores; Configurações).
 
