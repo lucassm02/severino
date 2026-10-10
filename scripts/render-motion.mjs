@@ -23,7 +23,7 @@ const edge = [
   `${process.env["ProgramFiles(x86)"]}\\Microsoft\\Edge\\Application\\msedge.exe`,
   `${process.env.ProgramFiles}\\Microsoft\\Edge\\Application\\msedge.exe`,
 ].find((p) => existsSync(p));
-if (!edge) throw new Error("Microsoft Edge não encontrado.");
+if (!edge) throw new Error("Microsoft Edge not found.");
 
 const port = 9300 + Math.floor(Math.random() * 500);
 const profile = mkdtempSync(join(tmpdir(), "severino-motion-"));
@@ -44,7 +44,7 @@ async function pageSocket() {
     } catch { /* not up yet */ }
     await sleep(200);
   }
-  throw new Error("O Edge não abriu a porta de depuração.");
+  throw new Error("Edge did not open its debugging port.");
 }
 
 // A minimal Chrome DevTools Protocol client over Node's own WebSocket.
@@ -68,7 +68,7 @@ const send = (method, params = {}) => new Promise((ok, reject) => {
 });
 const evaluate = async (expression) => {
   const result = await send("Runtime.evaluate", { expression, awaitPromise: true, returnByValue: true });
-  if (result.exceptionDetails) throw new Error(result.exceptionDetails.exception?.description ?? "Erro no script da página.");
+  if (result.exceptionDetails) throw new Error(result.exceptionDetails.exception?.description ?? "Error in the page script.");
   return result.result.value;
 };
 
@@ -97,11 +97,11 @@ try {
     const png = Buffer.from(data, "base64");
     if (framesDir) writeFileSync(join(framesDir, `${String(i).padStart(5, "0")}.png`), png);
     if (!ffmpeg.stdin.write(png)) await new Promise((r) => ffmpeg.stdin.once("drain", r));
-    if (i % fps === 0) process.stdout.write(`\r${(t).toFixed(0).padStart(2)} s de ${duration} s`);
+    if (i % fps === 0) process.stdout.write(`\r${(t).toFixed(0).padStart(2)} s of ${duration} s`);
   }
   ffmpeg.stdin.end();
   await done;
-  console.log(`\r${out} (${total} quadros, ${fps} fps, em ${Math.round((Date.now() - started) / 1000)} s)`);
+  console.log(`\r${out} (${total} frames, ${fps} fps, in ${Math.round((Date.now() - started) / 1000)} s)`);
 } finally {
   ws.close();
   browser.kill();

@@ -1,39 +1,42 @@
 # Severino
 
-App desktop Windows para apontar domínios para apps locais de dev (`meuapp.sev → 127.0.0.1:3000`): grava o hosts, roteia por um proxy reverso em loopback e, opcionalmente, emite HTTPS confiável por uma CA local.
+Windows desktop app that points domains at local dev apps (`meuapp.sev → 127.0.0.1:3000`): it writes the hosts file, routes through a reverse proxy on loopback and, optionally, issues trusted HTTPS from a local CA.
 
-**Fonte da verdade do design:** [docs/planejamento.md](docs/planejamento.md). Leia antes de propor arquitetura, stack ou escopo. Divergências do plano devem ser discutidas e registradas lá.
+**Design source of truth:** [docs/pt-BR/planejamento.md](docs/pt-BR/planejamento.md) (in Portuguese). Read it before proposing architecture, stack or scope. Divergences from the plan must be discussed and recorded there.
 
-## Decisões fixas
+## Fixed decisions
 
-- .NET 10, WPF + WPF-UI, CommunityToolkit.Mvvm, YARP/Kestrel no mesmo processo da UI.
-- Dois processos: `Severino.App` roda como usuário comum; `Severino.Helper` (serviço Windows) é o único elevado e só sincroniza o bloco do hosts + flush de DNS, via named pipe.
-- `Severino.Contracts` contém o validador de domínio compartilhado; o Helper não depende de mais nada e revalida tudo (sintaxe do nome, limite de entradas, endereços). O bloco das rotas e serviços só aceita loopback. O bloco DNS da Fase 6 aceita loopback e faixas privadas; IP público só depois de aprovado por UAC ([spec](docs/specs/fase-6-dns-e-extras.md)).
-- Domínio livre, sem lista de sufixos; pode sobrescrever um domínio real. O app só avisa (DNS consultado sem o hosts, HSTS preload, `.local`). Os exemplos usam `.sev`.
-- Proxy escuta só em `127.0.0.1` e `[::1]`. HTTP→HTTPS com 307, nunca 301, nunca HSTS.
-- CA ECDSA P-256 com Name Constraints nos domínios cadastrados (TLD inteiro quando o TLD não existe na internet; nome exato quando existe), chave via DPAPI, instalada em `CurrentUser\Root`. Domínio fora da cobertura exige reemitir a CA.
-- Fora do escopo: expor na rede/internet, Let's Encrypt, load balancing, resolução de nomes dentro de containers. Kubernetes, Docker e WSL entram na Fase 4 como fontes de serviços e como chamadores ([spec](docs/specs/fase-4-servicos.md)), sem o Helper deixar de gravar só loopback.
+- .NET 10, WPF + WPF-UI, CommunityToolkit.Mvvm, YARP/Kestrel in the same process as the UI.
+- Two processes: `Severino.App` runs as a regular user; `Severino.Helper` (Windows service) is the only elevated one and only syncs the hosts block + DNS flush, over a named pipe.
+- `Severino.Contracts` holds the shared domain validator; the Helper depends on nothing else and validates everything again (name syntax, entry limit, addresses). The routes and services block only takes loopback. The phase 6 DNS block takes loopback and private ranges; a public IP only after a UAC approval ([spec](docs/pt-BR/specs/fase-6-dns-e-extras.md)).
+- Any domain, no suffix list; it may override a real domain. The app only warns (DNS queried without the hosts file, HSTS preload, `.local`). Examples use `.sev`.
+- The proxy only listens on `127.0.0.1` and `[::1]`. HTTP→HTTPS with 307, never 301, never HSTS.
+- ECDSA P-256 CA with Name Constraints on the registered domains (whole TLD when the TLD does not exist on the internet; the exact name when it does), key under DPAPI, installed in `CurrentUser\Root`. A domain outside the coverage requires reissuing the CA.
+- Out of scope: exposing to the network/internet, Let's Encrypt, load balancing, name resolution inside containers. Kubernetes, Docker and WSL came in phase 4 as service sources and as callers ([spec](docs/pt-BR/specs/fase-4-servicos.md)), with the Helper still writing loopback only.
 
-## Comandos
+## Commands
 
 ```bash
 dotnet build
 dotnet test
 dotnet run --project src/Severino.App
+node scripts/check-links.mjs
 ```
 
-## Convenções
+## Conventions
 
-- Commits: Conventional Commits em inglês.
-- Mudanças relevantes entram em `[Unreleased]` no [CHANGELOG.md](CHANGELOG.md) ([Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/)), em pt-BR.
-- Exemplos públicos (site, docs, testes, capturas) usam nomes genéricos como `meuapp.sev`, `pedidos.loja` e `banco.interno`; nada de projetos ou clusters reais.
-- Versões de pacotes ficam em `Directory.Packages.props`; `Directory.Build.props` liga `TreatWarningsAsErrors`.
-- Modelos de config usam `{ get; set; }`, não `init` (ver comentário em `SeverinoConfig.cs`); trate as instâncias como imutáveis e altere com `with` via `ConfigService.Update`.
-- Ícones: `src/Severino.App/Assets/severino.ico` e `severino-512.png` são gerados por `dotnet run scripts/build-icons.cs` a partir de `assets/branding/severino-rosto.png`. Não edite os gerados à mão.
-- Cores de texto do WPF-UI: use `Foreground="{DynamicResource TextFillColorSecondaryBrush}"`, não `Appearance="Secondary"`, que fixa a cor na criação e quebra a troca de tema com o app aberto. A cor de destaque é a da marca (`Services/Brand.cs`), aplicada antes de trocar o tema.
+- Repository language: English at the root (README, CHANGELOG, this file, code, comments, commits). Portuguese documents live in `docs/pt-BR/`: the README and CHANGELOG translations, the design plan, the specs and the manual test guides. New specs and test guides go to `docs/pt-BR/` too.
+- Commits: Conventional Commits in English.
+- Relevant changes go under `[Unreleased]` in both changelogs, [CHANGELOG.md](CHANGELOG.md) in English and [docs/pt-BR/CHANGELOG.md](docs/pt-BR/CHANGELOG.md) in Portuguese ([Keep a Changelog](https://keepachangelog.com/en/1.1.0/)). The Release workflow takes the notes from the English one.
+- UI text is never written in code or XAML: it goes to `Strings.resx` (English, the fallback) and `Strings.pt-BR.resx` (Portuguese) of the project that shows it (`Severino.App`, `Severino.Core`, `Severino.Contracts`, `Severino.Proxy`). C# uses the generated `Strings.Key`; XAML uses `{x:Static res:Strings.Key}`. Texts with values use `string.Format` with numbered placeholders, never concatenation. Logs stay in English, outside the resources. The Helper's own messages are English.
+- Public examples (site, docs, tests, screenshots) use generic names like `meuapp.sev`, `pedidos.loja` and `banco.interno`; no real projects or clusters.
+- Package versions live in `Directory.Packages.props`; `Directory.Build.props` turns on `TreatWarningsAsErrors`.
+- Config models use `{ get; set; }`, not `init` (see the comment in `SeverinoConfig.cs`); treat instances as immutable and change them with `with` through `ConfigService.Update`.
+- Icons: `src/Severino.App/Assets/severino.ico` and `severino-512.png` are generated by `dotnet run scripts/build-icons.cs` from `assets/branding/severino-rosto.png`. Do not edit the generated files by hand.
+- WPF-UI text colors: use `Foreground="{DynamicResource TextFillColorSecondaryBrush}"`, not `Appearance="Secondary"`, which fixes the color at creation and breaks switching the theme with the app open. The accent color is the brand's (`Services/Brand.cs`), applied before switching the theme.
 
-## Estado
+## Status
 
-Fases 0 a 4 e 6 concluídas e verificadas, assim como a [revisão da UI](docs/specs/revisao-ui.md) (specs em [docs/specs/](docs/specs/); roteiros manuais em [docs/testes/](docs/testes/)). Em desenvolvimento: Fase 7, aviso de versão nova ([spec](docs/specs/fase-7-atualizacoes.md)); e Fase 5, site e publicação ([spec](docs/specs/fase-5-site.md)): o site fica em `site/` (prévia com `python -m http.server 8765 --directory site`), e as releases saem do workflow Release. Em desenvolvimento, o Helper se instala com `scripts/dev-helper.ps1 install` num terminal elevado; o instalador sai de `scripts/build-installer.ps1`.
+Phases 0 to 4, 6 and 7 are done, as is the [UI review](docs/pt-BR/specs/revisao-ui.md) (specs in [docs/pt-BR/specs/](docs/pt-BR/specs/); manual guides in [docs/pt-BR/testes/](docs/pt-BR/testes/)); phase 7's manual guide is still to run. In progress: phase 9, English and Portuguese ([spec](docs/pt-BR/specs/fase-9-idiomas.md)); and phase 5, website and publishing ([spec](docs/pt-BR/specs/fase-5-site.md)): the site lives in `site/` (preview with `python -m http.server 8765 --directory site`), and releases come from the Release workflow. Phase 8 (winget) is a draft, postponed. In development, the Helper is installed with `scripts/dev-helper.ps1 install` from an elevated terminal; the installer comes from `scripts/build-installer.ps1`.
 
-Ao chamar algo que abre um aviso do próprio Windows (instalar ou remover CA), use `WindowsPrompt.Run`: o aviso nasce sem janela dona e cairia atrás do app.
+When calling something that opens a Windows prompt of its own (installing or removing the CA), use `WindowsPrompt.Run`: the prompt is born without an owner window and would fall behind the app.

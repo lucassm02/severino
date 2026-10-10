@@ -16,7 +16,7 @@ function Invoke-SeverinoControl {
             $pipe.Connect(3000)
         }
         catch {
-            throw 'O Severino não está aberto. Abra o app e tente de novo.'
+            throw 'Severino is not running. Open the app and try again.'
         }
         $json = @{ command = $Command; args = $Arguments } | ConvertTo-Json -Depth 6 -Compress
         $bytes = [System.Text.Encoding]::UTF8.GetBytes($json + "`n")
@@ -88,7 +88,7 @@ function Remove-SeverinoRoute {
         [Parameter(ValueFromPipelineByPropertyName)] [string] $Path = ''
     )
     process {
-        if ($PSCmdlet.ShouldProcess("$Domain$Path", 'Remover rota')) {
+        if ($PSCmdlet.ShouldProcess("$Domain$Path", 'Remove route')) {
             Invoke-SeverinoControl -Command 'routes.remove' -Arguments @{ domain = $Domain; path = $Path }
         }
     }
@@ -170,7 +170,7 @@ function Remove-SeverinoDns {
     [CmdletBinding(SupportsShouldProcess)]
     param([Parameter(Mandatory, Position = 0)] [string] $Name)
 
-    if ($PSCmdlet.ShouldProcess($Name, 'Remover entrada DNS')) {
+    if ($PSCmdlet.ShouldProcess($Name, 'Remove DNS entry')) {
         Invoke-SeverinoControl -Command 'dns.remove' -Arguments @{ name = $Name }
     }
 }

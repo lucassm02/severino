@@ -64,9 +64,9 @@ switch ($Action) {
         Set-ItemProperty $registryPath -Name AllowedUserSid -Value $UserSid
 
         New-Service -Name $serviceName -BinaryPathName "`"$exe`"" -DisplayName 'Severino Helper' `
-            -Description 'Mantém o bloco do Severino no arquivo hosts.' -StartupType Automatic | Out-Null
+            -Description 'Keeps the Severino block in the hosts file.' -StartupType Automatic | Out-Null
         Start-Service $serviceName
-        Write-Host "Severino.Helper instalado em $installDir para o SID $UserSid."
+        Write-Host "Severino.Helper installed in $installDir for SID $UserSid."
     }
 
     'uninstall' {
@@ -76,7 +76,7 @@ switch ($Action) {
         Remove-HelperService
         Remove-Item $installDir -Recurse -Force -ErrorAction SilentlyContinue
         Remove-Item $registryPath -Recurse -Force -ErrorAction SilentlyContinue
-        Write-Host 'Severino.Helper removido.'
+        Write-Host 'Severino.Helper removed.'
     }
 
     'run' {

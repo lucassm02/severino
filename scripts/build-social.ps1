@@ -10,7 +10,7 @@ $edge = @(
     "${env:ProgramFiles(x86)}\Microsoft\Edge\Application\msedge.exe",
     "$env:ProgramFiles\Microsoft\Edge\Application\msedge.exe"
 ) | Where-Object { Test-Path $_ } | Select-Object -First 1
-if (-not $edge) { throw 'Microsoft Edge não encontrado.' }
+if (-not $edge) { throw 'Microsoft Edge not found.' }
 
 $shots = @(
     @{ Variant = 'og';       Width = 1200; Height = 630;  Out = 'site/assets/og-banner.png' },
@@ -28,7 +28,7 @@ try {
         & $edge --headless=new --disable-gpu --hide-scrollbars --force-device-scale-factor=1 `
             "--user-data-dir=$userData" --virtual-time-budget=8000 `
             "--window-size=$($shot.Width),$($shot.Height)" "--screenshot=$out" $url 2>$null | Out-Null
-        if (-not (Test-Path $out)) { throw "Edge não gerou $($shot.Out)." }
+        if (-not (Test-Path $out)) { throw "Edge did not write $($shot.Out)." }
         Write-Host "$($shot.Out) ($($shot.Width)x$($shot.Height))"
     }
 }

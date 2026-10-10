@@ -1,45 +1,52 @@
 # Changelog
 
-Todas as mudanças relevantes do Severino ficam neste arquivo.
+**English** | [Português](docs/pt-BR/CHANGELOG.md)
 
-O formato segue o [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/), e o projeto adota o [Versionamento Semântico](https://semver.org/lang/pt-BR/spec/v2.0.0.html).
+All notable changes to Severino are documented in this file.
+
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
-### Adicionado
+### Added
 
-- Aviso de versão nova: o app consulta a última release no GitHub ao abrir e uma vez por dia, e avisa no topo da janela e na bandeja.
-- Atualizar pelo app: **Atualizar agora** baixa o instalador da release, confere o SHA-256 publicado pelo GitHub, instala em silêncio e abre o app de novo, mantendo rotas, serviços e configurações.
-- Configurações › Sobre mostra o resultado da última consulta, com **Procurar agora**, e a opção de desligar a consulta automática.
+- New version notice: the app asks GitHub for the latest release at start and once a day, and tells you at the top of the window and in the tray.
+- Update from the app: **Update now** downloads the release's installer, checks the SHA-256 GitHub published, installs silently and opens the app again, keeping routes, services and settings.
+- Settings › About shows the result of the last check, with **Check now**, and the option to turn the automatic check off.
+- English. The app, the installer and the error pages follow the Windows language, and Settings › General lets you pick English or Portuguese.
+
+### Changed
+
+- The repository's main language is English. The Portuguese README, changelog and design documents moved to `docs/pt-BR/`.
 
 ## [0.4.0] - 2026-10-10
 
-Primeira versão publicada.
+First published version.
 
-### Adicionado
+### Added
 
-- Rotas: um domínio, como `meuapp.sev`, leva a um app local por um proxy reverso que escuta só em `127.0.0.1` e `::1`, com o nome gravado num bloco próprio do arquivo hosts.
-- Rotas por caminho: `meuapp.sev/api` vai para outro destino que o resto do domínio, com a opção de tirar o caminho antes de repassar.
-- Rotas curinga: `*.meuapp.sev` atende qualquer nome abaixo, respondido por um DNS do serviço auxiliar em `127.53.0.1` e por regras NRPT do Windows.
-- Grupos de rotas, com uma chave que liga ou desliga o grupo inteiro e um menu para renomear ou desfazer o grupo.
-- HTTPS por uma autoridade certificadora local ECDSA P-256, com Name Constraints restritos aos domínios das rotas, chave protegida por DPAPI e instalada só na conta do usuário.
-- Redirecionamento de HTTP para HTTPS com 307, nunca 301 nem HSTS.
-- Serviços: nomes que levam direto a uma porta, em qualquer protocolo (Postgres, Redis, gRPC), cada um num endereço de loopback próprio.
-- Importação de serviços do Kubernetes (NodePort, ClusterIP por `kubectl port-forward` gerenciado, hosts de Ingress como rotas) e de containers do Docker, no Windows ou numa distro do WSL.
-- Acompanhamento dos serviços importados: eventos do Docker e consulta ao Kubernetes a cada 30 segundos corrigem portas sozinhos.
-- Apps no WSL chamam os serviços pelo nome, nas distros escolhidas.
-- Aba DNS: entradas que levam um nome direto a um IP e valem com o app fechado. IPs privados entram na hora; IP público e curinga pedem confirmação de administrador do Windows.
-- As linhas do hosts que não são do Severino aparecem marcadas; editar ou remover uma delas pede confirmação e deixa um comentário no hosts.
-- Nomes do DNS como destino de rotas e serviços, com o IP à vista e links entre as abas.
-- O formulário de rota sugere criar um serviço quando a porta é de um banco ou fila, e uma entrada DNS quando o destino é um IP da rede.
-- Aba Requisições, com o log em memória do que passou pelo proxy e pelos serviços.
-- Ícone na bandeja com a lista de rotas e uma pausa que devolve os domínios à internet.
-- Módulo PowerShell que fala com o app aberto: `New-SeverinoRoute`, `Set-SeverinoDns`, `Disable-SeverinoRoute -Group` e outros.
-- Backup de rotas, serviços e entradas DNS num arquivo JSON.
-- Assistente de primeiro uso, que confere a porta 80, o serviço auxiliar e o proxy do sistema.
-- "Limpar tudo" e o desinstalador tiram o que o Severino colocou no Windows.
-- Instalador para Windows 10 e 11, 64 bits.
-- Site em <https://lucassm02.github.io/severino/>, com imagens para redes sociais.
+- Routes: a domain, like `meuapp.sev`, leads to a local app through a reverse proxy that only listens on `127.0.0.1` and `::1`, with the name written in a block of its own in the hosts file.
+- Path routes: `meuapp.sev/api` goes to a different target than the rest of the domain, optionally stripping the path before forwarding.
+- Wildcard routes: `*.meuapp.sev` answers any name below it, resolved by a DNS server of the helper service on `127.53.0.1` and Windows NRPT rules.
+- Route groups, with a switch that turns the whole group on or off and a menu to rename or ungroup it.
+- HTTPS from a local ECDSA P-256 certificate authority, with Name Constraints limited to the routes' domains, its key protected by DPAPI and installed for the current user only.
+- HTTP to HTTPS redirect with 307, never 301 nor HSTS.
+- Services: names that lead straight to a port, over any protocol (Postgres, Redis, gRPC), each on a loopback address of its own.
+- Service import from Kubernetes (NodePort, ClusterIP through a managed `kubectl port-forward`, Ingress hosts as routes) and from Docker containers, on Windows or in a WSL distro.
+- Imported services are followed: Docker events and a Kubernetes check every 30 seconds fix ports on their own.
+- Apps in WSL call the services by name, in the chosen distros.
+- DNS tab: entries that lead a name straight to an IP and stay with the app closed. Private IPs go in right away; a public IP or a wildcard asks for a Windows administrator confirmation.
+- Hosts lines that are not Severino's show up marked; editing or removing one asks for confirmation and leaves a comment in the hosts file.
+- DNS names as targets of routes and services, with the IP in sight and links between the tabs.
+- The route form suggests a service when the port belongs to a database or queue, and a DNS entry when the target is a network IP.
+- Requests tab, with an in-memory log of what went through the proxy and the services.
+- Tray icon with the route list and a pause that hands the domains back to the internet.
+- PowerShell module that talks to the running app: `New-SeverinoRoute`, `Set-SeverinoDns`, `Disable-SeverinoRoute -Group` and more.
+- Backup of routes, services and DNS entries to a JSON file.
+- First-run wizard that checks port 80, the helper service and the system proxy.
+- "Clean up everything" and the uninstaller remove what Severino put into Windows.
+- Installer for Windows 10 and 11, 64-bit.
+- Website at <https://lucassm02.github.io/severino/>, with social media images.
 
 [Unreleased]: https://github.com/lucassm02/severino/compare/v0.4.0...HEAD
 [0.4.0]: https://github.com/lucassm02/severino/releases/tag/v0.4.0

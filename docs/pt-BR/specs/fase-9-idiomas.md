@@ -1,6 +1,6 @@
 # Spec: Fase 9, Inglês e português
 
-Status: rascunho, aguardando aprovação. Nada implementado.
+Status: aprovada em 2026-10-10, com os padrões das "Decisões a confirmar". Em implementação. Na implementação, as mensagens das outras camadas mudaram de abordagem: ver "Mensagens que vêm de outras camadas".
 
 ## Objetivo
 
@@ -47,8 +47,8 @@ O Severino passa a falar inglês, sem deixar de falar português:
 
 **Mensagens que vêm de outras camadas.**
 
-- **Contracts e Core**: o validador de domínio, a descoberta (kubectl, Docker, WSL) e a configuração devolvem erros como código com parâmetros (por exemplo `DomainError.TooLong { Max = 253 }`), e o App traduz. Assim o Helper continua sem depender de nada além do Contracts.
-- **Helper**: roda como serviço do Windows, fora da sessão do usuário, e não sabe o idioma dele. Responde pelo pipe com códigos, e o App monta a frase. O texto livre que já vai pelo protocolo vira um campo de detalhe técnico, mostrado como está.
+- **Contracts, Core e Proxy** têm cada um o seu par de `.resx`. Eles rodam no processo do App, que define o idioma na partida, então as mensagens já saem no idioma escolhido. O Helper continua sem depender de nada além do Contracts. *Mudança na implementação:* o rascunho previa códigos de erro traduzidos no App, mas isso mexia no protocolo e em todas as validações para o mesmo resultado.
+- **Helper**: roda como serviço do Windows, fora da sessão do usuário, e não sabe o idioma dele. As mensagens dele, e as do Contracts quando rodam nele, ficam em inglês. O App valida tudo antes de mandar, então essas mensagens só aparecem num erro técnico que o App não previu.
 - **Proxy**: as páginas de erro mostradas no navegador (app fora do ar, rota desligada, certificado) usam o idioma escolhido no app.
 - **Módulo PowerShell**: as mensagens que vêm do app chegam no idioma do app. As poucas mensagens do próprio módulo e a ajuda dos cmdlets ficam em inglês.
 
@@ -66,7 +66,7 @@ O Severino passa a falar inglês, sem deixar de falar português:
 
 - **Paridade:** cada chave do `Strings.resx` existe no `Strings.pt-BR.resx` e vice-versa, com os mesmos placeholders.
 - **Varredura:** nenhum literal com cara de texto em português (acentos ou palavras como "não" e "para") fora dos `.resx`, dos testes e de uma lista de exceções.
-- **Códigos de erro:** todo código devolvido pelo Contracts, pelo Core e pelo Helper tem tradução nos dois idiomas.
+- **Cobertura:** os quatro pares de `.resx` (App, Core, Contracts, Proxy) entram na paridade e na varredura.
 - **Testes atuais:** os que conferem mensagens passam a fixar a cultura, para não dependerem do Windows de quem roda.
 - **Visual:** o harness de renderização tira as telas principais nos dois idiomas, para conferir corte de texto e quebra de linha.
 - **Roteiro manual** em `docs/pt-BR/testes/fase-9-idiomas.md`: instalar com o Windows em inglês, trocar o idioma, ver as páginas de erro e desinstalar.
@@ -90,7 +90,7 @@ O Severino passa a falar inglês, sem deixar de falar português:
 
 1. Repositório: mover os documentos para `docs/pt-BR/`, escrever o README e o CHANGELOG em inglês, corrigir links, ajustar o workflow Release. Um script confere os links relativos.
 2. Infraestrutura no app: `Strings.resx`, extensão de marcação, campo `Language`, escolha na partida e seletor nas Configurações.
-3. Códigos de erro no Contracts, no Core e no protocolo do Helper, traduzidos no App.
+3. Recursos no Contracts, no Core e no Proxy; o Helper fixa o inglês.
 4. Migração dos textos, tela por tela: Rotas, Serviços, DNS, Requisições, Configurações, editores, assistente, bandeja e páginas de erro do proxy.
 5. Instalador com os dois idiomas.
 6. Testes de paridade e varredura, e capturas nos dois idiomas.

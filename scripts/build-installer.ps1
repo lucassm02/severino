@@ -41,7 +41,7 @@ $iscc = @(
     (Join-Path $env:ProgramFiles 'Inno Setup 6\ISCC.exe')
 ) | Where-Object { $_ -and (Test-Path $_) } | Select-Object -First 1
 if (-not $iscc) {
-    throw 'Inno Setup 6 não encontrado. Instale com: winget install JRSoftware.InnoSetup'
+    throw 'Inno Setup 6 not found. Install it with: winget install JRSoftware.InnoSetup'
 }
 
 # A clean publish folder: leftovers from an older build would end up in the installer.
@@ -51,11 +51,11 @@ $version = if ($Version) { $Version } else { (dotnet msbuild $app -getProperty:V
 
 foreach ($project in @(@{ Path = $app; Out = 'app' }, @{ Path = $helper; Out = 'helper' })) {
     dotnet publish $project.Path -c $Configuration -r win-x64 --self-contained -o (Join-Path $publish $project.Out) --nologo "-p:Version=$version"
-    if ($LASTEXITCODE -ne 0) { throw "dotnet publish falhou: $($project.Path)" }
+    if ($LASTEXITCODE -ne 0) { throw "dotnet publish failed: $($project.Path)" }
 }
 
 & $iscc /Q "/DAppVersion=$version" "/DPublishDir=$publish" "/O$(Join-Path $artifacts 'installer')" (Join-Path $root 'installer\severino.iss')
-if ($LASTEXITCODE -ne 0) { throw 'ISCC falhou.' }
+if ($LASTEXITCODE -ne 0) { throw 'ISCC failed.' }
 
 $setup = Join-Path $artifacts "installer\Severino-Setup-$version.exe"
-Write-Host "Instalador: $setup ($([math]::Round((Get-Item $setup).Length / 1MB, 1)) MB)"
+Write-Host "Installer: $setup ($([math]::Round((Get-Item $setup).Length / 1MB, 1)) MB)"

@@ -6,7 +6,7 @@ on:
   workflow_dispatch:
     inputs:
       bump:
-        description: "Parte da versão que sobe (major.minor.patch)"
+        description: "Part of the version to bump (major.minor.patch)"
         type: choice
         options: [patch, minor, major]
         default: minor
@@ -30,7 +30,7 @@ jobs:
         with:
           dotnet-version: 10.0.x
 
-      - name: Próxima versão
+      - name: Next version
         id: version
         shell: pwsh
         run: |
@@ -42,17 +42,17 @@ jobs:
             'minor' { "$($current.Major).$($current.Minor + 1).0" }
             default { "$($current.Major).$($current.Minor).$($current.Build + 1)" }
           }
-          if (git tag --list "v$next") { throw "A tag v$next já existe." }
+          if (git tag --list "v$next") { throw "Tag v$next already exists." }
           "version=$next" >> $env:GITHUB_OUTPUT
-          Write-Host "Última: $(if ($last) { $last } else { 'nenhuma' }) -> v$next"
+          Write-Host "Last: $(if ($last) { $last } else { 'none' }) -> v$next"
 
-      - name: Testes
+      - name: Tests
         run: dotnet test -c Release
 
       - name: Inno Setup
         run: choco install innosetup --no-progress -y
 
-      - name: Instalador
+      - name: Installer
         shell: pwsh
         run: ./scripts/build-installer.ps1 -Version ${{ steps.version.outputs.version }}
 
@@ -63,13 +63,15 @@ jobs:
         run: |
           $version = '${{ steps.version.outputs.version }}'
           $release = @("v$version", "artifacts/installer/Severino-Setup-$version.exe", '--target', $env:GITHUB_SHA, '--title', "Severino $version")
-          # The notes are the version's section of CHANGELOG.md; without one, GitHub's generated notes.
+          # The notes are the version's section of the English CHANGELOG.md, with a link to the
+          # Portuguese one; without a section, GitHub's generated notes.
           $changelog = Get-Content CHANGELOG.md -Raw -Encoding utf8
           $section = [regex]::Match($changelog, "(?ms)^## \[$([regex]::Escape($version))\][^\n]*\n(.*?)(?=^## \[|^\[)")
           if ($section.Success -and $section.Groups[1].Value.Trim()) {
-            $section.Groups[1].Value.Trim() | Set-Content release-notes.md -Encoding utf8
+            $portuguese = "https://github.com/$env:GITHUB_REPOSITORY/blob/v$version/docs/pt-BR/CHANGELOG.md"
+            ($section.Groups[1].Value.Trim() + "`n`n[Em português]($portuguese)") | Set-Content release-notes.md -Encoding utf8
             gh release create @release --notes-file release-notes.md
           } else {
-            Write-Host "CHANGELOG.md não tem a seção [$version]; usando as notas geradas pelo GitHub."
+            Write-Host "CHANGELOG.md has no [$version] section; using GitHub's generated notes."
             gh release create @release --generate-notes
           }

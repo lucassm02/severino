@@ -28,16 +28,16 @@ var port = args.Length > 1 ? int.Parse(args[1]) : 9443;
 using var ca = new CaStore(CaStore.DefaultDirectory).Load();
 if (ca is null)
 {
-    Console.Error.WriteLine("Não há CA local. Ative o HTTPS no Severino primeiro.");
+    Console.Error.WriteLine("No local CA. Turn HTTPS on in Severino first.");
     return 1;
 }
 
 using var leaf = IssueAnyName(ca.Certificate, domain);
 var inside = ca.Covers(domain);
 Console.WriteLine($"CA: {ca.Certificate.Subject}");
-Console.WriteLine($"Cobre: {string.Join(", ", ca.Names)}");
-Console.WriteLine($"Folha para {domain}: {(inside ? "DENTRO" : "FORA")} da cobertura. Esperado no navegador: {(inside ? "abre com cadeado" : "erro de certificado")}.");
-Console.WriteLine($"Servindo em https://{domain}:{port}/ (127.0.0.1). Ctrl+C para parar.");
+Console.WriteLine($"Covers: {string.Join(", ", ca.Names)}");
+Console.WriteLine($"Leaf for {domain}: {(inside ? "INSIDE" : "OUTSIDE")} the coverage. Expected in the browser: {(inside ? "opens with the padlock" : "certificate error")}.");
+Console.WriteLine($"Serving https://{domain}:{port}/ (127.0.0.1). Ctrl+C to stop.");
 
 var listener = new TcpListener(IPAddress.Loopback, port);
 listener.Start();
@@ -59,17 +59,17 @@ while (true)
                 var buffer = new byte[4096];
                 await tls.ReadAtLeastAsync(buffer, 1, throwOnEndOfStream: false); // the request line; its content does not matter
                 var body = inside
-                    ? $"<h1>Controle ok</h1><p>{domain} está dentro da CA, então abrir esta página é o esperado.</p>"
-                    : $"<h1>FALHOU</h1><p>{domain} está fora da CA. Se esta página abriu, a Name Constraint não foi aplicada.</p>";
+                    ? $"<h1>Control ok</h1><p>{domain} is inside the CA, so this page opening is expected.</p>"
+                    : $"<h1>FAILED</h1><p>{domain} is outside the CA. If this page opened, the Name Constraint was not enforced.</p>";
                 var bytes = Encoding.UTF8.GetBytes(body);
                 await tls.WriteAsync(Encoding.ASCII.GetBytes(
                     $"HTTP/1.1 200 OK\r\nContent-Type: text/html; charset=utf-8\r\nContent-Length: {bytes.Length}\r\nConnection: close\r\n\r\n"));
                 await tls.WriteAsync(bytes);
-                Console.WriteLine($"{DateTime.Now:T} handshake aceito pelo cliente");
+                Console.WriteLine($"{DateTime.Now:T} handshake accepted by the client");
             }
             catch (Exception ex) when (ex is IOException or AuthenticationException)
             {
-                Console.WriteLine($"{DateTime.Now:T} handshake recusado pelo cliente");
+                Console.WriteLine($"{DateTime.Now:T} handshake refused by the client");
             }
         }
     });

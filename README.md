@@ -1,49 +1,54 @@
 # Severino
 
+**English** | [Português](docs/pt-BR/README.md)
+
 [![CI](https://github.com/lucassm02/severino/actions/workflows/ci.yml/badge.svg)](https://github.com/lucassm02/severino/actions/workflows/ci.yml)
 
-![Severino: chega de localhost:3000](assets/branding/social/github-social-preview.png)
+![Severino: no more localhost:3000](assets/branding/social/github-social-preview.png)
 
-**O porteiro dos seus apps de desenvolvimento no Windows.** Cada app ganha um nome, como `meuapp.sev`, com HTTPS de verdade, esteja ele no Windows, no WSL, num container ou num cluster Kubernetes. O Severino cuida do arquivo hosts, do proxy reverso e dos certificados.
+**The doorman for your dev apps on Windows.** Every app gets a name, like `meuapp.sev`, with real HTTPS, whether it runs on Windows, in WSL, in a container or in a Kubernetes cluster. Severino takes care of the hosts file, the reverse proxy and the certificates.
 
-[Site](https://lucassm02.github.io/severino/) · [Baixar](https://github.com/lucassm02/severino/releases/latest) · [Changelog](CHANGELOG.md) · Licença [MIT](LICENSE)
+[Website](https://lucassm02.github.io/severino/) · [Download](https://github.com/lucassm02/severino/releases/latest) · [Changelog](CHANGELOG.md) · [MIT](LICENSE) license
 
-## O que ele faz
+> Severino is a common name in Brazil and, by tradition, the name of the doorman in Brazilian jokes. Here he keeps the building's board: which name goes to which port.
 
-- **Rotas**, para abrir no navegador: `meuapp.sev → localhost:3000`, com HTTPS de uma autoridade certificadora local que só assina os seus domínios. Também por caminho (`meuapp.sev/api`), por curinga (`*.meuapp.sev`) e em grupos que ligam e desligam juntos.
-- **Serviços**, para bancos, filas e o resto: `postgres.database:5432` chega ao cluster em qualquer protocolo. Importa do Kubernetes (NodePort, port-forward gerenciado, Ingress) e do Docker, no Windows ou no WSL, e corrige as portas sozinho quando elas mudam.
-- **DNS**, para outras máquinas: `banco.interno → 10.0.0.8`, valendo com o app fechado. Mostra também as linhas do hosts que outros programas escreveram, sem mexer nelas a não ser que você peça.
-- **WSL**: as distros que você escolher chamam os mesmos nomes.
-- **Requisições**: o log do que passou pelo proxy e pelos serviços, só em memória.
-- **PowerShell**: um módulo que fala com o app aberto (`New-SeverinoRoute`, `Set-SeverinoDns`, `Disable-SeverinoRoute -Group`).
+## What it does
 
-![A aba Rotas do Severino](site/assets/app-rotas.png)
+- **Routes**, for the browser: `meuapp.sev → localhost:3000`, with HTTPS from a local certificate authority that only signs your domains. Also by path (`meuapp.sev/api`), by wildcard (`*.meuapp.sev`) and in groups that switch on and off together.
+- **Services**, for databases, queues and the rest: `postgres.database:5432` reaches the cluster over any protocol. Imports from Kubernetes (NodePort, managed port-forward, Ingress) and from Docker, on Windows or in WSL, and fixes the ports on its own when they change.
+- **DNS**, for other machines: `banco.interno → 10.0.0.8`, kept with the app closed. Also shows the hosts lines other programs wrote, without touching them unless you ask.
+- **WSL**: the distros you choose call the same names.
+- **Requests**: a log of what went through the proxy and the services, kept in memory only.
+- **PowerShell**: a module that talks to the running app (`New-SeverinoRoute`, `Set-SeverinoDns`, `Disable-SeverinoRoute -Group`).
+- **English and Portuguese**: the app follows the Windows language, or the one you pick in Settings.
 
-## Instalar
+![Severino's Routes tab](site/assets/app-rotas.png)
 
-Baixe o instalador na [última release](https://github.com/lucassm02/severino/releases/latest). Ele é para Windows 10 e 11, 64 bits, e já traz o runtime do .NET.
+## Install
 
-O instalador ainda não tem assinatura digital: se o SmartScreen avisar, clique em "Mais informações" e depois em "Executar assim mesmo". Ao abrir, um assistente confere a porta 80, o serviço auxiliar e o proxy do sistema.
+Get the installer from the [latest release](https://github.com/lucassm02/severino/releases/latest). It is for Windows 10 and 11, 64-bit, and brings the .NET runtime along.
 
-Quando sai uma versão nova, o app avisa e atualiza com um clique, conferindo o SHA-256 do instalador. Para saber se há versão nova, ele consulta a API do GitHub uma vez por dia, mandando só a versão dele. Dá para desligar em **Configurações › Sobre**.
+The installer is not code-signed yet: if SmartScreen warns, click "More info" and then "Run anyway". On first launch, a wizard checks port 80, the helper service and the system proxy.
 
-Para tirar tudo o que o Severino colocou no Windows, use **Configurações › Limpar tudo** ou o desinstalador.
+When a new version comes out, the app tells you and updates in one click, checking the installer's SHA-256. To find out about new versions it asks the GitHub API once a day, sending only its own version. You can turn that off in **Settings › About**.
 
-## Como funciona
+To remove everything Severino put into Windows, use **Settings › Clean up everything** or the uninstaller.
 
-| Parte | Roda como | Faz |
+## How it works
+
+| Part | Runs as | Does |
 | --- | --- | --- |
-| `Severino.App` | você | Janela WPF, proxy YARP/Kestrel em `127.0.0.1` e `::1`, encaminhamento dos serviços, CA local em `CurrentUser\Root`. |
-| `Severino.Helper` | serviço do Windows, elevado | A única parte com administrador: grava os blocos do hosts, responde os curingas num DNS em `127.53.0.1` e mantém as regras NRPT. Revalida tudo o que recebe. |
-| `Severino.Contracts` | | Validação de nomes e protocolo do named pipe, compartilhados entre os dois. |
+| `Severino.App` | you | WPF window, YARP/Kestrel proxy on `127.0.0.1` and `::1`, service forwarding, local CA in `CurrentUser\Root`. |
+| `Severino.Helper` | Windows service, elevated | The only part with admin rights: writes the hosts blocks, answers wildcards from a DNS server on `127.53.0.1` and keeps the NRPT rules. Validates everything it receives again. |
+| `Severino.Contracts` | | Name validation and the named pipe protocol, shared by both. |
 
-O bloco das rotas e serviços só aceita endereços de loopback. O bloco DNS aceita loopback e redes privadas; IP público e sufixo curinga só entram depois de uma confirmação de administrador (UAC).
+The routes and services block only takes loopback addresses. The DNS block takes loopback and private networks; a public IP or a wildcard suffix only goes in after an administrator confirmation (UAC).
 
-O desenho completo, com as decisões e o que fica de fora, está em [docs/planejamento.md](docs/planejamento.md). As specs de cada fase ficam em [docs/specs/](docs/specs/), e os roteiros de teste manual em [docs/testes/](docs/testes/).
+The full design, with its decisions and what is left out, is in [docs/pt-BR/planejamento.md](docs/pt-BR/planejamento.md), in Portuguese. Each phase's spec is in [docs/pt-BR/specs/](docs/pt-BR/specs/), and the manual test guides in [docs/pt-BR/testes/](docs/pt-BR/testes/).
 
-## Desenvolver
+## Develop
 
-Precisa do Windows e do [SDK do .NET 10](https://dotnet.microsoft.com/download).
+You need Windows and the [.NET 10 SDK](https://dotnet.microsoft.com/download).
 
 ```powershell
 dotnet build
@@ -51,27 +56,32 @@ dotnet test
 dotnet run --project src/Severino.App
 ```
 
-O app roda como usuário comum, mas precisa do serviço auxiliar para gravar o hosts. Em desenvolvimento, instale-o num terminal elevado:
+The app runs as a regular user but needs the helper service to write the hosts file. During development, install it from an elevated terminal:
 
 ```powershell
 ./scripts/dev-helper.ps1 install
 ```
 
-Outros scripts:
+Other scripts:
 
-- `scripts/build-installer.ps1`: publica o app e o Helper e gera o instalador com o Inno Setup.
-- `scripts/build-social.ps1`: gera as imagens para redes sociais a partir de `assets/branding/social/banner.html`.
-- `node scripts/render-motion.mjs`: renderiza o vídeo de apresentação (`assets/branding/motion/intro.html`, 30 s) em MP4, quadro a quadro, com o Edge sem janela e o ffmpeg.
-- `dotnet run scripts/build-icons.cs`: gera os ícones do app a partir da arte em `assets/branding/`.
+- `scripts/build-installer.ps1`: publishes the app and the helper and builds the installer with Inno Setup.
+- `scripts/build-social.ps1`: renders the social media images from `assets/branding/social/banner.html`.
+- `node scripts/render-motion.mjs`: renders the intro video (`assets/branding/motion/intro.html`, 30 s) to MP4, frame by frame, with headless Edge and ffmpeg.
+- `node scripts/check-links.mjs`: checks the relative links of every Markdown file.
+- `dotnet run scripts/build-icons.cs`: builds the app icons from the artwork in `assets/branding/`.
 
-O site fica em `site/`. Para ver local: `python -m http.server 8765 --directory site`. Um push que mexe em `site/` publica no GitHub Pages.
+The website lives in `site/`. To preview it: `python -m http.server 8765 --directory site`. A push that changes `site/` publishes it to GitHub Pages.
 
-### Convenções
+### Translations
 
-- Commits no padrão [Conventional Commits](https://www.conventionalcommits.org/), em inglês.
-- Versões de pacotes em `Directory.Packages.props`; `Directory.Build.props` trata avisos como erros.
-- Toda mudança relevante entra em `[Unreleased]` no [CHANGELOG](CHANGELOG.md). Para lançar, mova o que estiver em `[Unreleased]` para uma seção `[x.y.z] - data` com o número que o workflow **Release** (Actions) vai gerar, e rode o workflow: as notas da release saem dessa seção.
+The app's texts live in `Strings.resx` (English, the fallback) and `Strings.pt-BR.resx` (Portuguese), one pair per project that shows text: `Severino.App`, `Severino.Core`, `Severino.Contracts` and `Severino.Proxy`. A test fails when a key is missing from one of them or when their placeholders differ.
 
-## Licença
+### Conventions
 
-[MIT](LICENSE). Use, modifique e distribua à vontade.
+- Commits follow [Conventional Commits](https://www.conventionalcommits.org/), in English.
+- Package versions live in `Directory.Packages.props`; `Directory.Build.props` treats warnings as errors.
+- Every relevant change goes under `[Unreleased]` in both changelogs: [this one](CHANGELOG.md), in English, and the [Portuguese one](docs/pt-BR/CHANGELOG.md). To release, move what is under `[Unreleased]` to a `[x.y.z] - date` section with the number the **Release** workflow (Actions) will produce, and run the workflow: the release notes come from that section of the English changelog.
+
+## License
+
+[MIT](LICENSE). Use, change and share it freely.
