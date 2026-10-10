@@ -1,0 +1,555 @@
+<!doctype html>
+<!--
+  Severino, intro motion: 30 s at 1920x1080. Plays in any browser (click restarts; ?t=12.5
+  freezes at a time). scripts/render-motion.mjs renders it frame by frame to an MP4 through
+  headless Edge and ffmpeg. Every frame is a pure function of the time, in render(t), so the
+  live playback and the video match.
+-->
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <title>Severino: intro</title>
+  <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wdth,wght@12..96,75..100,400..800&family=Source+Sans+3:wght@400;600&family=JetBrains+Mono:wght@500;700&display=block" rel="stylesheet">
+  <style>
+    :root {
+      --farda: #011d41;
+      --quepe: #013166;
+      --feltro: #0a2546;
+      --letra: #f6f8fb;
+      --laranja: #ee8f3b;
+      --suave: #c5d3e6;
+      --verde: #3fbf6f;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { width: 100%; height: 100%; background: #000; overflow: hidden; }
+    body { display: grid; place-items: center; }
+
+    #palco {
+      position: relative;
+      width: 1920px;
+      height: 1080px;
+      overflow: hidden;
+      background: var(--farda);
+      color: #fff;
+      font-family: "Source Sans 3", "Segoe UI", sans-serif;
+      transform-origin: center;
+    }
+    #fundo { position: absolute; inset: 0; }
+    .camada { position: absolute; inset: 0; }
+    .el { position: absolute; will-change: transform, opacity; }
+
+    .display {
+      font-family: "Bricolage Grotesque", sans-serif;
+      font-weight: 800;
+      font-variation-settings: "wdth" 80, "opsz" 96;
+      letter-spacing: -0.025em;
+      line-height: 0.95;
+    }
+    .mono { font-family: "JetBrains Mono", Consolas, monospace; font-weight: 500; }
+    .legenda {
+      font-family: "Bricolage Grotesque", sans-serif;
+      font-weight: 700;
+      font-variation-settings: "wdth" 88;
+      font-size: 64px;
+      letter-spacing: -0.01em;
+      text-align: center;
+      width: 1920px;
+      left: 0;
+    }
+
+    /* Scene 1: the ports */
+    .porta-solta { font-size: 46px; color: var(--suave); white-space: nowrap; }
+
+    /* Scene 2 */
+    .porteiro { width: 380px; filter: drop-shadow(0 22px 26px rgb(0 0 0 / 0.45)); }
+    #velho { font-size: 112px; color: var(--suave); white-space: nowrap; }
+    #risco { height: 12px; background: var(--laranja); border-radius: 6px; transform-origin: left center; }
+    #novo { font-size: 176px; white-space: nowrap; }
+    #novo .ponto { color: var(--laranja); }
+    #sub2 { font-size: 46px; color: var(--suave); white-space: nowrap; }
+
+    /* Scene 3: the board */
+    .quadro {
+      width: 1100px;
+      background-color: var(--feltro);
+      background-image: repeating-linear-gradient(to bottom, rgb(255 255 255 / 0.035) 0 1px, transparent 1px 15px, rgb(0 0 0 / 0.22) 15px 16px);
+      border: 22px solid #5b3a22;
+      border-image: linear-gradient(135deg, #7a5233, #4e3019 60%, #6b462b) 1;
+      box-shadow: 0 50px 80px -30px rgb(0 0 0 / 0.7), inset 0 0 60px rgb(0 0 0 / 0.35);
+      padding: 34px 48px 44px;
+      color: var(--letra);
+      font-family: "Bricolage Grotesque", sans-serif;
+      font-variation-settings: "wdth" 75;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.07em;
+      font-size: 50px;
+    }
+    .quadro-titulo { text-align: center; font-weight: 700; letter-spacing: 0.35em; padding-bottom: 18px; margin-bottom: 14px; position: relative; }
+    .quadro-titulo::after { content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 3px; background: rgb(246 248 251 / 0.18); }
+    .linha { display: flex; align-items: baseline; gap: 18px; padding: 12px 0; white-space: nowrap; }
+    .linha .pontos { flex: 1; height: 5px; border-bottom: 5px dotted rgb(246 248 251 / 0.35); transform-origin: left; transform: translateY(-0.3em); }
+    .linha .porta { color: var(--laranja); display: inline-block; }
+    .letra { display: inline-block; }
+
+    /* Scene 4: the browser */
+    .navegador {
+      width: 1240px;
+      height: 640px;
+      background: #f3f6fa;
+      border-radius: 22px;
+      box-shadow: 0 60px 100px -30px rgb(0 0 0 / 0.75);
+      overflow: hidden;
+      color: var(--farda);
+    }
+    .nav-topo { height: 64px; background: #dfe6ef; display: flex; align-items: center; gap: 12px; padding: 0 26px; }
+    .bolinha { width: 16px; height: 16px; border-radius: 50%; background: #b7c3d3; }
+    .nav-barra {
+      margin: 26px 34px 0;
+      height: 84px;
+      background: #fff;
+      border-radius: 42px;
+      box-shadow: 0 2px 0 #d3dce7;
+      display: flex;
+      align-items: center;
+      gap: 18px;
+      padding: 0 34px;
+      font-size: 44px;
+    }
+    #cadeado { width: 40px; height: 40px; flex: none; }
+    #url .esquema { color: #6a7d97; }
+    #cursor { width: 4px; height: 50px; background: var(--farda); }
+    .nav-pagina { margin: 46px 70px 0; }
+    .bloco { height: 28px; border-radius: 14px; background: #d9e1ec; margin-bottom: 22px; transform-origin: left; }
+    .bloco.titulo { height: 64px; width: 62%; background: var(--farda); border-radius: 12px; margin-bottom: 34px; }
+    #selo-ok {
+      font-family: "Bricolage Grotesque", sans-serif; font-weight: 700; font-size: 34px;
+      background: var(--verde); color: #fff; border-radius: 40px; padding: 10px 26px;
+    }
+
+    /* Scene 5: four places */
+    .lugar {
+      width: 520px;
+      background: rgb(255 255 255 / 0.06);
+      border: 2px solid rgb(255 255 255 / 0.12);
+      border-top: 6px solid var(--laranja);
+      border-radius: 16px;
+      padding: 26px 30px 30px;
+    }
+    .lugar h3 { font-family: "Bricolage Grotesque", sans-serif; font-weight: 800; font-size: 50px; display: flex; align-items: center; gap: 18px; }
+    .lugar svg { width: 54px; height: 54px; flex: none; }
+    .lugar code {
+      display: block; margin-top: 18px; font-size: 27px; background: rgb(0 0 0 / 0.3);
+      border-radius: 10px; padding: 12px 16px; color: var(--letra); white-space: nowrap;
+    }
+    #centro5 { width: 250px; }
+    #fios { position: absolute; inset: 0; overflow: visible; }
+    #fios path { fill: none; stroke: rgb(238 143 59 / 0.55); stroke-width: 5; stroke-linecap: round; stroke-dasharray: 10 14; }
+
+    /* Scene 6: the app */
+    .janela-app { width: 1060px; border-radius: 16px; box-shadow: 0 60px 100px -30px rgb(0 0 0 / 0.8); overflow: hidden; background: #fafafa; }
+    .janela-app img { display: block; width: 100%; position: absolute; top: 0; left: 0; }
+    .janela-app .base { position: relative; }
+    .chip { display: flex; flex-direction: column; gap: 4px; white-space: nowrap; }
+    .chip b { font-family: "Bricolage Grotesque", sans-serif; font-weight: 800; font-size: 72px; display: flex; align-items: center; gap: 22px; }
+    .chip span { font-size: 40px; color: var(--suave); padding-left: 44px; }
+    .chip i { width: 22px; height: 22px; border-radius: 50%; background: var(--laranja); display: inline-block; }
+
+    /* Scene 7 */
+    #marca { font-size: 220px; }
+    #frase { font-size: 60px; color: var(--suave); white-space: nowrap; font-weight: 600; }
+    #pilula {
+      font-family: "Bricolage Grotesque", sans-serif; font-weight: 700; font-size: 40px;
+      background: var(--laranja); color: var(--farda); border-radius: 60px; padding: 18px 46px; white-space: nowrap;
+      box-shadow: inset 0 -5px 0 rgb(1 29 65 / 0.18);
+    }
+    #endereco { font-family: "Bricolage Grotesque", sans-serif; font-weight: 700; font-size: 40px; color: var(--laranja); white-space: nowrap; }
+  </style>
+</head>
+<body>
+  <div id="palco">
+    <div id="fundo"></div>
+
+    <!-- 1. The ports -->
+    <div class="camada" id="c1">
+      <div class="el legenda display" id="pergunta" style="top: 470px">Qual era a porta mesmo?</div>
+    </div>
+
+    <!-- 2. A name instead -->
+    <div class="camada" id="c2">
+      <img class="el porteiro" id="porteiro2" src="../severino-rosto.png" alt="">
+      <div class="el mono" id="velho">localhost:3000</div>
+      <div class="el" id="risco"></div>
+      <div class="el display" id="novo">meuapp<span class="ponto">.</span>sev</div>
+      <div class="el" id="sub2">O Severino dá um nome para cada app de dev.</div>
+    </div>
+
+    <!-- 3. The lobby board -->
+    <div class="camada" id="c3">
+      <div class="el legenda" id="leg3" style="top: 70px">Cada app, um nome no quadro.</div>
+      <div class="el quadro" id="quadro">
+        <p class="quadro-titulo" data-letras>Portaria</p>
+        <div class="linha"><span class="nome" data-letras>meuapp.sev</span><span class="pontos"></span><span class="porta" data-letras>3000</span></div>
+        <div class="linha"><span class="nome" data-letras>meuapp.sev/api</span><span class="pontos"></span><span class="porta" data-letras>8080</span></div>
+        <div class="linha"><span class="nome" data-letras>pedidos.loja</span><span class="pontos"></span><span class="porta" data-letras>80</span></div>
+        <div class="linha"><span class="nome" data-letras>postgres.database</span><span class="pontos"></span><span class="porta" data-letras>5432</span></div>
+      </div>
+      <img class="el porteiro" id="porteiro3" src="../severino-rosto.png" alt="" style="width: 300px">
+    </div>
+
+    <!-- 4. HTTPS in the browser -->
+    <div class="camada" id="c4">
+      <div class="el navegador" id="navegador">
+        <div class="nav-topo"><span class="bolinha"></span><span class="bolinha"></span><span class="bolinha"></span></div>
+        <div class="nav-barra">
+          <svg id="cadeado" viewBox="0 0 16 16"><path id="cadeado-forma" d="M4.5 7V5a3.5 3.5 0 0 1 7 0v2h.5A1 1 0 0 1 13 8v6a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V8a1 1 0 0 1 1-1zm1.5 0h4V5a2 2 0 0 0-4 0z" fill="#9aa9bc"/></svg>
+          <span id="url" class="mono"><span class="esquema" id="esquema"></span><span id="digitado"></span></span><span id="cursor"></span>
+        </div>
+        <div class="nav-pagina">
+          <div class="bloco titulo"></div>
+          <div class="bloco" style="width: 88%"></div>
+          <div class="bloco" style="width: 80%"></div>
+          <div class="bloco" style="width: 52%"></div>
+        </div>
+        <div class="el" id="selo-ok" style="right: 70px; bottom: 60px">200 · com cadeado</div>
+      </div>
+      <div class="el legenda" id="leg4" style="top: 930px">HTTPS de verdade, sem aviso do navegador.</div>
+    </div>
+
+    <!-- 5. Where apps live -->
+    <div class="camada" id="c5">
+      <svg id="fios" viewBox="0 0 1920 1080">
+        <path id="fio0" d="M960 540 C 820 540, 780 300, 642 300" />
+        <path id="fio1" d="M960 540 C 1100 540, 1140 300, 1278 300" />
+        <path id="fio2" d="M960 540 C 820 540, 780 750, 642 750" />
+        <path id="fio3" d="M960 540 C 1100 540, 1140 750, 1278 750" />
+        <circle id="pacote0" r="11" fill="#ee8f3b" />
+        <circle id="pacote1" r="11" fill="#ee8f3b" />
+        <circle id="pacote2" r="11" fill="#ee8f3b" />
+        <circle id="pacote3" r="11" fill="#ee8f3b" />
+      </svg>
+      <div class="el legenda" id="leg5" style="top: 60px">No Windows, no WSL, no Docker e no cluster.</div>
+      <img class="el porteiro" id="centro5" src="../severino-rosto.png" alt="">
+      <div class="el lugar" id="lugar0">
+        <h3><svg viewBox="0 0 24 24"><path fill="#8cbcf5" d="M2 4.5 10 3.4v7.9H2zM11 3.3 22 2v9.3H11zM2 12.4h8v7.9l-8-1.1zM11 12.4h11V22l-11-1.5z"/></svg>Windows</h3>
+        <code>meuapp.sev → localhost:3000</code>
+      </div>
+      <div class="el lugar" id="lugar1">
+        <h3><svg viewBox="0 0 24 24"><rect x="2" y="4" width="20" height="16" rx="3" fill="none" stroke="#8cbcf5" stroke-width="2"/><path d="m6 9 3.5 3L6 15M12 15h6" fill="none" stroke="#ee8f3b" stroke-width="2" stroke-linecap="round"/></svg>WSL</h3>
+        <code>~$ curl http://pedidos.loja</code>
+      </div>
+      <div class="el lugar" id="lugar2">
+        <h3><svg viewBox="0 0 24 24"><g fill="#8cbcf5"><rect x="3" y="11" width="5" height="4" rx=".5"/><rect x="9" y="11" width="5" height="4" rx=".5"/><rect x="15" y="11" width="5" height="4" rx=".5"/><rect x="9" y="6" width="5" height="4" rx=".5"/></g><path d="M2 16.5c2 3 6.5 4.5 11 4 4.6-.5 7.5-3 9-6" fill="none" stroke="#ee8f3b" stroke-width="2" stroke-linecap="round"/></svg>Docker</h3>
+        <code>worker:4000 → container</code>
+      </div>
+      <div class="el lugar" id="lugar3">
+        <h3><svg viewBox="0 0 24 24"><path d="M12 2.5 20.4 6.6l2 9-5.8 7.2H7.4L1.6 15.6l2-9z" fill="none" stroke="#8cbcf5" stroke-width="2" stroke-linejoin="round"/><circle cx="12" cy="12.6" r="3" fill="none" stroke="#ee8f3b" stroke-width="2"/><path d="M12 5.5v4M12 15.7v3.8M5.6 9.5l3.6 1.8M14.8 13.9l3.6 1.8M18.4 9.5l-3.6 1.8M9.2 13.9l-3.6 1.8" stroke="#ee8f3b" stroke-width="2" stroke-linecap="round"/></svg>Kubernetes</h3>
+        <code>postgres.database:5432</code>
+      </div>
+    </div>
+
+    <!-- 6. The three tabs -->
+    <div class="camada" id="c6">
+      <div class="el chip" id="chip0"><b><i></i>Rotas</b><span>para o navegador</span></div>
+      <div class="el chip" id="chip1"><b><i></i>Serviços</b><span>bancos, filas e o resto</span></div>
+      <div class="el chip" id="chip2"><b><i></i>DNS</b><span>outras máquinas</span></div>
+      <div class="el janela-app" id="janela6">
+        <img class="base" src="../../../site/assets/app-rotas.png" alt="">
+        <img id="tela1" src="../../../site/assets/app-servicos.png" alt="">
+        <img id="tela2" src="../../../site/assets/app-dns.png" alt="">
+      </div>
+    </div>
+
+    <!-- 7. The end card -->
+    <div class="camada" id="c7">
+      <img class="el porteiro" id="porteiro7" src="../severino-rosto.png" alt="" style="width: 300px">
+      <div class="el display" id="marca">Severino</div>
+      <div class="el" id="frase">O porteiro dos seus apps de dev.</div>
+      <div class="el" id="pilula">Grátis para Windows 10 e 11</div>
+      <div class="el" id="endereco">lucassm02.github.io/severino</div>
+    </div>
+  </div>
+
+  <script>
+    const DURATION = 30;
+    const $ = (id) => document.getElementById(id);
+
+    // ---------- easing and tweening ----------
+    const clamp = (v) => Math.min(1, Math.max(0, v));
+    const ease = {
+      linear: (p) => p,
+      out: (p) => 1 - Math.pow(1 - p, 3),
+      in: (p) => p * p * p,
+      inOut: (p) => (p < 0.5 ? 4 * p * p * p : 1 - Math.pow(-2 * p + 2, 3) / 2),
+      back: (p) => { const c = 1.7, c3 = c + 1; return 1 + c3 * Math.pow(p - 1, 3) + c * Math.pow(p - 1, 2); },
+      elastic: (p) => (p === 0 || p === 1 ? p : Math.pow(2, -10 * p) * Math.sin((p * 10 - 0.75) * (2 * Math.PI) / 3) + 1),
+      bounce: (p) => {
+        const n = 7.5625, d = 2.75;
+        if (p < 1 / d) return n * p * p;
+        if (p < 2 / d) return n * (p -= 1.5 / d) * p + 0.75;
+        if (p < 2.5 / d) return n * (p -= 2.25 / d) * p + 0.9375;
+        return n * (p -= 2.625 / d) * p + 0.984375;
+      },
+    };
+    /** Progress of a tween from start over dur seconds, eased. */
+    const at = (t, start, dur, e = ease.out) => e(clamp((t - start) / dur));
+    const mix = (a, b, p) => a + (b - a) * p;
+
+    /** Places an element: x, y are its top-left, o its opacity, s scale, r rotation in degrees. */
+    function put(el, { x = 0, y = 0, o = 1, s = 1, r = 0, sx, sy } = {}) {
+      el.style.left = `${x}px`;
+      el.style.top = `${y}px`;
+      el.style.opacity = o;
+      el.style.transform = `rotate(${r}deg) scale(${sx ?? s}, ${sy ?? s})`;
+      el.style.visibility = o <= 0.001 ? "hidden" : "visible";
+    }
+    const show = (layer, on) => { layer.style.display = on ? "block" : "none"; };
+
+    // A fixed sequence instead of Math.random: every render is the same.
+    let seed = 7;
+    const rnd = () => ((seed = (seed * 9301 + 49297) % 233280) / 233280);
+
+    // ---------- scene 1: ports everywhere ----------
+    const portas = ["localhost:3000", "127.0.0.1:5173", "localhost:8080", "192.168.203.100:30711", "localhost:4321",
+      "10.0.0.8:5432", "localhost:3001", "127.0.0.1:6379", "localhost:5000", "0.0.0.0:9090", "localhost:8081", "172.18.0.4:4000"];
+    const soltas = portas.map((texto, i) => {
+      const el = document.createElement("div");
+      el.className = "el mono porta-solta";
+      el.textContent = texto;
+      $("c1").append(el);
+      // Spread on a loose grid, kept off the centre line where the question goes.
+      const col = i % 4, row = Math.floor(i / 4);
+      const x = 120 + col * 440 + rnd() * 160;
+      let y = 90 + row * 330 + rnd() * 120;
+      if (y > 400 && y < 640) y += 170;
+      return { el, x, y, r: (rnd() - 0.5) * 14, delay: 0.15 + i * 0.12, drift: (rnd() - 0.5) * 40 };
+    });
+
+    // ---------- letters on the board ----------
+    const linhasQuadro = [];
+    document.querySelectorAll("[data-letras]").forEach((el) => {
+      const text = el.textContent;
+      el.textContent = "";
+      const letters = [...text].map((ch) => {
+        const span = document.createElement("span");
+        span.className = "letra";
+        span.textContent = ch;
+        el.append(span);
+        return { span, r: (rnd() - 0.5) * 2.6, y: (rnd() - 0.5) * 2 };
+      });
+      linhasQuadro.push({ el, letters, porta: el.classList.contains("porta") });
+    });
+    const pontos = [...document.querySelectorAll(".linha .pontos")];
+
+    // ---------- render ----------
+    function render(t) {
+      // Background: navy with a slow glow that wanders across the frame.
+      const gx = 70 + Math.sin(t * 0.21) * 18, gy = 18 + Math.cos(t * 0.17) * 14;
+      $("fundo").style.background = `radial-gradient(120% 90% at ${gx}% ${gy}%, #0b3a75 0%, transparent 55%), radial-gradient(80% 70% at ${100 - gx}% ${100 - gy}%, #0a2a55 0%, transparent 60%), #011d41`;
+
+      scene1(t); scene2(t); scene3(t); scene4(t); scene5(t); scene6(t); scene7(t);
+    }
+
+    function scene1(t) {
+      show($("c1"), t < 3.8);
+      if (t >= 3.8) return;
+      const suck = at(t, 2.95, 0.6, ease.in);
+      for (const p of soltas) {
+        const pop = at(t, p.delay, 0.45, ease.back);
+        const cx = p.x + p.drift * Math.sin(t * 0.8 + p.delay);
+        const tx = mix(cx, 960 - 160, suck), ty = mix(p.y + Math.cos(t + p.delay) * 6, 540, suck);
+        put(p.el, { x: Math.min(tx, 1860 - p.el.offsetWidth), y: ty, o: Math.min(pop, 1 - suck) * 0.9, s: mix(0.6, 1, pop) * (1 - suck * 0.8), r: p.r * (1 - suck) });
+      }
+      const q = at(t, 1.0, 0.5, ease.back);
+      put($("pergunta"), { x: 0, y: mix(500, 470, q), o: Math.min(q, 1 - at(t, 2.95, 0.4)), s: mix(0.9, 1, q) });
+    }
+
+    function scene2(t) {
+      show($("c2"), t > 3.3 && t < 7.4);
+      if (t <= 3.3 || t >= 7.4) return;
+      const sai = at(t, 6.8, 0.55, ease.in);
+      // The doorman drops in and bounces.
+      const cai = at(t, 3.4, 0.9, ease.bounce);
+      const wobble = Math.sin((t - 3.4) * 9) * 6 * Math.max(0, 1 - (t - 3.4) / 1.4);
+      put($("porteiro2"), { x: mix(170, -300, sai), y: mix(-420, 330, cai), r: -6 + wobble, o: 1 - sai });
+
+      const v = at(t, 3.95, 0.45, ease.out);
+      put($("velho"), { x: mix(700, -200, sai) + (1 - v) * 40, y: 300, o: Math.min(v, 1 - at(t, 5.25, 0.5) * 0.65) * (1 - sai) });
+      const r = at(t, 4.65, 0.4, ease.inOut);
+      put($("risco"), { x: mix(690, -210, sai), y: 368, o: 1 - sai, sx: r, sy: 1 });
+      $("risco").style.width = `${$("velho").offsetWidth + 20}px`;
+
+      const n = at(t, 5.15, 0.6, ease.back);
+      put($("novo"), { x: mix(690, -210, sai), y: mix(520, 440, n), o: n * (1 - sai), s: mix(0.85, 1, n) });
+      const s = at(t, 5.8, 0.5);
+      put($("sub2"), { x: mix(700, -200, sai), y: mix(680, 660, s), o: s * (1 - sai) });
+    }
+
+    function scene3(t) {
+      show($("c3"), t > 6.9 && t < 12.3);
+      if (t <= 6.9 || t >= 12.3) return;
+      const sobe = at(t, 7.0, 0.75, ease.back);
+      const sai = at(t, 11.6, 0.6, ease.in);
+      const qx = 410, qy = mix(1100, 230, sobe);
+      put($("quadro"), { x: qx, y: qy - sai * 80, o: 1 - sai, s: 1 - sai * 0.08, r: (1 - sobe) * 3 });
+
+      const leg = at(t, 7.4, 0.5);
+      put($("leg3"), { x: 0, y: mix(100, 70, leg), o: leg * (1 - sai) });
+
+      // Letters drop in row by row; ports pop in orange after their row.
+      const starts = [7.65, 8.25, 8.85, 9.45, 10.05];
+      let row = -1;
+      linhasQuadro.forEach((linha) => {
+        if (!linha.porta) row++;
+        const base = starts[Math.min(row, starts.length - 1)] + (linha.porta ? 0.42 : 0);
+        linha.letters.forEach((l, i) => {
+          const p = at(t, base + i * 0.022, 0.32, ease.back);
+          l.span.style.opacity = clamp(p * 1.4);
+          l.span.style.transform = `translateY(${mix(-26, l.y, p)}px) rotate(${l.r}deg) scale(${linha.porta ? mix(1.6, 1, p) : 1})`;
+        });
+      });
+      pontos.forEach((dots, i) => { dots.style.transform = `translateY(-0.3em) scaleX(${at(t, starts[i + 1] + 0.18, 0.4, ease.out)})`; });
+
+      // The doorman leans over the board's corner and nods.
+      const pe = at(t, 8.0, 0.7, ease.back);
+      const nod = Math.sin(Math.max(0, t - 10.6) * 10) * 5 * Math.max(0, 1 - Math.max(0, t - 10.6) / 0.9);
+      put($("porteiro3"), { x: qx + 900, y: qy - 110 + (1 - pe) * 120, o: pe * (1 - sai), r: 8 + nod });
+    }
+
+    function scene4(t) {
+      show($("c4"), t > 11.9 && t < 15.9);
+      if (t <= 11.9 || t >= 15.9) return;
+      const entra = at(t, 12.0, 0.6, ease.back);
+      const sai = at(t, 15.2, 0.5, ease.in);
+      put($("navegador"), { x: 340, y: mix(260, 170, entra) - sai * 40, o: Math.min(entra * 1.5, 1) * (1 - sai), s: mix(0.88, 1, entra) * (1 - sai * 0.06) });
+
+      // Typed, then the scheme and the lock arrive together.
+      const nome = "meuapp.sev";
+      const typed = Math.floor(clamp((t - 12.65) / 0.75) * nome.length);
+      $("digitado").textContent = nome.slice(0, typed);
+      const tranca = at(t, 13.6, 0.35, ease.back);
+      $("esquema").textContent = t > 13.6 ? "https://" : "";
+      $("esquema").style.opacity = tranca;
+      $("cadeado-forma").setAttribute("fill", t > 13.6 ? "#2a9d57" : "#9aa9bc");
+      $("cadeado").style.transform = `scale(${mix(1, 1.35, Math.sin(tranca * Math.PI))})`;
+      $("cursor").style.opacity = t < 13.5 ? (Math.floor(t * 3) % 2 ? 0.15 : 1) : 0;
+
+      document.querySelectorAll("#c4 .bloco").forEach((b, i) => {
+        const p = at(t, 13.85 + i * 0.12, 0.45);
+        b.style.transform = `scaleX(${p})`;
+        b.style.opacity = p;
+      });
+      const ok = at(t, 14.3, 0.45, ease.back);
+      $("selo-ok").style.opacity = ok;
+      $("selo-ok").style.transform = `scale(${mix(0.6, 1, ok)})`;
+      const leg = at(t, 14.0, 0.5);
+      put($("leg4"), { x: 0, y: mix(950, 930, leg), o: leg * (1 - sai) });
+    }
+
+    function scene5(t) {
+      show($("c5"), t > 15.4 && t < 21.9);
+      if (t <= 15.4 || t >= 21.9) return;
+      const sai = at(t, 21.2, 0.6, ease.in);
+      const c = at(t, 15.5, 0.7, ease.back);
+      const pulse = 1 + Math.sin(t * 4) * 0.025;
+      put($("centro5"), { x: 835, y: 410, o: c * (1 - sai), s: mix(0.3, 1, c) * pulse * (1 - sai * 0.4), r: Math.sin(t * 1.3) * 3 });
+      const leg = at(t, 15.8, 0.5);
+      put($("leg5"), { x: 0, y: mix(90, 60, leg), o: leg * (1 - sai) });
+
+      const lugares = [
+        { x: 120, y: 200, from: [-200, 0] },
+        { x: 1280, y: 200, from: [200, 0] },
+        { x: 120, y: 650, from: [-200, 0] },
+        { x: 1280, y: 650, from: [200, 0] },
+      ];
+      lugares.forEach((l, i) => {
+        const start = 16.3 + i * 0.6;
+        const p = at(t, start, 0.6, ease.back);
+        put($(`lugar${i}`), { x: l.x + l.from[0] * (1 - p) + sai * l.from[0] * 0.4, y: l.y, o: Math.min(p * 1.4, 1) * (1 - sai), s: mix(0.8, 1, p) });
+
+        // The wire draws itself, then packets run along it, from the doorman to the place.
+        const fio = $(`fio${i}`);
+        const len = fio.getTotalLength();
+        const draw = at(t, start - 0.15, 0.5, ease.inOut);
+        fio.style.strokeDasharray = `${len}`;
+        fio.style.strokeDashoffset = `${len * (1 - draw)}`;
+        fio.style.opacity = 1 - sai;
+        const pacote = $(`pacote${i}`);
+        const run = ((t - start - 0.4) * 0.7 + i * 0.25) % 1;
+        const pt = fio.getPointAtLength(len * run);
+        pacote.setAttribute("cx", pt.x);
+        pacote.setAttribute("cy", pt.y);
+        pacote.style.opacity = t > start + 0.4 ? (1 - sai) * Math.sin(run * Math.PI) : 0;
+      });
+    }
+
+    function scene6(t) {
+      show($("c6"), t > 21.4 && t < 26.3);
+      if (t <= 21.4 || t >= 26.3) return;
+      const sai = at(t, 25.6, 0.6, ease.in);
+      const j = at(t, 21.5, 0.9, ease.out);
+      const janela = $("janela6");
+      put(janela, { x: mix(1300, 780, j), y: 210, o: Math.min(j * 1.6, 1) * (1 - sai) });
+      janela.style.transform = `perspective(1800px) rotateY(${mix(-28, -6, j)}deg) scale(${1 - sai * 0.05})`;
+      $("tela1").style.opacity = at(t, 23.15, 0.4) * (1 - at(t, 23.75, 0.4));
+      $("tela2").style.opacity = at(t, 23.75, 0.4);
+
+      [21.9, 23.0, 23.6].forEach((start, i) => {
+        const p = at(t, start, 0.5, ease.back);
+        // The chip of the screen on show is lit; the others dim.
+        const ativo = (i === 0 && t < 23.15) || (i === 1 && t >= 23.15 && t < 23.75) || (i === 2 && t >= 23.75);
+        put($(`chip${i}`), { x: mix(20, 120, p) - sai * 80, y: 300 + i * 190, o: Math.min(p * 1.4, 1) * (ativo ? 1 : 0.45) * (1 - sai), s: ativo ? 1.04 : 1 });
+      });
+    }
+
+    function scene7(t) {
+      show($("c7"), t > 25.9);
+      if (t <= 25.9) return;
+      const centro = (el) => 960 - el.offsetWidth / 2;
+      const m = at(t, 26.0, 0.9, ease.bounce);
+      const piscando = t > 28.6 && t < 28.75;
+      const balanco = Math.sin(Math.max(0, t - 26.9) * 3.2) * 4 * Math.max(0, 1 - Math.max(0, t - 26.9) / 2);
+      put($("porteiro7"), { x: 810, y: mix(-380, 110, m), r: balanco, sx: 1, sy: piscando ? 0.97 : 1 });
+      const w = at(t, 26.55, 0.6, ease.back);
+      put($("marca"), { x: centro($("marca")), y: mix(500, 430, w), o: w, s: mix(0.8, 1, w) });
+      const f = at(t, 27.15, 0.5);
+      put($("frase"), { x: centro($("frase")), y: mix(700, 676, f), o: f });
+      const linha = $("pilula").offsetWidth + 48 + $("endereco").offsetWidth;
+      const esquerda = 960 - linha / 2;
+      const p = at(t, 27.65, 0.5, ease.back);
+      put($("pilula"), { x: esquerda, y: 800, o: p, s: mix(0.7, 1, p) });
+      const e = at(t, 28.05, 0.5);
+      put($("endereco"), { x: esquerda + $("pilula").offsetWidth + 48 + (1 - e) * 30, y: 820, o: e });
+    }
+
+    // ---------- playback ----------
+    function fit() {
+      const s = Math.min(innerWidth / 1920, innerHeight / 1080);
+      $("palco").style.transform = s === 1 ? "none" : `scale(${s})`;
+    }
+
+    window.DURATION = DURATION;
+    window.seek = (t) => render(Math.min(DURATION, Math.max(0, t)));
+
+    const params = new URLSearchParams(location.search);
+    const faces = ['800 100px "Bricolage Grotesque"', '700 100px "Bricolage Grotesque"', '600 100px "Bricolage Grotesque"',
+      '500 50px "JetBrains Mono"', '400 40px "Source Sans 3"', '600 40px "Source Sans 3"'];
+    window.ready = Promise.all(faces.map((f) => document.fonts.load(f, "Severino ãç→:3000")))
+      .then(() => document.fonts.ready)
+      .then(() => Promise.all([...document.images].map((i) => i.decode().catch(() => {}))));
+    window.ready.then(() => {
+      fit();
+      addEventListener("resize", fit);
+      if (params.has("t")) { seek(parseFloat(params.get("t"))); return; }
+      if (params.has("render")) { seek(0); return; }
+      let start = performance.now();
+      document.addEventListener("click", () => { start = performance.now(); });
+      const loop = (now) => {
+        seek(((now - start) / 1000) % (DURATION + 1));
+        requestAnimationFrame(loop);
+      };
+      requestAnimationFrame(loop);
+    });
+  </script>
+</body>
+</html>
