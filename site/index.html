@@ -80,7 +80,7 @@
       <span>Severino</span>
     </a>
     <nav aria-label="Seções">
-      <a href="#video">Vídeo</a>
+      <a href="#apresentacao">Em ação</a>
       <a href="#onde">WSL, Docker e k8s</a>
       <a href="#como-funciona">Como funciona</a>
       <a href="#tres-jeitos">Recursos</a>
@@ -117,18 +117,20 @@
       </figure>
     </section>
 
-    <section class="video" id="video" aria-labelledby="video-titulo">
-      <div class="video-texto">
-        <h2 id="video-titulo">O Severino em 30 segundos</h2>
-        <p>Do localhost:3000 ao meuapp.sev com cadeado, passando pelo WSL, pelo Docker e pelo cluster. Sem som, pode dar play no escritório.</p>
-      </div>
-      <div class="video-moldura">
-        <video controls preload="none" playsinline width="1920" height="1080" poster="assets/severino-intro-capa.jpg"
-               aria-label="Vídeo de apresentação do Severino: portas soltas viram nomes, o quadro da portaria se monta, o navegador abre meuapp.sev com cadeado, e o porteiro atende Windows, WSL, Docker e Kubernetes.">
+    <section class="apresentacao" id="apresentacao" aria-labelledby="apresentacao-titulo">
+      <h2 id="apresentacao-titulo">Um turno na portaria.</h2>
+      <p class="secao-lead">Portas soltas viram nomes, o navegador ganha cadeado, e o WSL, o Docker e o cluster entram pela mesma porta.</p>
+      <figure class="tela">
+        <video muted loop playsinline disablepictureinpicture preload="none" width="1920" height="1080" poster="assets/severino-intro-capa.jpg" data-tela
+               aria-label="Animação do Severino: portas soltas viram nomes, o quadro da portaria se monta, o navegador abre meuapp.sev com cadeado, e o porteiro atende Windows, WSL, Docker e Kubernetes.">
           <source src="assets/severino-intro.mp4" type="video/mp4">
-          <a href="assets/severino-intro.mp4">Baixar o vídeo de apresentação (MP4, 7 MB)</a>
         </video>
-      </div>
+        <button class="tela-pausa" type="button" aria-pressed="false" hidden data-tela-pausa>
+          <svg class="icone-pausa" viewBox="0 0 16 16" width="14" height="14" aria-hidden="true"><path d="M4 2.5h3v11H4zm5 0h3v11H9z" fill="currentColor"/></svg>
+          <svg class="icone-play" viewBox="0 0 16 16" width="14" height="14" aria-hidden="true"><path d="M4.5 2.3 13.5 8l-9 5.7z" fill="currentColor"/></svg>
+          <span class="sr">Pausar a animação</span>
+        </button>
+      </figure>
     </section>
 
     <section class="onde" id="onde" aria-labelledby="onde-titulo">

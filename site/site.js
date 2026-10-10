@@ -1,5 +1,5 @@
-// Three small jobs: set the board's letters by hand, turn the Rotas/Serviços/DNS panels into
-// tabs, and point the download at the latest release.
+// Four small jobs: set the board's letters by hand, turn the Rotas/Serviços/DNS panels into
+// tabs, play the intro while it is on screen, and point the download at the latest release.
 
 (function board() {
   const quadro = document.querySelector(".quadro");
@@ -67,6 +67,35 @@
       select(to, true);
     });
   });
+})();
+
+// The intro plays on its own, muted and in a loop, but only while on screen: the 7 MB wait
+// until someone scrolls there. Reduced motion keeps the still frame until they press play.
+(function screen() {
+  const video = document.querySelector("[data-tela]");
+  const button = document.querySelector("[data-tela-pausa]");
+  if (!video || !button) return;
+  const label = button.querySelector(".sr");
+
+  let paused = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  let visible = false;
+  const update = () => {
+    button.setAttribute("aria-pressed", String(paused));
+    label.textContent = paused ? "Continuar a animação" : "Pausar a animação";
+    if (visible && !paused) video.play().catch(() => {});
+    else video.pause();
+  };
+
+  button.hidden = false;
+  button.addEventListener("click", () => {
+    paused = !paused;
+    update();
+  });
+  new IntersectionObserver(([entry]) => {
+    visible = entry.isIntersecting;
+    update();
+  }, { threshold: 0.35 }).observe(video);
+  update();
 })();
 
 (async function latestRelease() {

@@ -274,26 +274,72 @@ p { margin: 0; }
   .quadro-moldura { max-width: 560px; }
 }
 
-/* ---------- The 30 s video, on the uniform's navy ---------- */
+/* ---------- The intro, playing on a framed screen in the lobby ---------- */
 
-.video {
-  background: var(--farda);
-  color: #e8eef7;
-  padding: clamp(48px, 7vw, 88px) var(--gutter);
+.apresentacao {
+  max-width: var(--largura);
+  margin: 0 auto;
+  padding: clamp(56px, 8vw, 96px) var(--gutter);
+  border-top: 1px solid var(--linha);
 }
-.video > * { max-width: var(--largura); margin-left: auto; margin-right: auto; }
-.video-texto { text-align: center; }
-.video-texto h2 { color: #fff; margin: 0 auto; }
-.video-texto p { margin: 14px auto 0; max-width: 56ch; color: #c5d3e6; font-size: 1.1875rem; }
-.video-moldura { margin-top: clamp(28px, 4vw, 44px); }
-.video-moldura video {
+
+/* Same wooden frame as the board up top, so it reads as part of the lobby, not a player. */
+.tela {
+  position: relative;
+  margin: clamp(32px, 4vw, 48px) 0 0;
+  background: var(--farda);
+  border: clamp(8px, 1.3vw, 14px) solid #5b3a22;
+  border-image: linear-gradient(135deg, #7a5233, #4e3019 60%, #6b462b) 1;
+  box-shadow: 0 30px 50px -24px rgb(1 29 65 / 0.6);
+}
+.tela::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  box-shadow: inset 0 0 0 1px rgb(0 0 0 / 0.45), inset 0 0 36px rgb(0 0 0 / 0.35);
+}
+.tela video {
   display: block;
   width: 100%;
   height: auto;
   aspect-ratio: 16 / 9;
-  background: #000;
-  border-radius: 14px;
-  box-shadow: 0 30px 60px -20px rgb(0 0 0 / 0.6), 0 0 0 1px rgb(255 255 255 / 0.08);
+}
+
+/* Moving for more than five seconds, so it needs a way to stop; kept small and quiet. */
+.tela-pausa {
+  position: absolute;
+  right: 12px;
+  bottom: 12px;
+  z-index: 1;
+  width: 36px;
+  height: 36px;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  border: 1px solid rgb(255 255 255 / 0.25);
+  border-radius: 50%;
+  background: rgb(1 29 65 / 0.6);
+  color: #fff;
+  cursor: pointer;
+  opacity: 0.7;
+  transition: opacity 120ms ease;
+}
+.tela-pausa[hidden] { display: none; }
+.tela:hover .tela-pausa, .tela-pausa:focus-visible { opacity: 1; }
+.tela-pausa .icone-play, .tela-pausa[aria-pressed="true"] .icone-pausa { display: none; }
+.tela-pausa[aria-pressed="true"] .icone-play { display: block; }
+@media (max-width: 600px) {
+  .tela-pausa { width: 28px; height: 28px; right: 8px; bottom: 8px; }
+}
+
+.sr {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
 }
 
 /* ---------- Where apps live: four places, one doorman ---------- */
