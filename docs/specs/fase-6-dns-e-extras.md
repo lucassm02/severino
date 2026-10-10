@@ -106,9 +106,17 @@ Cada um com o seu critério de pronto, na ordem de implementação.
 
 ### Curinga por DNS embutido e NRPT
 
-- **O que é:** uma rota `*.callfred.sev → localhost:3000` (e uma entrada DNS `*.dev.interno → 10.0.0.5`) vale para qualquer subdomínio. O hosts não aceita curinga, então o Severino responde esses nomes com um DNS próprio em `127.0.0.1:53`. Uma regra NRPT do Windows manda só os sufixos curinga para ele; todo o resto segue para o DNS normal e o da VPN.
+- **O que é:** uma rota `*.callfred.sev → localhost:3000` (e uma entrada DNS `*.dev.interno → 10.0.0.5`) vale para qualquer subdomínio, em qualquer profundidade. O hosts não aceita curinga, então o Severino responde esses nomes com um DNS próprio. Uma regra NRPT do Windows manda só os sufixos curinga para ele; todo o resto segue para o DNS normal e o da VPN. O curinga mais específico vence, e um nome que está no hosts vence o curinga.
 - **Critério:** `curl https://cliente42.callfred.sev` abre o app, com certificado curinga, sem cadastrar `cliente42`.
-- **Validar antes:** se dá para escutar em `127.0.0.1:53` com o ICS em `0.0.0.0:53`; se a VPN, ligada, instala regras NRPT que passam na frente; se o WSL (túnel de DNS) respeita a NRPT; como Chrome, Edge e Firefox com DNS seguro se comportam. Se a porta 53 não der, o curinga fica de fora da fase, registrado aqui.
+- **Validado em 2026-10-10**, com o servidor da implementação rodando como usuário e uma regra NRPT de teste criada pela pessoa como administrador:
+  - o servidor responde em `127.53.0.1:53`, UDP e TCP: A e AAAA para o curinga, nada para outros tipos, "não existe" para nomes fora dele;
+  - com a regra `.spike.sev → 127.53.0.1`, a resolução normal do Windows (`Resolve-DnsName`, .NET, `ping`, `curl`) segue a regra, e o curinga mais específico vence;
+  - o Edge resolveu pela regra e o pedido chegou com o `Host` certo;
+  - o WSL também segue a regra, pelo túnel de DNS;
+  - falta repetir com a VPN ligada, no checklist.
+- **Onde roda o DNS: no Helper.** Qualquer programa da conta consegue abrir `127.53.0.1:53`. Se o DNS rodasse no app, com o app fechado outro programa poderia ocupar a porta e responder o que quisesse para os sufixos das regras. O Helper sobe com o Windows e ocupa a porta primeiro, com uso exclusivo, e responde com as mesmas regras de endereço do hosts: loopback para rotas, privado ou aprovado para entradas DNS.
+- **Como o curinga chega ao Helper:** pelos comandos que já existem. Uma rota curinga vai no `sync` (e some com o app fechado ou pausado, como o bloco das rotas); uma entrada DNS curinga vai no `sync-dns` (e fica, gravada pelo Helper ao lado do binário para voltar depois de reiniciar). Nomes com `*.` não entram no hosts: vão para a tabela do DNS.
+- **As regras NRPT** são do Helper, marcadas com o comentário `Severino`: uma por sufixo em uso, criadas e removidas conforme os curingas mudam. Criar a regra para um sufixo novo pede aprovação por UAC, como o IP público, porque ela desvia um sufixo inteiro. O desinstalador remove as regras do Severino.
 
 ### Rotas por caminho
 

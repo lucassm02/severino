@@ -22,6 +22,31 @@ public static class DomainName
     /// For service routes, whose names come from a cluster or a Compose file ("redis",
     /// "algarbffapi"). Web routes keep at least two labels.
     /// </param>
+    /// <summary>
+    /// A wildcard like <c>*.callfred.sev</c>: any name below the base, at any depth. The base
+    /// needs two labels or more, so a whole TLD (<c>*.com</c>) is never one.
+    /// </summary>
+    public static bool TryNormalizeWildcard(
+        string? input,
+        [NotNullWhen(true)] out string? normalized,
+        [NotNullWhen(false)] out string? error)
+    {
+        normalized = null;
+        var name = (input ?? "").Trim();
+        if (!name.StartsWith("*.", StringComparison.Ordinal))
+            return Fail("Um curinga começa com *., como *.callfred.sev.", out error);
+        if (!TryNormalize(name[2..], out var baseName, out error))
+            return false;
+        normalized = "*." + baseName;
+        return true;
+    }
+
+    public static bool IsWildcard(string? name) => name?.TrimStart().StartsWith("*.", StringComparison.Ordinal) == true;
+
+    /// <summary>Whether <paramref name="name"/> is below <paramref name="wildcard"/>'s base (both normalized).</summary>
+    public static bool MatchesWildcard(string wildcard, string name) =>
+        name.EndsWith(wildcard[1..], StringComparison.Ordinal) && name.Length > wildcard.Length - 1;
+
     public static bool TryNormalize(
         string? input,
         [NotNullWhen(true)] out string? normalized,
