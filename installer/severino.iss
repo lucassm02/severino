@@ -53,6 +53,8 @@ Type: filesandordirs; Name: "{app}\Helper\runtimes"
 [Files]
 Source: "{#PublishDir}\app\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
 Source: "{#PublishDir}\helper\*"; DestDir: "{app}\Helper"; Flags: ignoreversion recursesubdirs createallsubdirs
+; The PowerShell module, where both Windows PowerShell and PowerShell 7 find it with no setup.
+Source: "..\powershell\Severino\*"; DestDir: "{commonpf64}\WindowsPowerShell\Modules\Severino"; Flags: ignoreversion
 
 [Icons]
 Name: "{autoprograms}\Severino"; Filename: "{app}\Severino.exe"

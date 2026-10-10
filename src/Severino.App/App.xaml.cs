@@ -100,6 +100,8 @@ public partial class App : Application
         // The DNS block does not follow the proxy: it stays when the app pauses or closes.
         _host.Services.GetRequiredService<ExternalHosts>().Start();
         _host.Services.GetRequiredService<DnsSync>().Start();
+        // For the PowerShell module, once the config is loaded.
+        _host.Services.GetRequiredService<ControlServer>().Start();
         _ = StartProxyAsync(_host.Services.GetRequiredService<ProxyCoordinator>());
     }
 
@@ -207,6 +209,8 @@ public partial class App : Application
         services.AddSingleton<IPortForwardRunner, ProcessPortForwardRunner>();
         services.AddSingleton<PortForwards>();
         services.AddSingleton<ServiceRefresher>();
+        services.AddSingleton<Severino.Core.Control.ControlHandler>();
+        services.AddSingleton<ControlServer>();
         services.AddSingleton<IServiceEvents, ProcessServiceEvents>();
         services.AddSingleton(sp => new ServiceWatcher(sp.GetRequiredService<ConfigService>(), sp.GetRequiredService<ServiceRefresher>(),
             sp.GetRequiredService<IServiceEvents>(), sp.GetRequiredService<ILogger<ServiceWatcher>>()));
