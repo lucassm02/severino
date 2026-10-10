@@ -62,7 +62,7 @@ public sealed class DialogService(RouteService routes, ServiceRouteService servi
     /// <summary>The "Importar serviços" window; returns what was imported, or null when cancelled.</summary>
     public IReadOnlyList<PlannedService>? ImportServices()
     {
-        var viewModel = new ImportServicesViewModel(discovery, services, config);
+        var viewModel = new ImportServicesViewModel(discovery, services, config, dns?.Destinations());
         var window = new ImportServicesWindow(viewModel) { Owner = Application.Current.MainWindow };
         return window.ShowDialog() == true ? viewModel.Result : null;
     }
@@ -70,7 +70,7 @@ public sealed class DialogService(RouteService routes, ServiceRouteService servi
     /// <summary>The service form; returns the saved route, or null when cancelled.</summary>
     public ServiceRoute? EditService(ServiceRoute? existing)
     {
-        var viewModel = new ServiceEditorViewModel(services, existing);
+        var viewModel = new ServiceEditorViewModel(services, existing, dns?.Destinations());
         var window = new ServiceEditorWindow(viewModel) { Owner = Application.Current.MainWindow };
         return window.ShowDialog() == true ? viewModel.Saved : null;
     }
@@ -78,7 +78,7 @@ public sealed class DialogService(RouteService routes, ServiceRouteService servi
     /// <summary>Opens the route form; returns the saved route, or null when cancelled.</summary>
     public RouteEntry? EditRoute(RouteEntry? existing, bool isCopy = false)
     {
-        var viewModel = new RouteEditorViewModel(routes, inspector, https, navigation, existing, isCopy);
+        var viewModel = new RouteEditorViewModel(routes, inspector, https, navigation, existing, isCopy, dns?.Destinations());
         var window = new RouteEditorWindow(viewModel) { Owner = Application.Current.MainWindow };
         return window.ShowDialog() == true ? viewModel.Saved : null;
     }

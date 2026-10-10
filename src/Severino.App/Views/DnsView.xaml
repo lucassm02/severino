@@ -143,6 +143,11 @@
                                             <ContextMenu>
                                                 <MenuItem Header="Copiar nome" Command="{Binding Data.CopyNameCommand, Source={StaticResource Root}}" CommandParameter="{Binding}" />
                                                 <MenuItem Header="Editar" Command="{Binding Data.EditCommand, Source={StaticResource Root}}" CommandParameter="{Binding}" />
+                                                <MenuItem
+                                                    Header="Transformar em rota…"
+                                                    ToolTip="Passa pelo proxy: ganha HTTPS da CA local e o log de requisições"
+                                                    Command="{Binding Data.MakeRouteCommand, Source={StaticResource Root}}"
+                                                    CommandParameter="{Binding}" />
                                                 <Separator />
                                                 <MenuItem Header="Remover" Command="{Binding Data.RemoveCommand, Source={StaticResource Root}}" CommandParameter="{Binding}" />
                                             </ContextMenu>

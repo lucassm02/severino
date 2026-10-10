@@ -117,6 +117,37 @@ public sealed partial class DnsViewModel : ObservableObject
         ShowToast(result.Ok ? "Linha comentada no hosts. Para trazê-la de volta, edite o hosts." : result.Error ?? "Não deu para alterar o hosts.");
     }
 
+    /// <summary>
+    /// An entry becomes a route: the name goes through the proxy to the same address, gaining
+    /// HTTPS from the local CA and the request log. The other names stay in the entry.
+    /// </summary>
+    [RelayCommand]
+    private void MakeRoute(DnsRowViewModel row)
+    {
+        if (row.Entry is not { } entry)
+            return;
+        if (entry.Names.FirstOrDefault(n => n.Contains('.')) is not { } name)
+        {
+            ShowToast("Uma rota precisa de um nome com ponto, como api.interno.");
+            return;
+        }
+
+        // The name is freed first, so the route form accepts it; cancelling puts the entry back.
+        if (_dns.Remove(entry.Id) is not { } removed)
+            return;
+        var host = entry.Address.Contains(':') ? $"[{entry.Address}]" : entry.Address;
+        var draft = new RouteEntry { Domain = name, Target = $"http://{host}:80" };
+        if (_dialogs.EditRoute(draft, isCopy: true) is null)
+        {
+            _dns.Restore(removed);
+            return;
+        }
+        var rest = entry.Names.Where(n => n != name).ToList();
+        if (rest.Count > 0)
+            _dns.Save(entry with { Names = rest });
+        ShowToast($"{name} agora é uma rota, na aba Rotas.");
+    }
+
     [RelayCommand]
     private void Undo()
     {

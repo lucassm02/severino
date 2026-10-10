@@ -6,6 +6,7 @@ using CommunityToolkit.Mvvm.Input;
 using Severino.App.Services;
 using Severino.Core.Configuration;
 using Severino.Core.Discovery;
+using Severino.Core.Dns;
 using Severino.Core.Routes;
 using Severino.Proxy;
 
@@ -18,6 +19,7 @@ public sealed partial class RoutesViewModel : ObservableObject
     private readonly RouteService _routes;
     private readonly ServiceRouteService _services;
     private readonly ServiceDiscovery _discovery;
+    private readonly DnsService? _dns;
     private readonly ConfigService _config;
     private readonly HealthMonitor _health;
     private readonly DialogService _dialogs;
@@ -27,11 +29,13 @@ public sealed partial class RoutesViewModel : ObservableObject
     /// <summary>Puts back what was removed; returns why it could not, or null.</summary>
     private Func<string?>? _undo;
 
-    public RoutesViewModel(RouteService routes, ServiceRouteService services, ServiceDiscovery discovery, ConfigService config, HealthMonitor health, DialogService dialogs, HttpsService https)
+    public RoutesViewModel(RouteService routes, ServiceRouteService services, ServiceDiscovery discovery, ConfigService config, HealthMonitor health, DialogService dialogs, HttpsService https,
+        DnsService? dns = null)
     {
         _routes = routes;
         _services = services;
         _discovery = discovery;
+        _dns = dns;
         _config = config;
         _health = health;
         _dialogs = dialogs;
@@ -142,6 +146,14 @@ public sealed partial class RoutesViewModel : ObservableObject
             {
                 // Keep the node the routes use, when it is still one of the cluster's.
                 var node = group.Items.SelectMany(i => i.Route.Ports).Select(p => p.TargetHost).FirstOrDefault();
+                // A node kept by its DNS name: ask with its IP, then write the name back.
+                string? nodeName = null;
+                if (node is not null && !System.Net.IPAddress.TryParse(node, out _)
+                    && _dns?.Destinations().FirstOrDefault(d => d.Name == node) is { } destination)
+                {
+                    nodeName = node;
+                    node = destination.Address;
+                }
                 var result = await _discovery.KubernetesAsync(source, CancellationToken.None, node);
                 if (result.Error is { } error)
                 {
@@ -153,7 +165,9 @@ public sealed partial class RoutesViewModel : ObservableObject
                     ShowToast($"O kubectl em {source} está no contexto {result.Context}, não em {origin.Context}. Troque o contexto e atualize de novo.");
                     return;
                 }
-                found = result.Services;
+                found = nodeName is not null && result.Node is { } address
+                    ? DiscoveredService.UseName(result.Services, address, nodeName)
+                    : result.Services;
             }
             else
             {
@@ -227,6 +241,39 @@ public sealed partial class RoutesViewModel : ObservableObject
             ShowToast($"Não deu para reemitir a CA: {ex.Message}");
         }
         return true;
+    }
+
+    /// <summary>
+    /// A route whose destination is an IP becomes a plain DNS entry: the name then goes straight
+    /// to that IP, without the proxy, so the port, HTTPS and the log no longer apply.
+    /// </summary>
+    [RelayCommand]
+    private async Task MakeDnsAsync(RouteItemViewModel item)
+    {
+        if (_dns is null)
+            return;
+        if (!Uri.TryCreate(item.Route.Target, UriKind.Absolute, out var target) || !System.Net.IPAddress.TryParse(target.Host.Trim('[', ']'), out var ip))
+        {
+            ShowToast("Só uma rota cujo destino é um IP vira entrada DNS.");
+            return;
+        }
+        if (!await DialogService.ConfirmAsync("Transformar em entrada DNS",
+                $"{item.Domain} passa a apontar direto para {ip}, sem passar pelo Severino. " +
+                $"A porta {target.Port}, o HTTPS da CA local e o log de requisições deixam de valer: o navegador vai ao IP, na porta que a URL disser.",
+                "Transformar"))
+            return;
+
+        if (_routes.Remove(item.Id) is not { } removed)
+            return;
+        var draft = new DnsEntry { Names = [item.Domain], Address = ip.ToString(), Notes = item.Route.Notes };
+        if (_dns.Validate(draft).Error is { } error)
+        {
+            _routes.Restore(removed);
+            ShowToast(error);
+            return;
+        }
+        _dns.Save(draft);
+        ShowToast($"{item.Domain} agora é uma entrada DNS, na aba DNS.");
     }
 
     [RelayCommand]

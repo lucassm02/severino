@@ -13,7 +13,7 @@ public sealed partial class ServiceEditorViewModel : ObservableObject
     private readonly ServiceRouteService _services;
     private readonly ServiceRoute _original;
 
-    public ServiceEditorViewModel(ServiceRouteService services, ServiceRoute? existing)
+    public ServiceEditorViewModel(ServiceRouteService services, ServiceRoute? existing, IReadOnlyList<Core.Dns.DnsDestination>? destinations = null)
     {
         _services = services;
         IsNew = existing is null;
@@ -21,7 +21,14 @@ public sealed partial class ServiceEditorViewModel : ObservableObject
         NamesText = string.Join(Environment.NewLine, _original.Names);
         PortsText = string.Join(Environment.NewLine, _original.Ports.Select(Format));
         Notes = _original.Notes;
+        var named = (destinations ?? []).Where(d => !d.Outside).Take(6).ToList();
+        DestinationsHint = named.Count == 0 ? null
+            : "Destinos por nome, do DNS: " + string.Join(", ", named.Select(d => $"{d.Name} ({d.Address})")) +
+              ". Com o nome, mudar o IP na aba DNS muda o destino.";
     }
+
+    /// <summary>The DNS names that can stand for a destination host, so the IP lives in one place.</summary>
+    public string? DestinationsHint { get; }
 
     public bool IsNew { get; }
     public string Title => IsNew ? "Novo serviço" : "Editar serviço";

@@ -169,6 +169,11 @@
                                                 <Separator />
                                                 <MenuItem Header="Editar" Command="{Binding Data.EditCommand, Source={StaticResource Root}}" CommandParameter="{Binding}" />
                                                 <MenuItem Header="Duplicar" Command="{Binding Data.DuplicateCommand, Source={StaticResource Root}}" CommandParameter="{Binding}" />
+                                                <MenuItem
+                                                    Header="Transformar em entrada DNS…"
+                                                    ToolTip="Para rotas cujo destino é um IP: o nome passa a ir direto a ele, sem o proxy"
+                                                    Command="{Binding Data.MakeDnsCommand, Source={StaticResource Root}}"
+                                                    CommandParameter="{Binding}" />
                                                 <Separator />
                                                 <MenuItem Header="Remover" Command="{Binding Data.RemoveCommand, Source={StaticResource Root}}" CommandParameter="{Binding}" />
                                             </ContextMenu>

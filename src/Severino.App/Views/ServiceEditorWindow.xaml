@@ -55,6 +55,13 @@
                 TextWrapping="Wrap"
                 Foreground="{DynamicResource TextFillColorSecondaryBrush}"
                 Text="{Binding Address, StringFormat='Os nomes apontam para {0}, onde o Severino escuta essas portas.'}" />
+            <TextBlock
+                Margin="0,4,0,0"
+                FontSize="12"
+                TextWrapping="Wrap"
+                Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                Text="{Binding DestinationsHint}"
+                Visibility="{Binding DestinationsHint, Converter={StaticResource NullToCollapsed}}" />
 
             <TextBlock Margin="0,12,0,4" Text="Notas" />
             <ui:TextBox AutomationProperties.Name="Notas" Text="{Binding Notes, UpdateSourceTrigger=PropertyChanged}" />

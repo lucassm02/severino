@@ -82,6 +82,23 @@ public sealed class ImportServicesTests : IDisposable
     }
 
     [Fact]
+    public async Task A_node_with_a_dns_name_is_used_by_name()
+    {
+        var viewModel = new ImportServicesViewModel(new ServiceDiscovery(new Runner()), _services, _config,
+            [new Severino.Core.Dns.DnsDestination("gateway.k8s", "10.0.0.1", Outside: false)]);
+        await viewModel.InitializeAsync();
+
+        Assert.Equal("gateway.k8s", viewModel.SelectedNode);
+        Assert.Equal(["10.0.0.1", "gateway.k8s"], viewModel.Nodes);
+        var pedidos = viewModel.Visible.Single(i => i.Name == "pedidos");
+        Assert.Equal("gateway.k8s", pedidos.Candidate.Service.Ports[0].TargetHost);
+
+        viewModel.SelectedNode = "10.0.0.1";
+
+        Assert.Equal("10.0.0.1", viewModel.Visible.Single(i => i.Name == "pedidos").Candidate.Service.Ports[0].TargetHost);
+    }
+
+    [Fact]
     public async Task Unchecked_tools_are_not_asked_and_hide_their_rows()
     {
         _config.Update(c => c with { State = c.State with { ImportKubernetes = false } });

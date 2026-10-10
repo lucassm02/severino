@@ -61,7 +61,26 @@
             </Grid.ColumnDefinitions>
             <ComboBox Grid.Column="0" ItemsSource="{Binding Schemes}" SelectedItem="{Binding Scheme}" AutomationProperties.Name="Protocolo do destino" />
             <ui:TextBlock Grid.Column="1" Margin="6,0" VerticalAlignment="Center" Text="://" />
-            <ui:TextBox Grid.Column="2" AutomationProperties.Name="Host do destino" Text="{Binding TargetHost, UpdateSourceTrigger=PropertyChanged}" />
+            <!-- Editable, with the names in the hosts as suggestions: a route to a DNS name follows
+                 it when its address changes in the DNS tab. -->
+            <ComboBox
+                Grid.Column="2"
+                IsEditable="True"
+                IsTextSearchEnabled="False"
+                TextSearch.TextPath="Name"
+                ItemsSource="{Binding HostSuggestions}"
+                Text="{Binding TargetHost, UpdateSourceTrigger=PropertyChanged}"
+                ToolTip="localhost, um IP ou um nome do DNS"
+                AutomationProperties.Name="Host do destino">
+                <ComboBox.ItemTemplate>
+                    <DataTemplate>
+                        <StackPanel>
+                            <TextBlock Text="{Binding Name}" />
+                            <TextBlock FontSize="11" Foreground="{DynamicResource TextFillColorSecondaryBrush}" Text="{Binding Detail}" />
+                        </StackPanel>
+                    </DataTemplate>
+                </ComboBox.ItemTemplate>
+            </ComboBox>
             <ui:TextBlock Grid.Column="3" Margin="6,0" VerticalAlignment="Center" Text=":" />
             <!-- Editable: any number works; the list only saves remembering it. No autocomplete,
                  which would turn a typed "50" into "5000". -->

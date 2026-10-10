@@ -23,4 +23,13 @@ public sealed record DiscoveredService(
     string? Unreachable = null)
 {
     public bool CanImport => Ports.Count > 0;
+
+    /// <summary>
+    /// The same services with <paramref name="address"/> as destination replaced by <paramref name="name"/>,
+    /// a DNS name for the node: the routes then follow the name when its IP changes.
+    /// </summary>
+    public static IReadOnlyList<DiscoveredService> UseName(IReadOnlyList<DiscoveredService> services, string address, string name) =>
+        [.. services.Select(s => s.Ports.Any(p => p.TargetHost == address)
+            ? s with { Ports = [.. s.Ports.Select(p => p.TargetHost == address ? p with { TargetHost = name } : p)] }
+            : s)];
 }

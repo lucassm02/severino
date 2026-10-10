@@ -28,8 +28,10 @@ public sealed partial class RouteEditorViewModel : ObservableObject
     private Task _pendingDomainCheck = Task.CompletedTask;
     private string? _confirmedExistingDomain;
 
-    public RouteEditorViewModel(RouteService routes, DomainInspector inspector, HttpsService https, Navigation navigation, RouteEntry? existing, bool isCopy)
+    public RouteEditorViewModel(RouteService routes, DomainInspector inspector, HttpsService https, Navigation navigation, RouteEntry? existing, bool isCopy,
+        IReadOnlyList<Core.Dns.DnsDestination>? destinations = null)
     {
+        HostSuggestions = [new Core.Dns.DnsDestination("localhost", "esta máquina", Outside: false), .. destinations ?? []];
         _routes = routes;
         _inspector = inspector;
         _https = https;
@@ -71,6 +73,13 @@ public sealed partial class RouteEditorViewModel : ObservableObject
     }
 
     public bool IsNew { get; }
+
+    /// <summary>
+    /// Destinations to pick from: localhost and the names in the hosts. A route that points at a
+    /// DNS name follows it when its address changes in the DNS tab.
+    /// </summary>
+    public IReadOnlyList<Core.Dns.DnsDestination> HostSuggestions { get; }
+
     public string Title => IsNew ? "Nova rota" : "Editar rota";
     public string SaveLabel => _confirmedExistingDomain is not null && _confirmedExistingDomain == NormalizedDomain
         ? "Criar mesmo assim"

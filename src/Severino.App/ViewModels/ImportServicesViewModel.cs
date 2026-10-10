@@ -36,12 +36,21 @@ public sealed partial class ImportServicesViewModel : ObservableObject
     private List<CandidateItemViewModel> _all = [];
     private CancellationTokenSource? _loading;
     private bool _batch;
+    private readonly IReadOnlyList<Core.Dns.DnsDestination> _destinations;
 
-    public ImportServicesViewModel(ServiceDiscovery discovery, ServiceRouteService services, ConfigService config)
+    /// <summary>DNS name → node IP, for the nodes the hosts has a name for.</summary>
+    private Dictionary<string, string> _nodeNames = [];
+
+    /// <summary>The node the person picked last, by IP or by name; kept across reloads.</summary>
+    private string? _nodeChoice;
+
+    public ImportServicesViewModel(ServiceDiscovery discovery, ServiceRouteService services, ConfigService config,
+        IReadOnlyList<Core.Dns.DnsDestination>? destinations = null)
     {
         _discovery = discovery;
         _services = services;
         _config = config;
+        _destinations = destinations ?? [];
         UseKubernetes = config.Current.State.ImportKubernetes;
         UseDocker = config.Current.State.ImportDocker;
         _toolsReady = true;
@@ -202,10 +211,18 @@ public sealed partial class ImportServicesViewModel : ObservableObject
 
     partial void OnSelectedNodeChanged(string? value)
     {
-        // Picking another node points every NodePort at it: ask again with it.
-        if (value is not null && SelectedSource is { IsPaste: false } source && _scans.TryGetValue(source, out var scan)
-            && scan.Kubernetes is { } kubernetes && kubernetes.Node != value)
-            _ = LoadAsync(source, value, kubernetes: true, docker: false);
+        if (_batch || value is null)
+            return;
+        _nodeChoice = value;
+        if (SelectedSource is not { IsPaste: false } source || !_scans.TryGetValue(source, out var scan) || scan.Kubernetes is not { } kubernetes)
+            return;
+        // Picking another node points every NodePort at it: ask again with its IP. The same node
+        // by its DNS name only changes how the destinations are written.
+        var address = _nodeNames.GetValueOrDefault(value, value);
+        if (kubernetes.Node != address)
+            _ = LoadAsync(source, address, kubernetes: true, docker: false);
+        else
+            ShowScan(scan);
     }
 
     [RelayCommand]
@@ -263,13 +280,29 @@ public sealed partial class ImportServicesViewModel : ObservableObject
         DockerStatus = null;
         KubernetesFailed = false;
         DockerFailed = false;
-        if (scan?.Kubernetes is { } kubernetes && source is not null && UseKubernetes)
+
+        // Nodes the hosts has a name for can be picked by that name, and it is the default: the
+        // destinations then follow the name when the node's IP changes in the DNS tab.
+        var shownKubernetes = UseKubernetes ? scan?.Kubernetes : null;
+        _nodeNames = _destinations
+            .Where(d => shownKubernetes?.Nodes.Contains(d.Address) == true)
+            .GroupBy(d => d.Name, StringComparer.Ordinal)
+            .ToDictionary(g => g.Key, g => g.First().Address, StringComparer.Ordinal);
+        var node = shownKubernetes?.Node;
+        var nodeByName = _nodeChoice is not null && _nodeNames.GetValueOrDefault(_nodeChoice) == node ? _nodeChoice
+            : _nodeChoice is not null && _nodeChoice == node ? null
+            : _nodeNames.FirstOrDefault(n => n.Value == node).Key;
+
+        if (shownKubernetes is { } kubernetes && source is not null)
         {
             KubernetesFailed = kubernetes.Error is not null;
             KubernetesStatus = kubernetes.Error is { } error
                 ? error
                 : $"{kubernetes.Context} · {Plural(kubernetes.Services.Count, "service", "services")}, {kubernetes.Services.Count(s => s.CanImport)} com acesso de fora";
-            candidates.AddRange(kubernetes.Services.Select(s => new ServiceCandidate(s, new ServiceOrigin
+            var services = nodeByName is not null && node is not null
+                ? DiscoveredService.UseName(kubernetes.Services, node, nodeByName)
+                : kubernetes.Services;
+            candidates.AddRange(services.Select(s => new ServiceCandidate(s, new ServiceOrigin
             {
                 Kind = ServiceKind.Kubernetes,
                 Source = source.Id,
@@ -296,10 +329,11 @@ public sealed partial class ImportServicesViewModel : ObservableObject
 
         _batch = true;
         Nodes.Clear();
-        var shownKubernetes = UseKubernetes ? scan?.Kubernetes : null;
-        foreach (var node in shownKubernetes?.Nodes ?? [])
-            Nodes.Add(node);
-        SelectedNode = shownKubernetes?.Node;
+        foreach (var address in shownKubernetes?.Nodes ?? [])
+            Nodes.Add(address);
+        foreach (var name in _nodeNames.Keys)
+            Nodes.Add(name);
+        SelectedNode = nodeByName ?? shownKubernetes?.Node;
         OnPropertyChanged(nameof(HasNodes));
         _batch = false;
 

@@ -5,6 +5,15 @@ using Severino.Core.Routes;
 
 namespace Severino.Core.Dns;
 
+/// <summary>A name the hosts resolves, offered as a destination.</summary>
+/// <param name="Outside">From a hosts line outside Severino.</param>
+public sealed record DnsDestination(string Name, string Address, bool Outside)
+{
+    public string Detail => Outside ? $"{Address}, no hosts fora do Severino" : Address;
+
+    public override string ToString() => Name;
+}
+
 /// <param name="Pending">The new address is public and needs an approval first.</param>
 public sealed record OutsideEditResult(bool Ok, string? Error = null, IReadOnlyList<HostEntry>? Pending = null)
 {
@@ -18,6 +27,20 @@ public sealed record OutsideEditResult(bool Ok, string? Error = null, IReadOnlyL
 public sealed class DnsService(ConfigService config, ExternalHosts external, IHelperClient helper)
 {
     public IReadOnlyList<DnsEntry> Entries => config.Current.DnsEntries;
+
+    /// <summary>
+    /// Names that resolve through the hosts and can be a route's or a service's destination:
+    /// Severino's enabled entries, then the lines from outside it.
+    /// </summary>
+    public IReadOnlyList<DnsDestination> Destinations() =>
+    [
+        .. config.Current.DnsEntries.Where(e => e.Enabled).SelectMany(e => e.Names.Select(n => new DnsDestination(n, e.Address, Outside: false))),
+        .. external.Lines.Where(l => !l.Removed).SelectMany(l => l.Names.Select(n => new DnsDestination(n.ToLowerInvariant(), l.Address, Outside: true))),
+    ];
+
+    /// <summary>The name an address goes by in the hosts, for showing "gateway.k8s" instead of an IP.</summary>
+    public string? NameFor(string address) =>
+        Destinations().FirstOrDefault(d => d.Address == address)?.Name;
 
     public (DnsEntry? Normalized, string? Error) Validate(DnsEntry entry) =>
         DnsRules.Validate(entry, config.Current, external.Names);
