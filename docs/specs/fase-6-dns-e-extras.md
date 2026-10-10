@@ -1,6 +1,6 @@
 # Spec: Fase 6, DNS e extras
 
-**Status:** aprovado em 2026-10-10: decisão 1 pela opção C, decisões 2 a 4 no padrão, decisão 5 com a fase inteira; respostas no fim
+**Status:** concluída em 2026-10-10. Critérios de pronto verificados com o [guia de testes](../testes/fase-6-dns-e-extras.md); o spec foi aprovado no mesmo dia: decisão 1 pela opção C, decisões 2 a 4 no padrão, decisão 5 com a fase inteira; respostas no fim.
 **Base:** pedido de 2026-10-10: "inclua nela uma aba para apenas gerenciamento de DNS, ou seja, apenas cadastrar/editar/deletar uma resolução de IP. Faça em seguida uma melhor integração com esses DNSs já previamente cadastrados com a parte de rotas e serviços". Junta os extras listados no [planejamento](../planejamento.md), que a pessoa aprovou todos.
 **Pré-requisito:** a Fase 4 implementada. O checklist dela e a primeira release da Fase 5 ficam para depois, por decisão de 2026-10-10.
 

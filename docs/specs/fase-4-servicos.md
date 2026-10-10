@@ -1,6 +1,6 @@
 # Spec: Fase 4, Serviços (Kubernetes, Docker e WSL)
 
-**Status:** aprovado em 2026-10-10, com os padrões das "Decisões a confirmar" e as respostas das "Perguntas em aberto"
+**Status:** concluída em 2026-10-10. Critérios de pronto verificados com o [guia de testes](../testes/fase-4-servicos.md); o spec foi aprovado no mesmo dia, com os padrões das "Decisões a confirmar" e as respostas das "Perguntas em aberto".
 **Base:** pedido de 2026-10-09: "o meu serviço local chama direto o Kubernetes, pelo IP do entry point do gateway, na porta do serviço, mas com o nome correto", estendido para Docker e WSL. É uma fase nova, que diverge do [planejamento](../planejamento.md): ele deixava containers e WSL fora do escopo. A divergência e a mudança do roadmap estão registradas lá. Segue o formato dos specs anteriores.
 **Pré-requisito:** a Fase 3 concluída.
 
