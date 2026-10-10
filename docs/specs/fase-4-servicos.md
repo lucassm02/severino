@@ -206,4 +206,4 @@ Estas não têm padrão, porque dependem do seu ambiente:
 2. **Que protocolos os serviços usam?** Só HTTP e gRPC, ou também TCP puro (banco, fila, cache)?
 3. **Como o código chama os serviços?** Pelo nome curto (`pedidos`), com namespace (`pedidos.staging`) ou pelo nome completo (`.svc.cluster.local`)?
 4. **Um cluster só, ou vários contextos?** Hoje a distro tem um contexto, `kubernetes-admin@kubernetes`.
-5. **Onde roda o app que chama os serviços:** no Windows, no WSL, ou nos dois?
+5. **Onde roda o app que chama os serviços:** no Windows, no WSL, ou num container? O servidor da `callfred.sev` é o container `callfred-orchestrator`. Se é ele quem chama o cluster, nem o hosts do Windows nem o da distro valem: containers resolvem nomes pelo DNS do Docker e pelo próprio `/etc/hosts`. O caminho seria o Severino gerar entradas `extra_hosts` para o Compose, hoje na Fase 5, que subiria para esta fase.
