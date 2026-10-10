@@ -1,6 +1,6 @@
 # Spec: Fase 3, Polimento
 
-**Status:** aprovado em 2026-10-09, com os padrões das "Decisões a confirmar". As divergências 1 e 2 foram registradas no plano.
+**Status:** concluída em 2026-10-10. Critérios de pronto verificados com o [guia de testes](../testes/fase-3-polimento.md); o spec foi aprovado em 2026-10-09 com os padrões das "Decisões a confirmar", e as divergências 1 e 2 foram registradas no plano.
 **Base:** [planejamento.md](../planejamento.md), seções 3 ("Primeira execução", "Requisições", "Configurações", "Bandeja"), 4 ("Diagnósticos", "Desinstalação limpa") e 7. Inclui o que o [spec da Fase 2](fase-2-https.md) adiou para cá. Segue o formato dos specs anteriores; divergências do plano ficam em "Decisões a confirmar".
 **Pré-requisito:** a Fase 2 fechada pelo [guia de testes](../testes/fase-2-https.md).
 
