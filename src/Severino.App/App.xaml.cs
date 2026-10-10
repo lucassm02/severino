@@ -103,6 +103,7 @@ public partial class App : Application
         // For the PowerShell module, once the config is loaded.
         _host.Services.GetRequiredService<ControlServer>().Start();
         _ = StartProxyAsync(_host.Services.GetRequiredService<ProxyCoordinator>());
+        _host.Services.GetRequiredService<UpdatesViewModel>().Start();
     }
 
     protected override void OnExit(ExitEventArgs e)
@@ -255,6 +256,7 @@ public partial class App : Application
         services.AddTransient<FirstRunViewModel>();
         services.AddSingleton<Func<FirstRunViewModel>>(sp => sp.GetRequiredService<FirstRunViewModel>);
         services.AddSingleton<StatusBarViewModel>();
+        services.AddSingleton<UpdatesViewModel>();
         services.AddSingleton<TrayViewModel>();
 
         return builder.Build();

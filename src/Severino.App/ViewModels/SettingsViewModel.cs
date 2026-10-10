@@ -32,8 +32,9 @@ public sealed partial class SettingsViewModel : ObservableObject
 
     public SettingsViewModel(ConfigService config, ThemeService themes, HttpsService https, Backup backup,
         AutoStart autoStart, SystemCleanup cleanup, Lazy<ShellService> shell, Func<FirstRunViewModel> firstRun,
-        WslCallers wsl, ServiceDiscovery discovery, Severino.Core.Dns.DnsSync? dnsSync = null)
+        WslCallers wsl, ServiceDiscovery discovery, UpdatesViewModel updates, Severino.Core.Dns.DnsSync? dnsSync = null)
     {
+        Updates = updates;
         _wsl = wsl;
         _discovery = discovery;
         _dnsSync = dnsSync;
@@ -69,8 +70,8 @@ public sealed partial class SettingsViewModel : ObservableObject
 
     public string ConfigDirectory => _config.Directory;
 
-    public string Version { get; } =
-        typeof(SettingsViewModel).Assembly.GetName().Version?.ToString(3) ?? "";
+    /// <summary>Settings › Sobre: the installed version, the last check and the update itself.</summary>
+    public UpdatesViewModel Updates { get; }
 
     [ObservableProperty]
     public partial AppTheme Theme { get; set; }

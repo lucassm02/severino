@@ -321,20 +321,62 @@
             </ui:CardControl>
 
             <ui:TextBlock Margin="0,16,0,8" FontTypography="BodyStrong" Text="Sobre" />
-            <ui:Card Margin="0,0,0,16" Padding="16">
-                <StackPanel Orientation="Horizontal">
+            <ui:Card Margin="0,0,0,4" Padding="16" DataContext="{Binding Updates}">
+                <DockPanel>
                     <Image
+                        DockPanel.Dock="Left"
                         Width="56"
                         Height="56"
+                        VerticalAlignment="Top"
                         Source="/Assets/severino-512.png"
                         RenderOptions.BitmapScalingMode="HighQuality"
                         AutomationProperties.Name="Severino" />
-                    <StackPanel Margin="16,0,0,0" VerticalAlignment="Center">
-                        <ui:TextBlock FontTypography="BodyStrong" Text="{Binding Version, StringFormat='Severino {0}'}" />
-                        <ui:TextBlock Foreground="{DynamicResource TextFillColorSecondaryBrush}" TextWrapping="Wrap" Text="O porteiro dos seus domínios de desenvolvimento." />
+                    <StackPanel DockPanel.Dock="Right" Margin="16,0,0,0" VerticalAlignment="Top" Orientation="Horizontal">
+                        <ui:ProgressRing
+                            Width="20"
+                            Height="20"
+                            Margin="0,0,12,0"
+                            IsIndeterminate="True"
+                            Visibility="{Binding IsChecking, Converter={StaticResource TrueToVisible}}" />
+                        <ui:Button
+                            Appearance="Primary"
+                            Content="{Binding InstallText}"
+                            Command="{Binding InstallCommand}"
+                            Visibility="{Binding HasUpdate, Converter={StaticResource TrueToVisible}}" />
+                        <ui:Button
+                            Content="Procurar agora"
+                            Command="{Binding CheckNowCommand}"
+                            Visibility="{Binding HasUpdate, Converter={StaticResource FalseToVisible}}" />
                     </StackPanel>
-                </StackPanel>
+                    <StackPanel Margin="16,0,0,0" VerticalAlignment="Center">
+                        <ui:TextBlock FontTypography="BodyStrong" Text="{Binding CurrentVersion, StringFormat='Severino {0}'}" />
+                        <ui:TextBlock Foreground="{DynamicResource TextFillColorSecondaryBrush}" TextWrapping="Wrap" Text="O porteiro dos seus domínios de desenvolvimento." />
+                        <ui:TextBlock
+                            Margin="0,8,0,0"
+                            TextWrapping="Wrap"
+                            Text="{Binding StatusText}"
+                            Visibility="{Binding StatusText, Converter={StaticResource NullToCollapsed}}" />
+                        <ui:TextBlock
+                            Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                            FontTypography="Caption"
+                            Text="{Binding LastCheckText}"
+                            Visibility="{Binding LastCheckText, Converter={StaticResource NullToCollapsed}}" />
+                    </StackPanel>
+                </DockPanel>
             </ui:Card>
+            <ui:CardControl Margin="0,0,0,16" Icon="{ui:SymbolIcon ArrowDownload24}" DataContext="{Binding Updates}">
+                <ui:CardControl.Header>
+                    <StackPanel>
+                        <ui:TextBlock Text="Procurar versões novas" />
+                        <ui:TextBlock
+                            Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                            FontTypography="Caption"
+                            TextWrapping="Wrap"
+                            Text="Uma vez por dia, pergunta ao GitHub qual é a última versão. Vão só o seu IP e a versão do app, como em qualquer visita a uma página." />
+                    </StackPanel>
+                </ui:CardControl.Header>
+                <ui:ToggleSwitch IsChecked="{Binding AutoCheck}" AutomationProperties.Name="Procurar versões novas" />
+            </ui:CardControl>
         </StackPanel>
     </ScrollViewer>
 </UserControl>

@@ -50,6 +50,9 @@ public sealed record AppSettings
 
     /// <summary>Refresh imported services on their own while the app is open (Docker events, Kubernetes every 30 s).</summary>
     public bool WatchServices { get; set; } = true;
+
+    /// <summary>Ask GitHub once a day for a newer release and offer it.</summary>
+    public bool CheckForUpdates { get; set; } = true;
 }
 
 /// <summary>Flags the app records about itself; not shown as settings.</summary>
@@ -70,6 +73,15 @@ public sealed record AppState
     public bool ImportKubernetes { get; set; } = true;
 
     public bool ImportDocker { get; set; } = true;
+
+    /// <summary>When GitHub last answered about the latest release.</summary>
+    public DateTimeOffset? LastUpdateCheck { get; set; }
+
+    /// <summary>"0.5.0" after "Pular esta versão": no notice until a newer one comes out.</summary>
+    public string SkippedVersion { get; set; } = "";
+
+    /// <summary>The version the tray already announced, so it does it once.</summary>
+    public string NotifiedVersion { get; set; } = "";
 }
 
 public sealed record RouteEntry

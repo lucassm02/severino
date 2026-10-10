@@ -68,6 +68,8 @@ Root: HKLM; Subkey: "{#HelperKey}"; ValueType: string; ValueName: "AllowedUserSi
 [Run]
 ; As the user who started the installer, not as the admin who approved the UAC.
 Filename: "{app}\Severino.exe"; Description: "Abrir o Severino"; Flags: postinstall nowait skipifsilent runasoriginaluser
+; An update started from the app (/SILENT /RELAUNCH=1): the app closed itself to be replaced, so it opens again.
+Filename: "{app}\Severino.exe"; Flags: nowait runasoriginaluser; Check: RelaunchRequested
 
 [UninstallRun]
 ; The hosts block first, while the Helper's binary is still here.
@@ -86,6 +88,11 @@ Type: filesandordirs; Name: "{app}\Helper\logs"
 [Code]
 var
   UserSid: String;
+
+function RelaunchRequested: Boolean;
+begin
+  Result := WizardSilent and (ExpandConstant('{param:RELAUNCH|0}') = '1');
+end;
 
 { Runs a command through cmd and returns what it printed, or '' on failure. }
 function CommandOutput(const Command: String; const AsOriginalUser: Boolean): String;

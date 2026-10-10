@@ -25,6 +25,8 @@ Baixe o instalador na [última release](https://github.com/lucassm02/severino/re
 
 O instalador ainda não tem assinatura digital: se o SmartScreen avisar, clique em "Mais informações" e depois em "Executar assim mesmo". Ao abrir, um assistente confere a porta 80, o serviço auxiliar e o proxy do sistema.
 
+Quando sai uma versão nova, o app avisa e atualiza com um clique, conferindo o SHA-256 do instalador. Para saber se há versão nova, ele consulta a API do GitHub uma vez por dia, mandando só a versão dele. Dá para desligar em **Configurações › Sobre**.
+
 Para tirar tudo o que o Severino colocou no Windows, use **Configurações › Limpar tudo** ou o desinstalador.
 
 ## Como funciona

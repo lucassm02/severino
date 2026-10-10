@@ -6,6 +6,12 @@ O formato segue o [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/), e
 
 ## [Unreleased]
 
+### Adicionado
+
+- Aviso de versão nova: o app consulta a última release no GitHub ao abrir e uma vez por dia, e avisa no topo da janela e na bandeja.
+- Atualizar pelo app: **Atualizar agora** baixa o instalador da release, confere o SHA-256 publicado pelo GitHub, instala em silêncio e abre o app de novo, mantendo rotas, serviços e configurações.
+- Configurações › Sobre mostra o resultado da última consulta, com **Procurar agora**, e a opção de desligar a consulta automática.
+
 ## [0.4.0] - 2026-10-10
 
 Primeira versão publicada.

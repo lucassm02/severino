@@ -6,8 +6,9 @@ namespace Severino.App.ViewModels;
 public sealed partial class MainWindowViewModel : ObservableObject
 {
     public MainWindowViewModel(RoutesViewModel routes, ServicesViewModel services, DnsViewModel dns, RequestsViewModel requests, SettingsViewModel settings,
-        StatusBarViewModel status, Navigation navigation)
+        StatusBarViewModel status, UpdatesViewModel updates, Navigation navigation)
     {
+        Updates = updates;
         Routes = routes;
         Services = services;
         Dns = dns;
@@ -23,6 +24,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
     public RequestsViewModel Requests { get; }
     public SettingsViewModel Settings { get; }
     public StatusBarViewModel Status { get; }
+    public UpdatesViewModel Updates { get; }
 
     [ObservableProperty]
     public partial int SelectedTab { get; set; }
