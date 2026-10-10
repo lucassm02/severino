@@ -19,7 +19,7 @@ public sealed record HostsSyncStatus(HostsSyncState State, string? Detail = null
 
 /// <summary>
 /// Keeps the hosts block equal to the enabled routes. Changes are debounced and retried while
-/// the Helper is unavailable; on exit the block is cleared.
+/// the Helper is unavailable. Pausing empties the block until resumed; on exit it is cleared.
 /// </summary>
 public sealed class HostsSync : IDisposable
 {
@@ -34,6 +34,7 @@ public sealed class HostsSync : IDisposable
     private readonly Timer _timer;
     private IReadOnlyList<string>? _synced;
     private bool _stopped;
+    private bool _paused;
 
     public HostsSync(ConfigService config, IHelperClient helper, ILogger<HostsSync> logger)
     {
@@ -60,7 +61,7 @@ public sealed class HostsSync : IDisposable
         await _gate.WaitAsync(cancellationToken);
         try
         {
-            if (_stopped)
+            if (_stopped || _paused)
                 return;
 
             var domains = RouteRules.ActiveDomains(_config.Current.Routes);
@@ -88,16 +89,34 @@ public sealed class HostsSync : IDisposable
         }
     }
 
-    /// <summary>Stops syncing and removes the block. Best effort: the Helper may be gone.</summary>
-    public async Task ClearAsync(CancellationToken cancellationToken)
+    /// <summary>Stops syncing for good and removes the block. Best effort: the Helper may be gone.</summary>
+    public Task ClearAsync(CancellationToken cancellationToken) => EmptyAsync(stopForGood: true, cancellationToken);
+
+    /// <summary>Removes the block until <see cref="Resume"/>, so the route domains resolve as on the internet.</summary>
+    public Task PauseAsync(CancellationToken cancellationToken) => EmptyAsync(stopForGood: false, cancellationToken);
+
+    /// <summary>Writes the block back and follows the routes again.</summary>
+    public void Resume()
+    {
+        if (_stopped || !_paused)
+            return;
+        _paused = false;
+        _config.Changed += OnConfigChanged;
+        _timer.Change(TimeSpan.Zero, Timeout.InfiniteTimeSpan);
+    }
+
+    private async Task EmptyAsync(bool stopForGood, CancellationToken cancellationToken)
     {
         _config.Changed -= OnConfigChanged;
         _timer.Change(Timeout.InfiniteTimeSpan, Timeout.InfiniteTimeSpan);
         await _gate.WaitAsync(cancellationToken);
         try
         {
-            _stopped = true;
-            await SendAsync([], cancellationToken);
+            _stopped |= stopForGood;
+            _paused = true;
+            var status = await SendAsync([], cancellationToken);
+            _synced = status.State == HostsSyncState.Synced ? [] : null;
+            SetStatus(status);
         }
         finally
         {

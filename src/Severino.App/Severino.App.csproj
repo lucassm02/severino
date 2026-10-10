@@ -14,6 +14,8 @@
 
   <ItemGroup>
     <Resource Include="Assets/severino.ico" />
+    <Resource Include="Assets/severino-alert.ico" />
+    <Resource Include="Assets/severino-paused.ico" />
     <Resource Include="Assets/severino-512.png" />
   </ItemGroup>
 

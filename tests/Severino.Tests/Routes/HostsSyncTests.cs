@@ -133,33 +133,41 @@ public sealed class HostsSyncTests : IDisposable
         Assert.Equal(["a.sev", "b.sev"], _helper.Requests[^1].Domains);
     }
 
+    [Fact]
+    public async Task Pause_empties_the_block_until_resumed()
+    {
+        SetRoutes(Route("a.sev"));
+        _sync.Start();
+        await WaitUntil(() => _helper.Requests.Count == 1);
+
+        await _sync.PauseAsync(CancellationToken.None);
+        SetRoutes(Route("a.sev"), Route("b.sev"));
+        await _sync.SyncAsync();
+        Assert.Equal(2, _helper.Requests.Count);
+        Assert.Empty(_helper.Requests[^1].Domains!);
+
+        _sync.Resume();
+        await WaitUntil(() => _helper.Requests.Count == 3);
+        Assert.Equal(["a.sev", "b.sev"], _helper.Requests[^1].Domains);
+    }
+
+    [Fact]
+    public async Task Clear_after_pause_stays_cleared()
+    {
+        SetRoutes(Route("a.sev"));
+        await _sync.PauseAsync(CancellationToken.None);
+        await _sync.ClearAsync(CancellationToken.None);
+
+        _sync.Resume();
+        await _sync.SyncAsync();
+
+        Assert.All(_helper.Requests, r => Assert.Empty(r.Domains!));
+    }
+
     private static async Task WaitUntil(Func<bool> condition)
     {
         for (var i = 0; i < 50 && !condition(); i++)
             await Task.Delay(50);
         Assert.True(condition());
-    }
-
-    private sealed class FakeHelper : IHelperClient
-    {
-        private readonly Lock _gate = new();
-        private readonly List<HelperRequest> _requests = [];
-
-        public bool Unavailable { get; set; }
-        public string? Error { get; set; }
-        public int ProtocolVersion { get; set; } = HelperProtocol.Version;
-
-        public List<HelperRequest> Requests
-        {
-            get { lock (_gate) return [.. _requests]; }
-        }
-
-        public Task<HelperResponse> SendAsync(HelperRequest request, CancellationToken cancellationToken)
-        {
-            if (Unavailable)
-                throw new HelperUnavailableException("fora", new TimeoutException());
-            lock (_gate) _requests.Add(request);
-            return Task.FromResult(new HelperResponse(Error is null, Error, ProtocolVersion, "test"));
-        }
     }
 }

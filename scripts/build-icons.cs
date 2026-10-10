@@ -6,7 +6,8 @@
 //
 //   dotnet run scripts/build-icons.cs [preview.png]
 //
-// Writes src/Severino.App/Assets/severino.ico (16 to 256 px) and severino-512.png, and
+// Writes src/Severino.App/Assets/severino.ico (16 to 256 px), severino-512.png and the tray
+// states severino-alert.ico and severino-paused.ico, and
 // src/Severino.Proxy/Assets/severino-192.png for the proxy's error pages. With an
 // argument, also writes a sheet showing the small sizes enlarged, on light and dark.
 
@@ -27,6 +28,16 @@ Console.WriteLine($"source {original.Width}x{original.Height}, content {square.W
 int[] iconSizes = [16, 20, 24, 32, 40, 48, 64, 96, 128, 256];
 var frames = iconSizes.Select(size => (size, image: Resize(square, size))).ToList();
 WriteIco(Path.Combine(assets, "severino.ico"), frames);
+
+// Tray states. Drawn on each frame at its own size, so the dot stays crisp at 16 px.
+var trayFrames = frames.Where(f => f.size <= 64).ToList();
+var alert = trayFrames.Select(f => (f.size, image: WithDot(f.image))).ToList();
+WriteIco(Path.Combine(assets, "severino-alert.ico"), alert);
+var paused = trayFrames.Select(f => (f.size, image: Grayscale(f.image))).ToList();
+WriteIco(Path.Combine(assets, "severino-paused.ico"), paused);
+foreach (var (_, image) in alert.Concat(paused))
+    image.Dispose();
+Console.WriteLine($"wrote {assets}\\severino-alert.ico and severino-paused.ico");
 using (var large = Resize(square, 512))
     large.Save(Path.Combine(assets, "severino-512.png"), ImageFormat.Png);
 Console.WriteLine($"wrote {assets}\\severino.ico and severino-512.png");
@@ -115,6 +126,44 @@ static Bitmap Resize(Bitmap image, int size)
         g.DrawImage(from, new Rectangle(0, 0, side, side), 0, 0, from.Width, from.Height, GraphicsUnit.Pixel, attributes);
         return bitmap;
     }
+}
+
+// The "something needs attention" badge: Windows' critical red in the bottom-right corner, with a
+// white ring so it reads on dark and light taskbars. The brand orange would vanish into the face.
+static Bitmap WithDot(Bitmap image)
+{
+    var size = image.Width;
+    var result = new Bitmap(image);
+    using var g = Graphics.FromImage(result);
+    g.SmoothingMode = SmoothingMode.AntiAlias;
+    g.PixelOffsetMode = PixelOffsetMode.HighQuality;
+    var diameter = Math.Max(7f, size * 0.40f);
+    var ring = Math.Max(1f, size * 0.07f);
+    var x = size - diameter;
+    var y = size - diameter;
+    using (var white = new SolidBrush(Color.White))
+        g.FillEllipse(white, x, y, diameter, diameter);
+    using (var red = new SolidBrush(Color.FromArgb(0xD1, 0x34, 0x38)))
+        g.FillEllipse(red, x + ring, y + ring, diameter - 2 * ring, diameter - 2 * ring);
+    return result;
+}
+
+// Paused: the same face without colour.
+static Bitmap Grayscale(Bitmap image)
+{
+    var result = new Bitmap(image.Width, image.Height, PixelFormat.Format32bppArgb);
+    using var g = Graphics.FromImage(result);
+    using var attributes = new ImageAttributes();
+    attributes.SetColorMatrix(new ColorMatrix(
+    [
+        [0.30f, 0.30f, 0.30f, 0, 0],
+        [0.59f, 0.59f, 0.59f, 0, 0],
+        [0.11f, 0.11f, 0.11f, 0, 0],
+        [0, 0, 0, 1, 0],
+        [0.08f, 0.08f, 0.08f, 0, 1],
+    ]));
+    g.DrawImage(image, new Rectangle(0, 0, image.Width, image.Height), 0, 0, image.Width, image.Height, GraphicsUnit.Pixel, attributes);
+    return result;
 }
 
 // ICO with PNG frames: supported by Windows since Vista for every size.

@@ -1,20 +1,49 @@
 <ResourceDictionary
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-    xmlns:tb="clr-namespace:H.NotifyIcon;assembly=H.NotifyIcon.Wpf">
+    xmlns:tb="clr-namespace:H.NotifyIcon;assembly=H.NotifyIcon.Wpf"
+    xmlns:tray="clr-namespace:Severino.App.Tray"
+    xmlns:views="clr-namespace:Severino.App.Views">
 
-    <!-- The image is set by TrayService from Assets/severino.ico, at the size the tray uses. -->
+    <!-- The image is set by TrayService from Assets/severino*.ico, at the size the tray uses. -->
     <tb:TaskbarIcon
         x:Key="TrayIcon"
-        ToolTipText="Severino"
+        ToolTipText="{Binding ToolTip}"
         NoLeftClickDelay="True"
         LeftClickCommand="{Binding ShowWindowCommand}"
         MenuActivation="RightClick">
         <tb:TaskbarIcon.ContextMenu>
             <ContextMenu>
-                <MenuItem Header="Abrir Severino" FontWeight="SemiBold" Command="{Binding ShowWindowCommand}" />
-                <Separator />
-                <MenuItem Header="Sair" Command="{Binding ExitCommand}" />
+                <ContextMenu.Resources>
+                    <!-- CollectionContainer has no DataContext; this carries the menu's. -->
+                    <views:BindingProxy x:Key="Menu" Data="{Binding}" />
+                    <BooleanToVisibilityConverter x:Key="TrueToVisible" />
+                </ContextMenu.Resources>
+                <ContextMenu.ItemContainerStyleSelector>
+                    <tray:TrayMenuStyleSelector>
+                        <tray:TrayMenuStyleSelector.RouteStyle>
+                            <Style TargetType="MenuItem" BasedOn="{StaticResource {x:Type MenuItem}}">
+                                <Setter Property="Header" Value="{Binding Domain}" />
+                                <Setter Property="Command" Value="{Binding Open}" />
+                                <Setter Property="ToolTip" Value="Abrir no navegador" />
+                            </Style>
+                        </tray:TrayMenuStyleSelector.RouteStyle>
+                    </tray:TrayMenuStyleSelector>
+                </ContextMenu.ItemContainerStyleSelector>
+                <ContextMenu.ItemsSource>
+                    <CompositeCollection>
+                        <MenuItem Header="Abrir Severino" FontWeight="SemiBold" Command="{Binding Data.ShowWindowCommand, Source={StaticResource Menu}}" />
+                        <Separator />
+                        <CollectionContainer Collection="{Binding Data.Routes, Source={StaticResource Menu}}" />
+                        <MenuItem
+                            Header="Nenhuma rota ligada"
+                            IsEnabled="False"
+                            Visibility="{Binding Data.HasNoRoutes, Source={StaticResource Menu}, Converter={StaticResource TrueToVisible}}" />
+                        <Separator />
+                        <MenuItem Header="{Binding Data.PauseLabel, Source={StaticResource Menu}}" Command="{Binding Data.TogglePauseCommand, Source={StaticResource Menu}}" />
+                        <MenuItem Header="Sair" Command="{Binding Data.ExitCommand, Source={StaticResource Menu}}" />
+                    </CompositeCollection>
+                </ContextMenu.ItemsSource>
             </ContextMenu>
         </tb:TaskbarIcon.ContextMenu>
     </tb:TaskbarIcon>
