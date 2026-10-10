@@ -7,8 +7,17 @@ namespace Severino.Helper;
 
 public interface IHostsWriter
 {
-    /// <summary>Writes the block for <paramref name="entries"/>; returns false when the file already had it.</summary>
+    /// <summary>Writes the routes block for <paramref name="entries"/>; returns false when the file already had it.</summary>
     bool Write(IReadOnlyList<HostEntry> entries);
+
+    /// <summary>Writes the DNS block for <paramref name="entries"/>; returns false when the file already had it.</summary>
+    bool WriteDns(IReadOnlyList<HostEntry> entries);
+
+    /// <summary>
+    /// Applies <paramref name="change"/> to the file's text. Null when the change refused (returned
+    /// null), false when the text came out the same, true when written.
+    /// </summary>
+    bool? Change(Func<string, string?> change);
 }
 
 /// <summary>Applies <see cref="HostsBlock"/> to a hosts file on disk.</summary>
@@ -24,14 +33,20 @@ public sealed partial class HostsFile(string path, Action? flushDns = null) : IH
     /// <summary>Web route domains, each on 127.0.0.1 and ::1.</summary>
     public bool Write(IReadOnlyList<string> domains) => Write([.. HostEntry.ForDomains(domains)]);
 
-    public bool Write(IReadOnlyList<HostEntry> entries)
+    public bool Write(IReadOnlyList<HostEntry> entries) => Change(text => HostsBlock.Merge(text, entries)) == true;
+
+    public bool WriteDns(IReadOnlyList<HostEntry> entries) => Change(text => HostsBlock.MergeDns(text, entries)) == true;
+
+    public bool? Change(Func<string, string?> change)
     {
         lock (_gate)
         {
             // Latin-1 maps every byte to one char and back, so lines outside the block survive
             // whatever encoding the file uses.
             var current = File.Exists(path) ? Encoding.Latin1.GetString(File.ReadAllBytes(path)) : "";
-            var merged = HostsBlock.Merge(current, entries);
+            var merged = change(current);
+            if (merged is null)
+                return null;
             if (merged == current)
                 return false;
 

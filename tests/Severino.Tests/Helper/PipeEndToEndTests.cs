@@ -16,7 +16,7 @@ public sealed class PipeEndToEndTests : IAsyncLifetime
 
     public async Task InitializeAsync()
     {
-        var handler = new HelperRequestHandler(_hosts, NullLogger<HelperRequestHandler>.Instance);
+        var handler = new HelperRequestHandler(_hosts, new NoApprovals(), NullLogger<HelperRequestHandler>.Instance);
         _server = new PipeServer(handler, NullLogger<PipeServer>.Instance)
         {
             PipeName = _pipeName,
@@ -109,5 +109,15 @@ public sealed class PipeEndToEndTests : IAsyncLifetime
             lock (_gate) _writes.Add([.. entries.Select(e => e.Name).Distinct()]);
             return true;
         }
+
+        public bool WriteDns(IReadOnlyList<HostEntry> entries) => true;
+
+        public bool? Change(Func<string, string?> change) => false;
+    }
+
+    private sealed class NoApprovals : IDnsApprovals
+    {
+        public bool IsApproved(HostEntry entry) => false;
+        public void Approve(IEnumerable<HostEntry> entries) { }
     }
 }

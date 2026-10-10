@@ -80,11 +80,11 @@ Como fica a C:
 - **O comentário no hosts.** O Helper altera a linha no lugar e põe um comentário logo acima, por exemplo:
 
   ```
-  # Severino: esta linha não foi criada pelo Severino; editada em 2026-10-10 14:32. Antes: 10.0.0.8 sql.interno
+  # Severino: esta linha nao foi criada pelo Severino; editada em 2026-10-10 14:32. Antes: 10.0.0.8 sql.interno
   10.0.0.9    sql.interno
   ```
 
-  Remover não apaga a linha: ela vira comentário, com o mesmo aviso acima ("removida em …"), para dar para desfazer à mão. Numa segunda edição, o comentário é atualizado e o "Antes" continua sendo o da linha original.
+  O comentário fica sem acentos, como os marcadores dos blocos, para não depender da codificação do arquivo. Remover não apaga a linha: ela vira comentário, com o mesmo aviso acima ("removida em …"), para dar para desfazer à mão. Numa segunda edição, o comentário é atualizado e o "Antes" continua sendo o da linha original.
 - **Conferência antes de gravar.** O app manda ao Helper a linha como estava quando foi lida. Se o arquivo mudou nesse meio-tempo, o Helper recusa e o app relê.
 - **As mesmas regras de endereço** do bloco DNS: loopback e rede privada sem confirmação, IP público só com aprovação.
 - **Abrir o hosts.** Um botão abre o arquivo no Bloco de Notas como administrador, para quem preferir editar à mão.

@@ -10,8 +10,11 @@ namespace Severino.Contracts;
 /// </summary>
 public static class HelperProtocol
 {
-    /// <summary>2: sync carries name and address pairs instead of bare domains.</summary>
-    public const int Version = 2;
+    /// <summary>
+    /// 2: sync carries name and address pairs instead of bare domains.
+    /// 3: the DNS block (sync-dns) and changing a line outside Severino's blocks (edit-line).
+    /// </summary>
+    public const int Version = 3;
     public const string PipeName = "Severino.Helper";
     public const int MaxMessageBytes = 1024 * 1024;
 
@@ -20,6 +23,19 @@ public static class HelperProtocol
 
     public const string PingCommand = "ping";
     public const string SyncCommand = "sync";
+
+    /// <summary>The DNS block: kept when the app closes or pauses, any non-public address, public ones once approved.</summary>
+    public const string SyncDnsCommand = "sync-dns";
+
+    /// <summary>Replaces or comments out one line outside Severino's blocks, leaving a note above it.</summary>
+    public const string EditLineCommand = "edit-line";
+
+    /// <summary>
+    /// The argument of <c>Severino.Helper.exe --approve-dns</c> for public addresses: base64 of a
+    /// sync-dns request, so nothing in it meets the command line's quoting.
+    /// </summary>
+    public static string EncodeApproval(IEnumerable<HostEntry> entries) =>
+        Convert.ToBase64String(Serialize(HelperRequest.SyncDns(entries)));
 
     public static byte[] Serialize(HelperRequest request) =>
         JsonSerializer.SerializeToUtf8Bytes(request, HelperJsonContext.Default.HelperRequest);
@@ -81,6 +97,50 @@ public static class HelperProtocol
         return true;
     }
 
+    /// <summary>
+    /// Normalizes DNS entries: every name valid (one label allowed), every address a host
+    /// address of any scope (see <see cref="DnsAddress"/>), at most <see cref="MaxEntries"/>,
+    /// duplicates removed, sorted. Whether a public address is approved is the Helper's check.
+    /// </summary>
+    public static bool TryNormalizeDnsEntries(
+        IReadOnlyList<HostEntry>? entries,
+        [NotNullWhen(true)] out IReadOnlyList<HostEntry>? normalized,
+        [NotNullWhen(false)] out string? error)
+    {
+        normalized = null;
+        if (entries is null)
+        {
+            error = "A lista de entradas é obrigatória.";
+            return false;
+        }
+
+        var result = new SortedSet<HostEntry>(EntryOrder.Instance);
+        foreach (var entry in entries)
+        {
+            if (!DomainName.TryNormalize(entry?.Name, out var name, out var reason, allowSingleLabel: true))
+            {
+                error = $"Domínio inválido '{entry?.Name}': {reason}";
+                return false;
+            }
+            if (!DnsAddress.TryClassify(entry!.Address, out var address, out _))
+            {
+                error = $"Endereço inválido para '{name}': {entry.Address}.";
+                return false;
+            }
+            result.Add(new HostEntry(name, address));
+        }
+
+        if (result.Count > MaxEntries)
+        {
+            error = $"No máximo {MaxEntries} entradas.";
+            return false;
+        }
+
+        normalized = [.. result];
+        error = null;
+        return true;
+    }
+
     /// <summary>By name, then address: "127.0.0.1" sorts before "::1", as the block always had it.</summary>
     private sealed class EntryOrder : IComparer<HostEntry>
     {
@@ -94,10 +154,16 @@ public static class HelperProtocol
     }
 }
 
-public sealed record HelperRequest(string Command, IReadOnlyList<HostEntry>? Entries = null)
+/// <param name="Line">edit-line: the line as the app read it, which must still be in the file.</param>
+public sealed record HelperRequest(string Command, IReadOnlyList<HostEntry>? Entries = null,
+    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] string? Line = null)
 {
     public static HelperRequest Ping() => new(HelperProtocol.PingCommand);
     public static HelperRequest Sync(IEnumerable<HostEntry> entries) => new(HelperProtocol.SyncCommand, [.. entries]);
+    public static HelperRequest SyncDns(IEnumerable<HostEntry> entries) => new(HelperProtocol.SyncDnsCommand, [.. entries]);
+
+    /// <summary>Replaces <paramref name="line"/> with one for <paramref name="entries"/> (one address), or comments it out when there are none.</summary>
+    public static HelperRequest EditLine(string line, IEnumerable<HostEntry> entries) => new(HelperProtocol.EditLineCommand, [.. entries], line);
 
     /// <summary>Web route domains, each on both loopbacks.</summary>
     public static HelperRequest Sync(IEnumerable<string> domains) => Sync(HostEntry.ForDomains(domains));
@@ -107,10 +173,15 @@ public sealed record HelperRequest(string Command, IReadOnlyList<HostEntry>? Ent
     public IReadOnlyList<string>? Domains => Entries?.Select(e => e.Name).Distinct(StringComparer.Ordinal).ToList();
 }
 
-public sealed record HelperResponse(bool Ok, string? Error, int ProtocolVersion, string? HelperVersion)
+/// <param name="Pending">Entries with a public address not approved yet: left out of the hosts until they are.</param>
+public sealed record HelperResponse(bool Ok, string? Error, int ProtocolVersion, string? HelperVersion,
+    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] IReadOnlyList<HostEntry>? Pending = null)
 {
-    public static HelperResponse Success(string helperVersion) => new(true, null, HelperProtocol.Version, helperVersion);
-    public static HelperResponse Failure(string error, string helperVersion) => new(false, error, HelperProtocol.Version, helperVersion);
+    public static HelperResponse Success(string helperVersion, IReadOnlyList<HostEntry>? pending = null) =>
+        new(true, null, HelperProtocol.Version, helperVersion, pending is { Count: > 0 } ? pending : null);
+
+    public static HelperResponse Failure(string error, string helperVersion, IReadOnlyList<HostEntry>? pending = null) =>
+        new(false, error, HelperProtocol.Version, helperVersion, pending is { Count: > 0 } ? pending : null);
 }
 
 [JsonSourceGenerationOptions(
