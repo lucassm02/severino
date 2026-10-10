@@ -1,5 +1,7 @@
 # Severino
 
+[![CI](https://github.com/lucassm02/severino/actions/workflows/ci.yml/badge.svg)](https://github.com/lucassm02/severino/actions/workflows/ci.yml)
+
 ![Severino: chega de localhost:3000](assets/branding/social/github-social-preview.png)
 
 **O porteiro dos seus apps de desenvolvimento no Windows.** Cada app ganha um nome, como `meuapp.sev`, com HTTPS de verdade, esteja ele no Windows, no WSL, num container ou num cluster Kubernetes. O Severino cuida do arquivo hosts, do proxy reverso e dos certificados.

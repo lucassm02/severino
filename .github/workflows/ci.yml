@@ -1,0 +1,34 @@
+# Builds and runs the tests on every push to main and every pull request, so a break shows up
+# before someone runs Release. Changes only to the site, the docs or the art skip it.
+name: CI
+
+on:
+  push:
+    branches: [main]
+    paths-ignore: ["site/**", "docs/**", "assets/**", "**/*.md"]
+  pull_request:
+    paths-ignore: ["site/**", "docs/**", "assets/**", "**/*.md"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: 10.0.x
+
+      - name: Build
+        run: dotnet build -c Release
+
+      - name: Testes
+        run: dotnet test -c Release --no-build
