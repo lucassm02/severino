@@ -20,7 +20,7 @@ public static class DomainName
     /// </summary>
     /// <param name="allowSingleLabel">
     /// For service routes, whose names come from a cluster or a Compose file ("redis",
-    /// "algarbffapi"). Web routes keep at least two labels.
+    /// "catalogoapi"). Web routes keep at least two labels.
     /// </param>
     /// <summary>
     /// A wildcard like <c>*.meuapp.sev</c>: any name below the base, at any depth. The base

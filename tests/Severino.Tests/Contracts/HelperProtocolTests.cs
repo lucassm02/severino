@@ -93,8 +93,8 @@ public sealed class HelperProtocolTests
     [Fact]
     public void One_label_names_pass_for_service_routes()
     {
-        Assert.True(HelperProtocol.TryNormalizeEntries([new("algarbffapi", "127.77.0.9")], out var entries, out _));
-        Assert.Equal("algarbffapi", Assert.Single(entries).Name);
+        Assert.True(HelperProtocol.TryNormalizeEntries([new("catalogoapi", "127.77.0.9")], out var entries, out _));
+        Assert.Equal("catalogoapi", Assert.Single(entries).Name);
         Assert.False(HelperProtocol.TryNormalizeEntries([new("localhost", "127.77.0.9")], out _, out _));
     }
 

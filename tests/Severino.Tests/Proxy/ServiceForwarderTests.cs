@@ -109,7 +109,7 @@ public sealed class ServiceForwarderTests : IAsyncLifetime
     public async Task Http_host_arrives_as_the_app_sent_it()
     {
         var port = TestBackend.FreePort();
-        await _forwarder.UpdateAsync([Service(4, port, "127.0.0.1", TestBackend.PortOf(_backend), "algarbffapi")]);
+        await _forwarder.UpdateAsync([Service(4, port, "127.0.0.1", TestBackend.PortOf(_backend), "catalogoapi")]);
         using var client = new HttpClient(new SocketsHttpHandler
         {
             ConnectCallback = async (_, ct) =>
@@ -120,9 +120,9 @@ public sealed class ServiceForwarderTests : IAsyncLifetime
             },
         });
 
-        var body = await client.GetStringAsync($"http://algarbffapi:{port}/echo");
+        var body = await client.GetStringAsync($"http://catalogoapi:{port}/echo");
 
-        Assert.Contains($"host=algarbffapi:{port}", body);
+        Assert.Contains($"host=catalogoapi:{port}", body);
     }
 
     [Fact]

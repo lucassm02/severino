@@ -8,7 +8,7 @@ public sealed class ServiceRulesTests
 {
     private static ServiceRoute Service(string address = "127.77.0.2", params string[] names) => new()
     {
-        Names = names.Length > 0 ? names : ["algarbffapi", "algarbffapi.staging.svc.cluster.local"],
+        Names = names.Length > 0 ? names : ["catalogoapi", "catalogoapi.staging.svc.cluster.local"],
         Address = address,
         Ports = [new ServicePort { Port = 80, TargetHost = "192.168.203.100", TargetPort = 32359 }],
     };
@@ -26,10 +26,10 @@ public sealed class ServiceRulesTests
     [Fact]
     public void A_valid_route_comes_back_with_its_names_normalized()
     {
-        var (route, error) = ServiceRules.Validate(Service(names: ["AlgarBffApi", "algarbffapi", "algarbffapi.staging."]), [], []);
+        var (route, error) = ServiceRules.Validate(Service(names: ["CatalogoApi", "catalogoapi", "catalogoapi.staging."]), [], []);
 
         Assert.Null(error);
-        Assert.Equal(["algarbffapi", "algarbffapi.staging"], route!.Names);
+        Assert.Equal(["catalogoapi", "catalogoapi.staging"], route!.Names);
     }
 
     [Theory]
@@ -83,7 +83,7 @@ public sealed class ServiceRulesTests
             Routes = [new RouteEntry { Domain = "meuapp.sev", Target = "http://localhost:24600" }],
             Services =
             [
-                Service("127.77.0.2", "algarbffapi", "algarbffapi.staging"),
+                Service("127.77.0.2", "catalogoapi", "catalogoapi.staging"),
                 Service("127.77.0.3", "parado") with { Enabled = false },
             ],
         };
@@ -91,7 +91,7 @@ public sealed class ServiceRulesTests
         Assert.Equal(
         [
             new HostEntry("meuapp.sev", "127.0.0.1"), new HostEntry("meuapp.sev", "::1"),
-            new HostEntry("algarbffapi", "127.77.0.2"), new HostEntry("algarbffapi.staging", "127.77.0.2"),
+            new HostEntry("catalogoapi", "127.77.0.2"), new HostEntry("catalogoapi.staging", "127.77.0.2"),
         ], HostsEntries.For(config));
     }
 }

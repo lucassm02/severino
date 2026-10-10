@@ -32,7 +32,7 @@ public sealed class ServiceWatcher(ConfigService config, ServiceRefresher refres
     private bool _paused;
     private bool _started;
 
-    /// <summary>"orchestrator com portas novas", on a thread-pool thread, when a source changed a route.</summary>
+    /// <summary>"worker com portas novas", on a thread-pool thread, when a source changed a route.</summary>
     public event EventHandler<string>? Updated;
 
     public void Start()

@@ -120,16 +120,16 @@ public sealed class HostsBlockTests
         {
             new("a.sev", "127.0.0.1"),
             new("a.sev", "::1"),
-            new("algarbffapi", "127.77.0.2"),
-            new("algarbffapi.staging.svc.cluster.local", "127.77.0.2"),
+            new("catalogoapi", "127.77.0.2"),
+            new("catalogoapi.staging.svc.cluster.local", "127.77.0.2"),
         });
 
         Assert.Equal(
             "# >>> Severino managed block (do not edit)\r\n" +
             "127.0.0.1  a.sev\r\n" +
             "::1        a.sev\r\n" +
-            "127.77.0.2  algarbffapi\r\n" +
-            "127.77.0.2  algarbffapi.staging.svc.cluster.local\r\n" +
+            "127.77.0.2  catalogoapi\r\n" +
+            "127.77.0.2  catalogoapi.staging.svc.cluster.local\r\n" +
             "# <<< Severino\r\n", merged);
     }
 }

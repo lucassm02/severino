@@ -28,10 +28,10 @@ public sealed class ServiceWatcherTests : IAsyncLifetime
             [
                 new ServiceRoute
                 {
-                    Names = ["orchestrator"],
+                    Names = ["worker"],
                     Address = "127.77.0.2",
                     Ports = [new ServicePort { Port = 4000, TargetHost = "127.0.0.1", TargetPort = 24600 }],
-                    Origin = new ServiceOrigin { Kind = ServiceKind.Docker, Source = "wsl:Ubuntu", Context = "E1", Namespace = "meuapp", Name = "orchestrator" },
+                    Origin = new ServiceOrigin { Kind = ServiceKind.Docker, Source = "wsl:Ubuntu", Context = "E1", Namespace = "meuapp", Name = "worker" },
                 },
             ],
         });
@@ -58,7 +58,7 @@ public sealed class ServiceWatcherTests : IAsyncLifetime
         _events.Fire(); // a burst becomes one refresh
 
         await WaitUntil(() => told is not null);
-        Assert.Equal("orchestrator com portas novas, atualizado sozinho.", told);
+        Assert.Equal("worker com portas novas, atualizado sozinho.", told);
         Assert.Equal(24700, _services.Services[0].Ports[0].TargetPort);
     }
 
@@ -106,7 +106,7 @@ public sealed class ServiceWatcherTests : IAsyncLifetime
             {
                 ("docker", "info --format {{.ID}}") => new CommandResult(0, "E1", "", false),
                 ("docker", "ps --format json") => new CommandResult(0,
-                    $$"""{"ID":"a","Names":"meuapp-orchestrator-1","Ports":"0.0.0.0:{{PublishedPort}}->4000/tcp","Labels":"com.docker.compose.project=meuapp,com.docker.compose.service=orchestrator","State":"running"}""", "", false),
+                    $$"""{"ID":"a","Names":"meuapp-worker-1","Ports":"0.0.0.0:{{PublishedPort}}->4000/tcp","Labels":"com.docker.compose.project=meuapp,com.docker.compose.service=worker","State":"running"}""", "", false),
                 _ => new CommandResult(-1, "", "", false),
             });
         }

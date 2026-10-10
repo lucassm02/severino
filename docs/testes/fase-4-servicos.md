@@ -9,7 +9,8 @@ Cada teste diz o que fazer, o que tem de acontecer e qual critério ele prova. A
 - Os comandos marcados como **PowerShell** rodam num terminal comum do Windows. Os marcados como **WSL** rodam dentro da distro, num terminal aberto com `wsl -d Ubuntu-22.04`.
 - `curl.exe`, com `.exe`, é o curl do Windows. No PowerShell, `curl` sem `.exe` é outro comando.
 - Para fechar o Severino, use **Sair** no ícone da bandeja. Fechar a janela só esconde o app.
-- Os endereços `127.77.x.y` são dados na ordem da importação. Os exemplos supõem que `algaractivationmicroservice` é o primeiro serviço importado, em `127.77.0.2`. Confira o seu na aba Serviços: fica na dica de ferramenta das portas de cada serviço, e no editor.
+- Os nomes dos exemplos são genéricos: o contexto `dev-cluster`, os services `pagamentos` (namespace `staging`) e `postgres` (namespace `database`), e o container `worker` do projeto Compose `meuapp`. Troque pelos do seu cluster e dos seus containers.
+- Os endereços `127.77.x.y` são dados na ordem da importação. Os exemplos supõem que `pagamentos` é o primeiro serviço importado, em `127.77.0.2`. Confira o seu na aba Serviços: fica na dica de ferramenta das portas de cada serviço, e no editor.
 
 ## 0. Preparação
 
@@ -34,7 +35,7 @@ Cada teste diz o que fazer, o que tem de acontecer e qual critério ele prova. A
    wsl -d Ubuntu-22.04 -- docker ps --format "{{.Names}} {{.Ports}}"
    ```
 
-   Esperado: `meuapp-orchestrator-1 0.0.0.0:24600->4000/tcp` (o nome pode variar).
+   Esperado: `meuapp-worker-1 0.0.0.0:24600->4000/tcp` (o nome pode variar).
 5. **Referência direta**, para comparar depois. No **PowerShell**:
 
    ```powershell
@@ -57,16 +58,16 @@ Prova o critério 1.
 
 1. Serviços › **Importar**. Esperado:
    - a janela abre em **WSL · Ubuntu-22.04**, sem nenhum comando digitado;
-   - ao lado de **Kubernetes**: `kubernetes-admin@kubernetes · 119 services, 111 com acesso de fora` (os números podem ter mudado);
+   - ao lado de **Kubernetes**: `dev-cluster · 119 services, 111 com acesso de fora` (os números podem ter mudado);
    - ao lado de **Docker**: `1 container rodando`;
    - **Endereço do cluster** em `192.168.203.100`.
 2. Na lista, confira:
    - `postgres  database · NodePort` com `5432 → 192.168.203.100:30711` e os quatro nomes, de `postgres` a `postgres.database.svc.cluster.local`;
-   - `orchestrator  meuapp · Docker` com `4000 → 127.0.0.1:24600`;
+   - `worker  meuapp · Docker` com `4000 → 127.0.0.1:24600`;
    - `kubernetes  default · ClusterIP` apagado, sem caixa, com "Só ClusterIP: não tem acesso de fora do cluster.";
    - services sem pods com o aviso laranja "Nenhum pod pronto agora".
-3. **Filtros.** Escolha o namespace `staging`. Busque `algar`. Esperado: só os services do `staging` com "algar" no nome. O rodapé diz "0 de N marcados · M na lista".
-4. **Caixas de ferramenta.** Desmarque **Docker**: o `orchestrator` some e nada é perguntado ao docker. Marque de novo: ele volta. Feche e abra a janela: as caixas ficam como você deixou.
+3. **Filtros.** Escolha o namespace `staging`. Busque `pag`. Esperado: só os services do `staging` com "pag" no nome. O rodapé diz "0 de N marcados · M na lista".
+4. **Caixas de ferramenta.** Desmarque **Docker**: o `worker` some e nada é perguntado ao docker. Marque de novo: ele volta. Feche e abra a janela: as caixas ficam como você deixou.
 5. Feche com **Cancelar**.
 
 ## 2. Descoberta no Windows
@@ -82,22 +83,22 @@ A parte do Docker Desktop visto do Windows e das distros não se aplica: esta m�
 
 Prova os critérios 4 e 5.
 
-1. Importar serviços. Em `staging`, marque `algaractivationmicroservice`. Em `database`, marque `postgres`. Em `meuapp`, marque `orchestrator`. Esperado: o botão mostra **Importar 3**.
+1. Importar serviços. Em `staging`, marque `pagamentos`. Em `database`, marque `postgres`. Em `meuapp`, marque `worker`. Esperado: o botão mostra **Importar 3**.
 2. **Importar 3**. Esperado:
    - o aviso "3 serviços importados. Apps no WSL · Ubuntu-22.04 também chamam pelos nomes.";
-   - na aba **Serviços**, dois grupos: "Kubernetes · kubernetes-admin@kubernetes · WSL · Ubuntu-22.04" e "Docker · WSL · Ubuntu-22.04";
+   - na aba **Serviços**, dois grupos: "Kubernetes · dev-cluster · WSL · Ubuntu-22.04" e "Docker · WSL · Ubuntu-22.04";
    - em cada serviço, as portas (`5432 → 192.168.203.100:30711`), com o endereço `127.77.0.x` na dica de ferramenta, e em alguns segundos "Respondendo".
 3. **HTTP pela NodePort, com o nome intacto.** No **PowerShell**:
 
    ```powershell
-   curl.exe -s -o NUL -w "%{http_code}\n" http://algaractivationmicroservice/
-   curl.exe -s -o NUL -w "%{http_code}\n" http://algaractivationmicroservice.staging.svc.cluster.local/
-   curl.exe -v http://algaractivationmicroservice.staging/ 2>&1 | Select-String "Host:|Trying"
+   curl.exe -s -o NUL -w "%{http_code}\n" http://pagamentos/
+   curl.exe -s -o NUL -w "%{http_code}\n" http://pagamentos.staging.svc.cluster.local/
+   curl.exe -v http://pagamentos.staging/ 2>&1 | Select-String "Host:|Trying"
    ```
 
    Esperado:
    - os dois primeiros com o mesmo código do passo 5 da preparação;
-   - no terceiro, `Trying 127.77.0.2:80` e `Host: algaractivationmicroservice.staging`, o nome que saiu do app.
+   - no terceiro, `Trying 127.77.0.2:80` e `Host: pagamentos.staging`, o nome que saiu do app.
 4. **TCP puro, Postgres.** No **PowerShell**:
 
    ```powershell
@@ -108,7 +109,7 @@ Prova os critérios 4 e 5.
 5. **Docker pelo nome do Compose.** No **PowerShell**:
 
    ```powershell
-   curl.exe -s -o NUL -w "%{http_code}\n" http://orchestrator:4000/
+   curl.exe -s -o NUL -w "%{http_code}\n" http://worker:4000/
    ```
 
    Esperado: o mesmo código de `http://localhost:24600/`.
@@ -122,11 +123,11 @@ Prova o critério 6.
 2. No **WSL**:
 
    ```bash
-   getent hosts algaractivationmicroservice postgres.database orchestrator
-   curl -s -o /dev/null -w "%{http_code}\n" http://algaractivationmicroservice/
-   curl -s -o /dev/null -w "%{http_code}\n" http://algaractivationmicroservice.staging.svc.cluster.local/
+   getent hosts pagamentos postgres.database worker
+   curl -s -o /dev/null -w "%{http_code}\n" http://pagamentos/
+   curl -s -o /dev/null -w "%{http_code}\n" http://pagamentos.staging.svc.cluster.local/
    timeout 5 bash -c 'echo > /dev/tcp/postgres.database/5432' && echo postgres-ok
-   curl -s -o /dev/null -w "%{http_code}\n" http://orchestrator:4000/
+   curl -s -o /dev/null -w "%{http_code}\n" http://worker:4000/
    ```
 
    Esperado:
@@ -155,7 +156,7 @@ Prova o item do checklist "a distro reiniciada mantém o bloco".
    Esperado: Configurações › WSL mostra "Parada. Recebe os nomes quando iniciar." em até 10 s.
 2. Abra a distro de novo (`wsl -d Ubuntu-22.04`). Em até 10 s, rode no **WSL** os comandos do teste 4, passo 2. Esperado: tudo funciona, sem você fazer nada no Severino.
 
-O container do meuapp volta junto se ele tiver `restart: unless-stopped` no Compose. Se não voltar, suba-o antes de testar o `orchestrator`.
+O container do meuapp volta junto se ele tiver `restart: unless-stopped` no Compose. Se não voltar, suba-o antes de testar o `worker`.
 
 ## 6. Atualizar
 

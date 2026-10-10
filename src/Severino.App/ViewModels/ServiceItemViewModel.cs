@@ -25,7 +25,7 @@ public sealed partial class ServiceGroupViewModel(ServiceOrigin? origin) : Obser
     public bool Holds(ServiceRoute route) =>
         Origin is null ? route.Origin is null : route.Origin is { } o && ServiceImport.SameSource(o, Origin);
 
-    /// <summary>"Kubernetes · kubernetes-admin@kubernetes · WSL · Ubuntu-22.04", "Docker · Windows".</summary>
+    /// <summary>"Kubernetes · dev-cluster · WSL · Ubuntu-22.04", "Docker · Windows".</summary>
     public static string Describe(ServiceOrigin origin)
     {
         var where = origin.Source == ImportServicesViewModel.PastedSource ? "colado" : CommandSource.FromId(origin.Source).ToString();

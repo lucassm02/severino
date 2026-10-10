@@ -95,7 +95,7 @@ public sealed record RouteEntry
 }
 
 /// <summary>
-/// A service as the app knows it, by one or more names (algarbffapi, algarbffapi.staging, …),
+/// A service as the app knows it, by one or more names (catalogoapi, catalogoapi.staging, …),
 /// reached through a loopback address of its own. Each port is forwarded byte for byte, so the
 /// name the app used, the HTTP Host or TLS SNI, arrives unchanged, and any protocol works.
 /// </summary>
@@ -126,7 +126,7 @@ public sealed record ServiceRoute
 
 public sealed record ServicePort
 {
-    /// <summary>What the app calls, e.g. 80 for algarbffapi.</summary>
+    /// <summary>What the app calls, e.g. 80 for catalogoapi.</summary>
     public int Port { get; set; }
 
     /// <summary>Where it really is: a node IP for a NodePort, 127.0.0.1 for a published container port.</summary>
