@@ -77,6 +77,7 @@ public sealed partial class FirstRunViewModel : ObservableObject
             new RouteEntry { Domain = SampleDomain, Target = "http://localhost:3000" }, isCopy: true)
         {
             ShowHttpsOptions = false,
+            IsWizard = true,
         };
         Route.CloseRequested += (_, saved) =>
         {
@@ -150,7 +151,7 @@ public sealed partial class FirstRunViewModel : ObservableObject
                 https = result is HttpsActionResult.Done or HttpsActionResult.DoneOldRootKept;
             }
             var settings = _config.Current.Settings;
-            Browser.Open(Browser.UrlFor(saved.Domain, settings.HttpPort, https ? settings.HttpsPort : null));
+            Browser.Open(Browser.UrlFor(saved.Domain, settings.HttpPort, https ? settings.HttpsPort : null, saved.Path));
         }
         finally
         {

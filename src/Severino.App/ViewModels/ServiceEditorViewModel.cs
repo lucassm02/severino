@@ -13,11 +13,12 @@ public sealed partial class ServiceEditorViewModel : ObservableObject
     private readonly ServiceRouteService _services;
     private readonly ServiceRoute _original;
 
-    public ServiceEditorViewModel(ServiceRouteService services, ServiceRoute? existing, IReadOnlyList<Core.Dns.DnsDestination>? destinations = null)
+    /// <param name="draft">For a new service, the names and ports to start with, such as those of a route form.</param>
+    public ServiceEditorViewModel(ServiceRouteService services, ServiceRoute? existing, IReadOnlyList<Core.Dns.DnsDestination>? destinations = null, ServiceRoute? draft = null)
     {
         _services = services;
         IsNew = existing is null;
-        _original = existing ?? new ServiceRoute { Address = ServiceRules.NextAddress(services.Services) };
+        _original = existing ?? (draft ?? new ServiceRoute()) with { Address = ServiceRules.NextAddress(services.Services) };
         NamesText = string.Join(Environment.NewLine, _original.Names);
         PortsText = string.Join(Environment.NewLine, _original.Ports.Select(Format));
         Notes = _original.Notes;

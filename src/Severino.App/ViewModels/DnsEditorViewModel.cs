@@ -18,15 +18,17 @@ public sealed partial class DnsEditorViewModel : ObservableObject
     private readonly DnsEntry? _entry;
     private readonly HostsLine? _line;
 
-    public DnsEditorViewModel(DnsService dns, DnsSync sync, DnsEntry? entry, HostsLine? line = null)
+    /// <param name="draft">For a new entry, what to start with, such as the name and IP of a route form.</param>
+    public DnsEditorViewModel(DnsService dns, DnsSync sync, DnsEntry? entry, HostsLine? line = null, DnsEntry? draft = null)
     {
         _dns = dns;
         _sync = sync;
         _entry = entry;
         _line = line;
-        NamesText = string.Join(Environment.NewLine, entry?.Names ?? line?.Names ?? []);
-        Address = entry?.Address ?? line?.Address ?? "";
-        Notes = entry?.Notes ?? "";
+        var start = entry ?? draft;
+        NamesText = string.Join(Environment.NewLine, start?.Names ?? line?.Names ?? []);
+        Address = start?.Address ?? line?.Address ?? "";
+        Notes = start?.Notes ?? "";
     }
 
     public bool IsOutside => _line is not null;

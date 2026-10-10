@@ -11,6 +11,15 @@ using Severino.Proxy;
 
 namespace Severino.App.ViewModels;
 
+public enum NameKind
+{
+    Service,
+    Dns,
+}
+
+/// <summary>What the route form had when the person chose to make a service or DNS entry instead.</summary>
+public readonly record struct NameKindSwitch(NameKind Kind, string Name, string Host, int Port);
+
 /// <summary>The "Nova rota" / "Editar rota" form.</summary>
 public sealed partial class RouteEditorViewModel : ObservableObject
 {
@@ -47,7 +56,8 @@ public sealed partial class RouteEditorViewModel : ObservableObject
             RedirectToHttps = HttpsAvailable,
         };
 
-        Domain = _original.Domain;
+        // The address is written as it is read: callfred.sev/api.
+        Domain = _original.Domain + _original.Path;
         if (Uri.TryCreate(_original.Target, UriKind.Absolute, out var target))
         {
             Scheme = target.Scheme;
@@ -65,14 +75,14 @@ public sealed partial class RouteEditorViewModel : ObservableObject
         PreserveHost = _original.PreserveHost;
         IgnoreTargetCertErrors = _original.IgnoreTargetCertErrors;
         Notes = _original.Notes;
-        Path = _original.Path;
         StripPath = _original.StripPath;
         Group = _original.Group;
         GroupSuggestions = routes.Groups;
-        ShowAdvanced = PreserveHost || IgnoreTargetCertErrors || Notes.Length > 0 || Path.Length > 0 || Group.Length > 0;
+        ShowAdvanced = PreserveHost || IgnoreTargetCertErrors || Notes.Length > 0;
         UpdateHttpsRules();
         IsReady = true;
         ScheduleChecks();
+        UpdateKindHint();
         _ = RefreshPortsAsync();
     }
 
@@ -156,23 +166,39 @@ public sealed partial class RouteEditorViewModel : ObservableObject
     [ObservableProperty]
     public partial string? DomainError { get; set; }
 
-    /// <summary>"/api": this route takes only that part of the domain. Empty for all of it.</summary>
-    [ObservableProperty]
-    public partial string Path { get; set; } = "";
+    /// <summary>"/api" from "callfred.sev/api": this route takes only that part of the domain. Empty for all of it.</summary>
+    public string Path => SplitAddress().Path;
+
+    /// <summary>The address has a path, so "tirar o caminho" applies.</summary>
+    public bool HasPath => Path.Length > 0;
 
     [ObservableProperty]
     public partial bool StripPath { get; set; }
+
+    /// <summary>
+    /// The address field holds the domain and, optionally, a path: "callfred.sev/api". A pasted
+    /// URL loses its scheme.
+    /// </summary>
+    private (string Domain, string Path) SplitAddress()
+    {
+        var text = (Domain ?? "").Trim();
+        foreach (var scheme in new[] { "https://", "http://" })
+        {
+            if (text.StartsWith(scheme, StringComparison.OrdinalIgnoreCase))
+                text = text[scheme.Length..];
+        }
+        var slash = text.IndexOf('/');
+        if (slash < 0)
+            return (text, "");
+        var path = text[slash..].TrimEnd('/');
+        return (text[..slash], path);
+    }
 
     /// <summary>Routes in the same group are switched on and off together.</summary>
     [ObservableProperty]
     public partial string Group { get; set; } = "";
 
     public IReadOnlyList<string> GroupSuggestions { get; }
-
-    [ObservableProperty]
-    public partial string? PathError { get; set; }
-
-    partial void OnPathChanged(string value) => PathError = null;
 
     [ObservableProperty]
     public partial string? TargetError { get; set; }
@@ -194,7 +220,7 @@ public sealed partial class RouteEditorViewModel : ObservableObject
             Ports.Add(port);
     }
 
-    private string? NormalizedDomain => RouteRules.Normalize(Domain);
+    private string? NormalizedDomain => RouteRules.Normalize(SplitAddress().Domain);
 
     partial void OnHttpsChanged(bool value) => UpdateCoverageWarning();
 
@@ -203,8 +229,62 @@ public sealed partial class RouteEditorViewModel : ObservableObject
         DomainError = null;
         UpdateHttpsRules();
         OnPropertyChanged(nameof(SaveLabel));
+        OnPropertyChanged(nameof(Path));
+        OnPropertyChanged(nameof(HasPath));
         if (IsReady)
+        {
             ScheduleDomainCheck();
+            UpdateKindHint();
+        }
+    }
+
+    /// <summary>True in the first-run wizard, which makes one plain route: no group, no other kinds.</summary>
+    public bool IsWizard { get; init; }
+
+    /// <summary>
+    /// Why this looks like a service or a DNS entry rather than a route, while making a new one;
+    /// null when a route is the right thing.
+    /// </summary>
+    [ObservableProperty]
+    public partial string? KindHint { get; set; }
+
+    [ObservableProperty]
+    public partial string? KindSwitchLabel { get; set; }
+
+    private NameKindSwitch _kindSwitch;
+
+    /// <summary>Set when the form closed to make a service or DNS entry from what was typed.</summary>
+    public NameKindSwitch? SwitchRequested { get; private set; }
+
+    [RelayCommand]
+    private void SwitchKind()
+    {
+        SwitchRequested = _kindSwitch;
+        CloseRequested?.Invoke(this, false);
+    }
+
+    private void UpdateKindHint()
+    {
+        _kindSwitch = default;
+        KindHint = null;
+        KindSwitchLabel = null;
+        if (!IsNew || IsWizard || !int.TryParse(TargetPort?.Trim(), out var port))
+            return;
+        var name = NormalizedDomain ?? SplitAddress().Domain;
+        var host = TargetHost?.Trim() ?? "";
+        if (KnownPorts.NonHttpProgram(port) is { } program)
+        {
+            _kindSwitch = new NameKindSwitch(NameKind.Service, name, host, port);
+            KindHint = $"{port} é a porta do {program}, que não fala HTTP: como rota, não abre. Como serviço, o nome leva direto à porta, em qualquer protocolo.";
+            KindSwitchLabel = "Criar como serviço";
+        }
+        else if (Scheme == Uri.UriSchemeHttp && port == 80 && !HasPath
+            && DnsAddress.TryClassify(host, out var address, out var scope) && scope != AddressScope.Loopback)
+        {
+            _kindSwitch = new NameKindSwitch(NameKind.Dns, name, address, port);
+            KindHint = $"Só quer o nome apontando para {address}? Uma entrada DNS faz isso direto, sem o proxy e sem o HTTPS da CA local, e vale com o app fechado.";
+            KindSwitchLabel = "Criar entrada DNS";
+        }
     }
 
     partial void OnTargetHostChanged(string value) => OnTargetChanged();
@@ -216,9 +296,8 @@ public sealed partial class RouteEditorViewModel : ObservableObject
     {
         var route = Build();
         var errors = _routes.Validate(route);
-        DomainError = errors.Domain;
+        DomainError = errors.Domain ?? errors.Path;
         TargetError = errors.Target;
-        PathError = errors.Path;
         if (!errors.IsValid)
             return;
 
@@ -265,15 +344,15 @@ public sealed partial class RouteEditorViewModel : ObservableObject
 
     private RouteEntry Build() => _original with
     {
-        Domain = Domain ?? "",
+        Domain = SplitAddress().Domain,
         Target = $"{Scheme}://{FormatHost(TargetHost?.Trim() ?? "")}:{TargetPort?.Trim()}",
         Https = Https,
         RedirectToHttps = Https && RedirectToHttps,
         PreserveHost = PreserveHost,
         IgnoreTargetCertErrors = IgnoreTargetCertErrors,
         Notes = Notes ?? "",
-        Path = Path ?? "",
-        StripPath = StripPath,
+        Path = Path,
+        StripPath = HasPath && StripPath,
         Group = (Group ?? "").Trim(),
     };
 
@@ -284,7 +363,10 @@ public sealed partial class RouteEditorViewModel : ObservableObject
     {
         TargetError = null;
         if (IsReady)
+        {
             SchedulePortCheck();
+            UpdateKindHint();
+        }
     }
 
     private void ScheduleChecks()

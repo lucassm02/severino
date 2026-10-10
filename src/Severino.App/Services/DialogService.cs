@@ -22,9 +22,9 @@ public sealed class DialogService(RouteService routes, ServiceRouteService servi
     DnsService? dns = null, DnsSync? dnsSync = null)
 {
     /// <summary>The DNS form for an entry of Severino's; returns it saved, or null when cancelled.</summary>
-    public Task<DnsEntry?> EditDnsAsync(DnsEntry? existing)
+    public Task<DnsEntry?> EditDnsAsync(DnsEntry? existing, DnsEntry? draft = null)
     {
-        var viewModel = new DnsEditorViewModel(dns!, dnsSync!, existing);
+        var viewModel = new DnsEditorViewModel(dns!, dnsSync!, existing, draft: draft);
         var window = new DnsEditorWindow(viewModel) { Owner = Application.Current.MainWindow };
         return Task.FromResult(window.ShowDialog() == true ? viewModel.Saved : null);
     }
@@ -71,22 +71,45 @@ public sealed class DialogService(RouteService routes, ServiceRouteService servi
     }
 
     /// <summary>The service form; returns the saved route, or null when cancelled.</summary>
-    public ServiceRoute? EditService(ServiceRoute? existing)
+    public ServiceRoute? EditService(ServiceRoute? existing, ServiceRoute? draft = null)
     {
-        var viewModel = new ServiceEditorViewModel(services, existing, dns?.Destinations());
+        var viewModel = new ServiceEditorViewModel(services, existing, dns?.Destinations(), draft);
         var window = new ServiceEditorWindow(viewModel) { Owner = Application.Current.MainWindow };
         return window.ShowDialog() == true ? viewModel.Saved : null;
     }
 
     /// <summary>Opens the route form; returns the saved route, or null when cancelled.</summary>
     /// <param name="group">For a new route, the group it starts in.</param>
-    public RouteEntry? EditRoute(RouteEntry? existing, bool isCopy = false, string? group = null)
+    /// <param name="madeInstead">
+    /// Called when the form turned into a service or a DNS entry, as it suggests for a database port
+    /// or a network IP, and that was saved: the tab it lives in, and its name.
+    /// </param>
+    public RouteEntry? EditRoute(RouteEntry? existing, bool isCopy = false, string? group = null, Action<AppTab, string>? madeInstead = null)
     {
         var viewModel = new RouteEditorViewModel(routes, inspector, https, navigation, existing, isCopy, dns?.Destinations());
         if (group is not null)
             viewModel.Group = group;
         var window = new RouteEditorWindow(viewModel) { Owner = Application.Current.MainWindow };
-        return window.ShowDialog() == true ? viewModel.Saved : null;
+        if (window.ShowDialog() == true)
+            return viewModel.Saved;
+        if (viewModel.SwitchRequested is { } other)
+            MakeInstead(other, madeInstead);
+        return null;
+    }
+
+    private async void MakeInstead(NameKindSwitch other, Action<AppTab, string>? made)
+    {
+        List<string> names = other.Name.Length > 0 ? [other.Name] : [];
+        if (other.Kind == NameKind.Service)
+        {
+            var draft = new ServiceRoute { Names = names, Ports = [new ServicePort { Port = other.Port, TargetHost = other.Host, TargetPort = other.Port }] };
+            if (EditService(null, draft) is { } service)
+                made?.Invoke(AppTab.Services, service.Names[0]);
+        }
+        else if (await EditDnsAsync(null, new DnsEntry { Names = names, Address = other.Host }) is { } entry)
+        {
+            made?.Invoke(AppTab.Dns, entry.Names[0]);
+        }
     }
 
     /// <summary>Asks for one line of text; null when cancelled.</summary>

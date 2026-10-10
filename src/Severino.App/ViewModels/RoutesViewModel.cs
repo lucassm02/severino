@@ -63,20 +63,23 @@ public sealed partial class RoutesViewModel : ListPageViewModel
     protected override void OnSearch() => Reconcile(_config.Current, force: true);
 
     [RelayCommand]
-    private async Task NewRouteAsync()
+    private Task NewRouteAsync() => CreateRouteAsync(null);
+
+    [RelayCommand]
+    private Task NewRouteInGroupAsync(RouteGroupViewModel group) => CreateRouteAsync(group.Name);
+
+    private async Task CreateRouteAsync(string? group)
     {
-        var saved = _dialogs.EditRoute(null);
+        var saved = _dialogs.EditRoute(null, group: group, madeInstead: MadeInstead);
         if (saved is not null && !await OfferReissueAsync(saved))
             ShowToast($"{saved.Domain} pronto");
     }
 
-    [RelayCommand]
-    private async Task NewRouteInGroupAsync(RouteGroupViewModel group)
-    {
-        var saved = _dialogs.EditRoute(null, group: group.Name);
-        if (saved is not null && !await OfferReissueAsync(saved))
-            ShowToast($"{saved.Domain} pronto");
-    }
+    /// <summary>The route form became a service or DNS entry, which lives in another tab.</summary>
+    private void MadeInstead(AppTab tab, string name) =>
+        ShowToast(tab == AppTab.Services ? $"{name} virou um serviço." : $"{name} virou uma entrada DNS.",
+            tab == AppTab.Services ? "Ver em Serviços" : "Ver no DNS",
+            () => _navigation.Show(tab, name));
 
     [RelayCommand]
     private async Task RenameGroupAsync(RouteGroupViewModel group)

@@ -13,6 +13,12 @@
             <Setter Property="Margin" Value="0,0,0,6" />
             <Setter Property="FontTypography" Value="BodyStrong" />
         </Style>
+        <Style x:Key="Hint" TargetType="ui:TextBlock">
+            <Setter Property="Margin" Value="0,4,0,0" />
+            <Setter Property="TextWrapping" Value="Wrap" />
+            <Setter Property="FontTypography" Value="Caption" />
+            <Setter Property="Foreground" Value="{DynamicResource TextFillColorSecondaryBrush}" />
+        </Style>
         <Style x:Key="ErrorText" TargetType="ui:TextBlock">
             <Setter Property="Margin" Value="0,4,0,0" />
             <Setter Property="TextWrapping" Value="Wrap" />
@@ -22,18 +28,15 @@
 
     <!-- The route fields, shared by the route editor and the first-run wizard. -->
     <StackPanel>
-        <ui:TextBlock Style="{StaticResource FieldLabel}" Text="Domínio" />
+        <ui:TextBlock Style="{StaticResource FieldLabel}" Text="Endereço" />
         <ui:TextBox
             x:Name="DomainBox"
             PlaceholderText="ex.: callfred.sev"
-            AutomationProperties.Name="Domínio"
+            AutomationProperties.Name="Endereço"
             Text="{Binding Domain, UpdateSourceTrigger=PropertyChanged}" />
         <ui:TextBlock
-            Margin="0,4,0,0"
-            Foreground="{DynamicResource TextFillColorSecondaryBrush}"
-            FontTypography="Caption"
-            TextWrapping="Wrap"
-            Text="Qualquer nome vale. .test e .localhost são reservados e nunca colidem com a internet." />
+            Style="{StaticResource Hint}"
+            Text="Qualquer nome vale; .test e .localhost nunca colidem com a internet. *.callfred.sev atende os nomes abaixo dele, e callfred.sev/api fica só com esse caminho." />
         <ui:TextBlock Style="{StaticResource ErrorText}" Text="{Binding DomainError}" Visibility="{Binding DomainError, Converter={StaticResource NullToCollapsed}}" />
         <ItemsControl Margin="0,4,0,0" ItemsSource="{Binding DomainWarnings}">
             <ItemsControl.ItemTemplate>
@@ -49,6 +52,11 @@
                 </DataTemplate>
             </ItemsControl.ItemTemplate>
         </ItemsControl>
+        <!-- Only with a path: whether the destination sees it. -->
+        <StackPanel Margin="0,8,0,0" Visibility="{Binding HasPath, Converter={StaticResource TrueToVisible}}">
+            <CheckBox Content="{Binding Path}" ContentStringFormat="Tirar {0} antes de repassar" IsChecked="{Binding StripPath}" />
+            <ui:TextBlock Margin="28,0,0,0" Style="{StaticResource Hint}" Text="{Binding Path, StringFormat='Ligado, {0}/pedidos chega ao destino como /pedidos.'}" />
+        </StackPanel>
 
         <ui:TextBlock Margin="0,16,0,6" Style="{StaticResource FieldLabel}" Text="Destino" />
         <Grid>
@@ -109,16 +117,33 @@
             Text="{Binding PortWarning}"
             Visibility="{Binding PortWarning, Converter={StaticResource NullToCollapsed}}" />
 
-        <!-- The first-run wizard asks about HTTPS its own way, before the CA exists. -->
-        <StackPanel Visibility="{Binding ShowHttpsOptions, Converter={StaticResource TrueToVisible}}">
-            <ui:TextBlock Margin="0,16,0,6" Style="{StaticResource FieldLabel}" Text="HTTPS" />
-            <CheckBox Content="HTTPS" IsChecked="{Binding Https}" IsEnabled="{Binding CanToggleHttps}" />
-            <CheckBox Content="Redirecionar HTTP→HTTPS" IsChecked="{Binding RedirectToHttps}" IsEnabled="{Binding CanToggleRedirect}" />
+        <!-- This looks like a service or a DNS entry: says why, and makes one from what was typed. -->
+        <ui:Card Margin="0,8,0,0" Padding="14,10" Visibility="{Binding KindHint, Converter={StaticResource NullToCollapsed}}">
+            <DockPanel>
+                <ui:Button DockPanel.Dock="Right" Margin="12,0,0,0" VerticalAlignment="Center" Content="{Binding KindSwitchLabel}" Command="{Binding SwitchKindCommand}" />
+                <TextBlock VerticalAlignment="Center" TextWrapping="Wrap" Text="{Binding KindHint}" AutomationProperties.LiveSetting="Polite" />
+            </DockPanel>
+        </ui:Card>
+
+        <StackPanel Visibility="{Binding IsWizard, Converter={StaticResource FalseToVisible}}">
+            <ui:TextBlock Margin="0,16,0,6" Style="{StaticResource FieldLabel}" Text="Grupo (opcional)" />
+            <ComboBox
+                IsEditable="True"
+                IsTextSearchEnabled="False"
+                ItemsSource="{Binding GroupSuggestions}"
+                Text="{Binding Group, UpdateSourceTrigger=PropertyChanged}"
+                AutomationProperties.Name="Grupo" />
             <ui:TextBlock
-                Margin="0,4,0,0"
-                Foreground="{DynamicResource TextFillColorSecondaryBrush}"
-                FontTypography="Caption"
-                TextWrapping="Wrap"
+                Style="{StaticResource Hint}"
+                Text="Rotas do mesmo grupo aparecem juntas e ligam ou desligam de uma vez, como callfred para o app e a API." />
+        </StackPanel>
+
+        <!-- The first-run wizard asks about HTTPS its own way, before the CA exists. -->
+        <StackPanel Margin="0,16,0,0" Visibility="{Binding ShowHttpsOptions, Converter={StaticResource TrueToVisible}}">
+            <CheckBox Content="Usar HTTPS, com certificado da CA local" IsChecked="{Binding Https}" IsEnabled="{Binding CanToggleHttps}" />
+            <CheckBox Content="Redirecionar HTTP para HTTPS" IsChecked="{Binding RedirectToHttps}" IsEnabled="{Binding CanToggleRedirect}" />
+            <ui:TextBlock
+                Style="{StaticResource Hint}"
                 Text="{Binding HttpsRequiredText}"
                 Visibility="{Binding HttpsRequiredText, Converter={StaticResource NullToCollapsed}}" />
             <TextBlock
@@ -142,51 +167,15 @@
 
         <Expander Margin="0,16,0,0" Header="Avançado" IsExpanded="{Binding ShowAdvanced}">
             <StackPanel Margin="0,8,0,0">
-                <ui:TextBlock Style="{StaticResource FieldLabel}" Margin="0,0,0,4" Text="Caminho (opcional)" />
-                <ui:TextBox
-                    PlaceholderText="ex.: /api"
-                    AutomationProperties.Name="Caminho"
-                    Text="{Binding Path, UpdateSourceTrigger=PropertyChanged}" />
-                <ui:TextBlock
-                    Margin="0,4,0,0"
-                    Foreground="{DynamicResource TextFillColorSecondaryBrush}"
-                    FontTypography="Caption"
-                    TextWrapping="Wrap"
-                    Text="Esta rota fica só com esse pedaço do domínio, e outra rota pode ficar com o resto. O caminho mais longo vence." />
-                <ui:TextBlock Style="{StaticResource ErrorText}" Text="{Binding PathError}" Visibility="{Binding PathError, Converter={StaticResource NullToCollapsed}}" />
-                <CheckBox Margin="0,4,0,0" Content="Tirar o caminho antes de repassar" IsChecked="{Binding StripPath}" />
-                <ui:TextBlock
-                    Margin="28,0,0,12"
-                    Foreground="{DynamicResource TextFillColorSecondaryBrush}"
-                    FontTypography="Caption"
-                    TextWrapping="Wrap"
-                    Text="/api/pedidos chega ao destino como /pedidos." />
-                <ui:TextBlock Style="{StaticResource FieldLabel}" Margin="0,0,0,4" Text="Grupo (opcional)" />
-                <ComboBox
-                    IsEditable="True"
-                    IsTextSearchEnabled="False"
-                    ItemsSource="{Binding GroupSuggestions}"
-                    Text="{Binding Group, UpdateSourceTrigger=PropertyChanged}"
-                    AutomationProperties.Name="Grupo" />
-                <ui:TextBlock
-                    Margin="0,4,0,12"
-                    Foreground="{DynamicResource TextFillColorSecondaryBrush}"
-                    FontTypography="Caption"
-                    TextWrapping="Wrap"
-                    Text="Rotas do mesmo grupo aparecem juntas e ligam ou desligam de uma vez, como callfred para o app e a API." />
                 <CheckBox Content="Preservar o Host original" IsChecked="{Binding PreserveHost}" />
                 <ui:TextBlock
                     Margin="28,0,0,8"
-                    Foreground="{DynamicResource TextFillColorSecondaryBrush}"
-                    FontTypography="Caption"
-                    TextWrapping="Wrap"
+                    Style="{StaticResource Hint}"
                     Text="Para apps que geram URLs absolutas. Desligado, o destino recebe o próprio host, o que agrada o Vite e o webpack." />
                 <CheckBox Content="Ignorar certificado inválido do destino" IsChecked="{Binding IgnoreTargetCertErrors}" />
                 <ui:TextBlock
                     Margin="28,0,0,8"
-                    Foreground="{DynamicResource TextFillColorSecondaryBrush}"
-                    FontTypography="Caption"
-                    TextWrapping="Wrap"
+                    Style="{StaticResource Hint}"
                     Text="Útil para destinos https de desenvolvimento, como o https://localhost:5001 do ASP.NET." />
                 <ui:TextBox
                     MinHeight="64"
