@@ -161,6 +161,19 @@
                     FontTypography="Caption"
                     TextWrapping="Wrap"
                     Text="/api/pedidos chega ao destino como /pedidos." />
+                <ui:TextBlock Style="{StaticResource FieldLabel}" Margin="0,0,0,4" Text="Grupo (opcional)" />
+                <ComboBox
+                    IsEditable="True"
+                    IsTextSearchEnabled="False"
+                    ItemsSource="{Binding GroupSuggestions}"
+                    Text="{Binding Group, UpdateSourceTrigger=PropertyChanged}"
+                    AutomationProperties.Name="Grupo" />
+                <ui:TextBlock
+                    Margin="0,4,0,12"
+                    Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                    FontTypography="Caption"
+                    TextWrapping="Wrap"
+                    Text="Rotas do mesmo grupo aparecem juntas e ligam ou desligam de uma vez, como callfred para o app e a API." />
                 <CheckBox Content="Preservar o Host original" IsChecked="{Binding PreserveHost}" />
                 <ui:TextBlock
                     Margin="28,0,0,8"

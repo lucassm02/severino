@@ -19,7 +19,7 @@ public sealed class RouteService(ConfigService config, Dns.ExternalHosts? extern
         if (!errors.IsValid)
             throw new ArgumentException(errors.Domain ?? errors.Path ?? errors.Target, nameof(route));
 
-        var saved = route with { Domain = RouteRules.Normalize(route.Domain)!, Path = RouteRules.NormalizePath(route.Path)! };
+        var saved = route with { Domain = RouteRules.Normalize(route.Domain)!, Path = RouteRules.NormalizePath(route.Path)!, Group = route.Group.Trim() };
         config.Update(c =>
         {
             var routes = c.Routes.ToList();
@@ -48,6 +48,13 @@ public sealed class RouteService(ConfigService config, Dns.ExternalHosts? extern
 
     public void SetEnabled(Guid id, bool enabled) =>
         Change(id, r => r with { Enabled = enabled });
+
+    /// <summary>Every route of <paramref name="group"/> on or off, in one change: the hosts follows at once.</summary>
+    public void SetGroupEnabled(string group, bool enabled) =>
+        config.Update(c => c with { Routes = [.. c.Routes.Select(r => r.Group == group ? r with { Enabled = enabled } : r)] });
+
+    /// <summary>The groups in use, in the order they first appear.</summary>
+    public IReadOnlyList<string> Groups => [.. Routes.Select(r => r.Group).Where(g => g.Length > 0).Distinct(StringComparer.Ordinal)];
 
     /// <summary>Removes the route and returns what <see cref="Restore"/> needs to undo it.</summary>
     public RemovedRoute? Remove(Guid id)

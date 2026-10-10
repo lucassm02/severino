@@ -67,7 +67,9 @@ public sealed partial class RouteEditorViewModel : ObservableObject
         Notes = _original.Notes;
         Path = _original.Path;
         StripPath = _original.StripPath;
-        ShowAdvanced = PreserveHost || IgnoreTargetCertErrors || Notes.Length > 0 || Path.Length > 0;
+        Group = _original.Group;
+        GroupSuggestions = routes.Groups;
+        ShowAdvanced = PreserveHost || IgnoreTargetCertErrors || Notes.Length > 0 || Path.Length > 0 || Group.Length > 0;
         UpdateHttpsRules();
         IsReady = true;
         ScheduleChecks();
@@ -160,6 +162,12 @@ public sealed partial class RouteEditorViewModel : ObservableObject
 
     [ObservableProperty]
     public partial bool StripPath { get; set; }
+
+    /// <summary>Routes in the same group are switched on and off together.</summary>
+    [ObservableProperty]
+    public partial string Group { get; set; } = "";
+
+    public IReadOnlyList<string> GroupSuggestions { get; }
 
     [ObservableProperty]
     public partial string? PathError { get; set; }
@@ -266,6 +274,7 @@ public sealed partial class RouteEditorViewModel : ObservableObject
         Notes = Notes ?? "",
         Path = Path ?? "",
         StripPath = StripPath,
+        Group = (Group ?? "").Trim(),
     };
 
     private static string FormatHost(string host) =>

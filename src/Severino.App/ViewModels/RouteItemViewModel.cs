@@ -20,6 +20,40 @@ public enum RouteHttpsState
     Uncovered,
 }
 
+/// <summary>
+/// The routes sharing a group, with one switch for all of them. Routes without a group sit in a
+/// group with no name, shown without a header.
+/// </summary>
+public sealed partial class RouteGroupViewModel(string name, IReadOnlyList<RouteItemViewModel> items, Action<string, bool> setEnabled) : ObservableObject
+{
+    public string Name { get; } = name;
+    public bool HasName => Name.Length > 0;
+    public IReadOnlyList<RouteItemViewModel> Items { get; } = items;
+
+    /// <summary>"3 rotas · 2 ligadas".</summary>
+    public string Summary
+    {
+        get
+        {
+            var on = Items.Count(i => i.Enabled);
+            return $"{Items.Count} {(Items.Count == 1 ? "rota" : "rotas")} · {on} {(on == 1 ? "ligada" : "ligadas")}";
+        }
+    }
+
+    /// <summary>On when any route of the group is; switching it sets them all.</summary>
+    public bool Enabled
+    {
+        get => Items.Any(i => i.Enabled);
+        set
+        {
+            if (value != Enabled || Items.Any(i => i.Enabled != value))
+                setEnabled(Name, value);
+        }
+    }
+
+    public void Refresh() => OnPropertyChanged(string.Empty);
+}
+
 /// <summary>One row of the route list.</summary>
 public sealed partial class RouteItemViewModel : ObservableObject
 {

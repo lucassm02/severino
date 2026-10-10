@@ -27,6 +27,7 @@ public sealed record ExportedRoute
     public string Notes { get; set; } = "";
     public string Path { get; set; } = "";
     public bool StripPath { get; set; }
+    public string Group { get; set; } = "";
 }
 
 public sealed record InvalidImport(string Domain, string Reason);
@@ -55,6 +56,7 @@ public static class RouteTransfer
                 Notes = r.Notes,
                 Path = r.Path,
                 StripPath = r.StripPath,
+                Group = r.Group,
             })],
         },
         ConfigJsonContext.Default.RouteFile);
@@ -98,6 +100,7 @@ public static class RouteTransfer
                 Notes = exported.Notes ?? "",
                 Path = exported.Path ?? "",
                 StripPath = exported.StripPath,
+                Group = (exported.Group ?? "").Trim(),
             };
 
             var domain = RouteRules.Normalize(route.Domain);

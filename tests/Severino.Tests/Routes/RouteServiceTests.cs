@@ -83,6 +83,21 @@ public sealed class RouteServiceTests : IDisposable
     }
 
     [Fact]
+    public void A_group_is_switched_as_one()
+    {
+        _routes.Save(Route("a.sev") with { Group = " callfred " });
+        _routes.Save(Route("b.sev") with { Group = "callfred" });
+        _routes.Save(Route("c.sev"));
+
+        _routes.SetGroupEnabled("callfred", false);
+
+        Assert.Equal(["callfred"], _routes.Groups);
+        Assert.Equal([false, false, true], _routes.Routes.Select(r => r.Enabled));
+        Assert.Equal(["a.sev", "b.sev", "c.sev"], RouteTransfer.Import(RouteTransfer.Export(_routes.Routes), [], 80, null).Added.Select(r => r.Domain));
+        Assert.Equal("callfred", RouteTransfer.Import(RouteTransfer.Export(_routes.Routes), [], 80, null).Added[0].Group);
+    }
+
+    [Fact]
     public void SetEnabled_toggles_route()
     {
         var saved = _routes.Save(Route("a.sev"));

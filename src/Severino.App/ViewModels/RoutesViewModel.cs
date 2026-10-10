@@ -372,8 +372,12 @@ public sealed partial class RoutesViewModel : ObservableObject
         var enabled = routes.Count(r => r.Enabled);
         Summary = $"{routes.Count} {(routes.Count == 1 ? "rota" : "rotas")} · {enabled} {(enabled == 1 ? "ligada" : "ligadas")}"
             + (HasServices ? $" · {Plural(config.Services.Count, "serviço", "serviços")}" : "");
+        // Routes without a group first, then each group in the order it first appears.
+        var groupOrder = routes.Select(r => r.Group).Distinct(StringComparer.Ordinal).OrderBy(g => g.Length == 0 ? 0 : 1).ToList();
         var visible = routes
-            .Where(r => Search.Length == 0 || r.Domain.Contains(Search.Trim(), StringComparison.OrdinalIgnoreCase))
+            .Where(r => Search.Length == 0 || r.Domain.Contains(Search.Trim(), StringComparison.OrdinalIgnoreCase)
+                || r.Group.Contains(Search.Trim(), StringComparison.OrdinalIgnoreCase))
+            .OrderBy(r => groupOrder.IndexOf(r.Group))
             .ToList();
 
         // Same rows in the same order: update in place so toggles keep focus and animation.
@@ -397,8 +401,28 @@ public sealed partial class RoutesViewModel : ObservableObject
                 : RouteHttpsState.Uncovered;
         }
 
+        // The groups reuse the rows, so a toggle keeps its state; rebuilt only when membership changes.
+        var signature = string.Join("|", Items.Select(i => i.Route.Group + ":" + i.Id));
+        if (force || signature != _groupSignature)
+        {
+            _groupSignature = signature;
+            RouteGroups.Clear();
+            foreach (var group in Items.GroupBy(i => i.Route.Group))
+                RouteGroups.Add(new RouteGroupViewModel(group.Key, [.. group], (name, on) => _routes.SetGroupEnabled(name, on)));
+        }
+        else
+        {
+            foreach (var group in RouteGroups)
+                group.Refresh();
+        }
+
         ReconcileServices(config.Services, force);
     }
+
+    private string? _groupSignature;
+
+    /// <summary>The web routes, by group; the first group, with no name, holds the routes without one.</summary>
+    public ObservableCollection<RouteGroupViewModel> RouteGroups { get; } = [];
 
     /// <summary>Groups by where they came from, imported groups first, in the order they were added.</summary>
     private void ReconcileServices(IReadOnlyList<ServiceRoute> services, bool force)
