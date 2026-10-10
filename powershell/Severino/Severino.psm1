@@ -41,7 +41,7 @@ function Get-SeverinoRoute {
     .SYNOPSIS
     Lists the web routes, optionally only those of one domain.
     .EXAMPLE
-    Get-SeverinoRoute callfred.sev
+    Get-SeverinoRoute meuapp.sev
     #>
     [CmdletBinding()]
     param([Parameter(Position = 0)] [string] $Domain)
@@ -54,11 +54,11 @@ function Get-SeverinoRoute {
 function New-SeverinoRoute {
     <#
     .SYNOPSIS
-    Creates a route, like callfred.sev → http://localhost:3000.
+    Creates a route, like meuapp.sev → http://localhost:3000.
     .EXAMPLE
-    New-SeverinoRoute callfred.sev http://localhost:3000 -Https -Group callfred
+    New-SeverinoRoute meuapp.sev http://localhost:3000 -Https -Group meuapp
     .EXAMPLE
-    New-SeverinoRoute callfred.sev http://localhost:8080 -Path /api
+    New-SeverinoRoute meuapp.sev http://localhost:8080 -Path /api
     #>
     [CmdletBinding()]
     param(
@@ -99,7 +99,7 @@ function Enable-SeverinoRoute {
     .SYNOPSIS
     Switches a route, or every route of a group, on.
     .EXAMPLE
-    Enable-SeverinoRoute -Group callfred
+    Enable-SeverinoRoute -Group meuapp
     #>
     [CmdletBinding(DefaultParameterSetName = 'Route')]
     param(

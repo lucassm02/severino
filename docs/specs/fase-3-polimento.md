@@ -125,7 +125,7 @@ São perguntas que mudam o desenho. Vêm antes de tudo, como testes descartávei
 - **Detecção:** lê `HKCU\Software\Microsoft\Windows\CurrentVersion\Internet Settings`.
   - O proxy está ativo quando `ProxyEnable = 1` e `ProxyServer` não está vazio. `ProxyServer` preenchido com `ProxyEnable = 0` é comum e não conta.
   - O proxy por script (`AutoConfigURL`) só gera aviso, porque o app não sabe o que o script decide.
-- **Rotas afetadas:** as rotas ligadas que o `ProxyOverride` atual não cobre. `<local>` só cobre nomes sem ponto, então não serve para `callfred.sev`.
+- **Rotas afetadas:** as rotas ligadas que o `ProxyOverride` atual não cobre. `<local>` só cobre nomes sem ponto, então não serve para `meuapp.sev`.
 - **Correção:** "Adicionar exceções" acrescenta ao `ProxyOverride` `*.<tld>` para TLDs que não existem na internet, a mesma regra da cobertura da CA, e o nome exato nos outros casos. Depois avisa o WinINet.
   - O que foi adicionado fica em `state.proxyBypassAdded`, para "Limpar tudo" e `--cleanup` removerem só isso.
   - Nunca é automático: a pessoa clica.

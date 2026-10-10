@@ -23,7 +23,7 @@ public static class DomainName
     /// "algarbffapi"). Web routes keep at least two labels.
     /// </param>
     /// <summary>
-    /// A wildcard like <c>*.callfred.sev</c>: any name below the base, at any depth. The base
+    /// A wildcard like <c>*.meuapp.sev</c>: any name below the base, at any depth. The base
     /// needs two labels or more, so a whole TLD (<c>*.com</c>) is never one.
     /// </summary>
     public static bool TryNormalizeWildcard(
@@ -34,7 +34,7 @@ public static class DomainName
         normalized = null;
         var name = (input ?? "").Trim();
         if (!name.StartsWith("*.", StringComparison.Ordinal))
-            return Fail("Um curinga começa com *., como *.callfred.sev.", out error);
+            return Fail("Um curinga começa com *., como *.meuapp.sev.", out error);
         if (!TryNormalize(name[2..], out var baseName, out error))
             return false;
         normalized = "*." + baseName;
@@ -79,7 +79,7 @@ public static class DomainName
 
         var labels = ascii.Split('.');
         if (labels.Length < 2 && !allowSingleLabel)
-            return Fail("Use pelo menos duas partes, como callfred.sev.", out error);
+            return Fail("Use pelo menos duas partes, como meuapp.sev.", out error);
 
         foreach (var label in labels)
         {

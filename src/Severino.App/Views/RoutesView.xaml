@@ -232,7 +232,7 @@
                     TextAlignment="Center"
                     TextWrapping="Wrap"
                     Foreground="{DynamicResource TextFillColorSecondaryBrush}"
-                    Text="Diga a ele qual domínio leva a qual servidor, como callfred.sev para localhost:3000, e ele cuida do resto." />
+                    Text="Diga a ele qual domínio leva a qual servidor, como meuapp.sev para localhost:3000, e ele cuida do resto." />
                 <views:NameKindsPanel />
                 <ui:Button
                     Margin="0,16,0,0"

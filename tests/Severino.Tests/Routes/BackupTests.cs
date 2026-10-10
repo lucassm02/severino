@@ -36,7 +36,7 @@ public sealed class BackupTests : IDisposable
         var (from, backup) = Machine("de");
         from.Update(c => c with
         {
-            Routes = [new RouteEntry { Domain = "callfred.sev", Target = "http://gateway.k8s:80", Group = "callfred" }],
+            Routes = [new RouteEntry { Domain = "meuapp.sev", Target = "http://gateway.k8s:80", Group = "meuapp" }],
             Services =
             [
                 new ServiceRoute { Names = ["pedidos"], Address = "127.77.0.9", Ports = [new ServicePort { Port = 80, TargetHost = "gateway.k8s", TargetPort = 30080 }] },
@@ -50,14 +50,14 @@ public sealed class BackupTests : IDisposable
         to.Update(c => c with { Services = [new ServiceRoute { Names = ["redis"], Address = "127.77.0.2", Ports = [new ServicePort { Port = 6379, TargetHost = "10.0.0.2", TargetPort = 6379 }] }] });
         var result = restore.Import(json);
 
-        Assert.Equal(["callfred.sev"], result.Routes.Added.Select(r => r.Domain));
+        Assert.Equal(["meuapp.sev"], result.Routes.Added.Select(r => r.Domain));
         Assert.Equal(["pedidos", "fila"], result.Services);
         Assert.Equal(["gateway.k8s"], result.Dns);
         Assert.Empty(result.Refused);
         var services = to.Current.Services;
         Assert.Equal(["127.77.0.2", "127.77.0.3", "127.77.0.4"], services.Select(s => s.Address));
         Assert.Equal(42000, services.Single(s => s.PortForward).Ports[0].TargetPort);
-        Assert.Equal("callfred", to.Current.Routes[0].Group);
+        Assert.Equal("meuapp", to.Current.Routes[0].Group);
         Assert.DoesNotContain(services, s => from.Current.Services.Any(f => f.Id == s.Id));
     }
 

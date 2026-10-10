@@ -5,10 +5,10 @@ namespace Severino.Tests.Contracts;
 public sealed class DomainNameTests
 {
     [Theory]
-    [InlineData("callfred.sev", "callfred.sev")]
-    [InlineData("  CallFred.SEV  ", "callfred.sev")]
-    [InlineData("callfred.sev.", "callfred.sev")]
-    [InlineData("api.callfred.sev", "api.callfred.sev")]
+    [InlineData("meuapp.sev", "meuapp.sev")]
+    [InlineData("  MeuApp.SEV  ", "meuapp.sev")]
+    [InlineData("meuapp.sev.", "meuapp.sev")]
+    [InlineData("api.meuapp.sev", "api.meuapp.sev")]
     [InlineData("café.sev", "xn--caf-dma.sev")]
     [InlineData("my-app.test", "my-app.test")]
     [InlineData("app.localhost", "app.localhost")]
@@ -24,7 +24,7 @@ public sealed class DomainNameTests
     [InlineData(null)]
     [InlineData("")]
     [InlineData("   ")]
-    [InlineData("callfred")]
+    [InlineData("meuapp")]
     [InlineData("localhost")]
     [InlineData("10.0.0.1")]
     [InlineData("app.123")]
@@ -33,13 +33,13 @@ public sealed class DomainNameTests
     [InlineData("a..sev")]
     [InlineData("under_score.sev")]
     [InlineData("call fred.sev")]
-    [InlineData("callfred.sev\r\n127.0.0.1 banco.com.br")]
-    [InlineData("callfred.sev\n")]
-    [InlineData("callfred.sev#x")]
-    [InlineData("callfred.sev\t")]
+    [InlineData("meuapp.sev\r\n127.0.0.1 banco.com.br")]
+    [InlineData("meuapp.sev\n")]
+    [InlineData("meuapp.sev#x")]
+    [InlineData("meuapp.sev\t")]
     [InlineData("call\0fred.sev")]
-    [InlineData("callfred.sev/path")]
-    [InlineData("callfred.sev:3000")]
+    [InlineData("meuapp.sev/path")]
+    [InlineData("meuapp.sev:3000")]
     public void Rejects(string? input)
     {
         Assert.False(DomainName.TryNormalize(input, out var normalized, out var error));

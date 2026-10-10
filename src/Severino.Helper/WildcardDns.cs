@@ -11,7 +11,7 @@ public sealed class WildcardTable
 {
     private volatile IReadOnlyList<HostEntry> _entries = [];
 
-    /// <summary>Normalized wildcards (<c>*.callfred.sev</c>) and their addresses.</summary>
+    /// <summary>Normalized wildcards (<c>*.meuapp.sev</c>) and their addresses.</summary>
     public IReadOnlyList<HostEntry> Entries => _entries;
 
     public void Set(IReadOnlyList<HostEntry> entries) => _entries = entries;

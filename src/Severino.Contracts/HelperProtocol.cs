@@ -142,7 +142,7 @@ public static class HelperProtocol
     }
 
     /// <summary>
-    /// A host name (one label allowed) or a wildcard like *.callfred.sev, which the Helper answers
+    /// A host name (one label allowed) or a wildcard like *.meuapp.sev, which the Helper answers
     /// with its DNS server instead of writing it in the hosts.
     /// </summary>
     private static bool TryNormalizeName(string? input, [NotNullWhen(true)] out string? name, [NotNullWhen(false)] out string? reason) =>

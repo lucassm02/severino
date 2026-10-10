@@ -27,10 +27,10 @@ public sealed class RouteServiceTests : IDisposable
     [Fact]
     public void Save_adds_with_normalized_domain_and_persists()
     {
-        var saved = _routes.Save(Route(" CallFred.SEV. ".Trim()));
+        var saved = _routes.Save(Route(" MeuApp.SEV. ".Trim()));
 
-        Assert.Equal("callfred.sev", saved.Domain);
-        Assert.Equal("callfred.sev", new ConfigStore(_dir).Load().Config.Routes.Single().Domain);
+        Assert.Equal("meuapp.sev", saved.Domain);
+        Assert.Equal("meuapp.sev", new ConfigStore(_dir).Load().Config.Routes.Single().Domain);
     }
 
     [Fact]
@@ -85,26 +85,26 @@ public sealed class RouteServiceTests : IDisposable
     [Fact]
     public void A_group_is_switched_as_one()
     {
-        _routes.Save(Route("a.sev") with { Group = " callfred " });
-        _routes.Save(Route("b.sev") with { Group = "callfred" });
+        _routes.Save(Route("a.sev") with { Group = " meuapp " });
+        _routes.Save(Route("b.sev") with { Group = "meuapp" });
         _routes.Save(Route("c.sev"));
 
-        _routes.SetGroupEnabled("callfred", false);
+        _routes.SetGroupEnabled("meuapp", false);
 
-        Assert.Equal(["callfred"], _routes.Groups);
+        Assert.Equal(["meuapp"], _routes.Groups);
         Assert.Equal([false, false, true], _routes.Routes.Select(r => r.Enabled));
         Assert.Equal(["a.sev", "b.sev", "c.sev"], RouteTransfer.Import(RouteTransfer.Export(_routes.Routes), [], 80, null).Added.Select(r => r.Domain));
-        Assert.Equal("callfred", RouteTransfer.Import(RouteTransfer.Export(_routes.Routes), [], 80, null).Added[0].Group);
+        Assert.Equal("meuapp", RouteTransfer.Import(RouteTransfer.Export(_routes.Routes), [], 80, null).Added[0].Group);
     }
 
     [Fact]
     public void A_group_is_renamed_joined_or_undone()
     {
-        _routes.Save(Route("a.sev") with { Group = "callfred" });
-        _routes.Save(Route("b.sev") with { Group = "callfred" });
+        _routes.Save(Route("a.sev") with { Group = "meuapp" });
+        _routes.Save(Route("b.sev") with { Group = "meuapp" });
         _routes.Save(Route("c.sev") with { Group = "loja" });
 
-        _routes.RenameGroup("callfred", " fred ");
+        _routes.RenameGroup("meuapp", " fred ");
         Assert.Equal(["fred", "loja"], _routes.Groups);
 
         _routes.RenameGroup("loja", "fred");

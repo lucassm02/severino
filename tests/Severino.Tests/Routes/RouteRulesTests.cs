@@ -11,15 +11,15 @@ public sealed class RouteRulesTests
     [Fact]
     public void Valid_route_has_no_errors()
     {
-        Assert.True(RouteRules.Validate(Route("callfred.sev"), [], 80).IsValid);
+        Assert.True(RouteRules.Validate(Route("meuapp.sev"), [], 80).IsValid);
     }
 
     [Fact]
     public void Duplicate_domain_is_an_error_even_with_different_case()
     {
-        var existing = Route("callfred.sev");
+        var existing = Route("meuapp.sev");
 
-        var errors = RouteRules.Validate(Route("CallFred.sev"), [existing], 80);
+        var errors = RouteRules.Validate(Route("MeuApp.sev"), [existing], 80);
 
         Assert.NotNull(errors.Domain);
     }
@@ -27,7 +27,7 @@ public sealed class RouteRulesTests
     [Fact]
     public void Editing_a_route_does_not_clash_with_itself()
     {
-        var existing = Route("callfred.sev");
+        var existing = Route("meuapp.sev");
 
         Assert.True(RouteRules.Validate(existing with { Target = "http://127.0.0.1:4000" }, [existing], 80).IsValid);
     }
@@ -95,16 +95,16 @@ public sealed class RouteRulesTests
     [Fact]
     public void One_domain_can_have_a_route_per_path_and_the_longest_path_wins()
     {
-        var root = Route("callfred.sev");
-        var api = Route("callfred.sev") with { Path = "/api" };
-        var v2 = Route("callfred.sev") with { Path = "/api/v2" };
+        var root = Route("meuapp.sev");
+        var api = Route("meuapp.sev") with { Path = "/api" };
+        var v2 = Route("meuapp.sev") with { Path = "/api/v2" };
 
         Assert.True(RouteRules.Validate(api, [root], 80).IsValid);
-        Assert.Equal("Já existe uma rota para callfred.sev/api.", RouteRules.Validate(Route("callfred.sev") with { Path = "api/" }, [root, api], 80).Domain);
-        Assert.Same(v2, RouteRules.Find([root, api, v2], "callfred.sev", "/api/v2/x"));
-        Assert.Same(api, RouteRules.Find([root, api, v2], "callfred.sev", "/api"));
-        Assert.Same(root, RouteRules.Find([root, api, v2], "callfred.sev", "/apix"));
-        Assert.Same(root, RouteRules.Find([root, api, v2], "callfred.sev"));
+        Assert.Equal("Já existe uma rota para meuapp.sev/api.", RouteRules.Validate(Route("meuapp.sev") with { Path = "api/" }, [root, api], 80).Domain);
+        Assert.Same(v2, RouteRules.Find([root, api, v2], "meuapp.sev", "/api/v2/x"));
+        Assert.Same(api, RouteRules.Find([root, api, v2], "meuapp.sev", "/api"));
+        Assert.Same(root, RouteRules.Find([root, api, v2], "meuapp.sev", "/apix"));
+        Assert.Same(root, RouteRules.Find([root, api, v2], "meuapp.sev"));
     }
 
     [Fact]

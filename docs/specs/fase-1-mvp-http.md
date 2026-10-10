@@ -5,19 +5,19 @@
 
 ## Objetivo
 
-Cadastrar `callfred.sev → 127.0.0.1:3000` na janela e abrir `http://callfred.sev` no navegador, com o HMR do Vite funcionando. Sem terminal e sem editar arquivo à mão, depois que o serviço auxiliar estiver instalado.
+Cadastrar `meuapp.sev → 127.0.0.1:3000` na janela e abrir `http://meuapp.sev` no navegador, com o HMR do Vite funcionando. Sem terminal e sem editar arquivo à mão, depois que o serviço auxiliar estiver instalado.
 
 ## Critérios de pronto
 
 Cada item é verificável e binário. A fase só fecha com todos marcados.
 
-1. **Fluxo principal.** Com o Helper instalado, criar a rota `callfred.sev → http://127.0.0.1:3000` grava o bloco no hosts e ativa a rota no proxy em até 1 s, e `http://callfred.sev` abre o app de destino no Edge e no Chrome.
-2. **HMR.** Um projeto Vite recém-criado, acessado por `http://callfred.sev`, recarrega o módulo ao salvar um arquivo, sem erro de WebSocket no console.
+1. **Fluxo principal.** Com o Helper instalado, criar a rota `meuapp.sev → http://127.0.0.1:3000` grava o bloco no hosts e ativa a rota no proxy em até 1 s, e `http://meuapp.sev` abre o app de destino no Edge e no Chrome.
+2. **HMR.** Um projeto Vite recém-criado, acessado por `http://meuapp.sev`, recarrega o módulo ao salvar um arquivo, sem erro de WebSocket no console.
 3. **Ciclo de vida da rota.** Editar, desligar e remover uma rota refletem no hosts e no proxy em até 1 s. "Desfazer" restaura a rota removida. "Sair" pela bandeja remove o bloco do hosts; ao abrir o app de novo, o bloco volta.
-4. **Páginas de erro.** Host sem rota recebe 404 com a lista de rotas ativas. Destino fora do ar recebe 502 com o texto `callfred.sev → 127.0.0.1:3000 não respondeu. Seu servidor está rodando?`.
+4. **Páginas de erro.** Host sem rota recebe 404 com a lista de rotas ativas. Destino fora do ar recebe 502 com o texto `meuapp.sev → 127.0.0.1:3000 não respondeu. Seu servidor está rodando?`.
 5. **Porta ocupada.** Com outro processo escutando na 80, o app abre normalmente, mostra o dono da porta (nome e PID, com a explicação do http.sys quando for PID 4) e permite trocar a porta HTTP em Configurações, sem reiniciar o app.
 6. **Helper blindado.** Mensagens inválidas enviadas direto ao pipe, por um cliente de teste, são rejeitadas sem alterar o hosts: nome com quebra de linha, nome inválido, IP fora do loopback e excesso de entradas. A ACL do pipe só concede acesso ao SYSTEM e ao SID configurado.
-7. **Avisos de domínio.** `example.com` mostra o aviso de "existe na internet" mesmo com uma rota ativa para ele; `callfred.sev` não mostra. `app.dev` mostra o aviso de HSTS preload. `algo.local` mostra o aviso de mDNS.
+7. **Avisos de domínio.** `example.com` mostra o aviso de "existe na internet" mesmo com uma rota ativa para ele; `meuapp.sev` não mostra. `app.dev` mostra o aviso de HSTS preload. `algo.local` mostra o aviso de mDNS.
 8. **Saúde.** A bolinha de status de cada rota passa de ◐ para ● em até 5 s depois de o destino subir, e volta para ◐ depois que ele cai.
 9. **Testes automatizados.** `dotnet test` passa com os testes listados em "Testes", e o build segue sem avisos.
 
@@ -95,7 +95,7 @@ Uma única implementação, usada pela UI e pelo Helper.
 - **Lista:** bolinha de status, domínio (clicar abre no navegador), destino, interruptor e menu ⋯ com editar, duplicar, copiar URL e remover.
 - **Remover:** sem confirmação. Aparece "Desfazer" por 5 s.
 - **Formulário:**
-  - domínio completo, com o texto de exemplo `ex.: callfred.sev` e a dica sobre `.test` e `.localhost`;
+  - domínio completo, com o texto de exemplo `ex.: meuapp.sev` e a dica sobre `.test` e `.localhost`;
   - destino com esquema (`http` ou `https`), host (padrão `localhost`) e porta. O proxy e o teste de saúde tentam todos os endereços do host em paralelo: no Windows, uma conexão recusada em `::1` leva cerca de 2 s para falhar, e servidores de dev costumam escutar só em `127.0.0.1` ou só em `::1`;
   - "Avançado" com as opções da rota e observações;
   - erro em vermelho para nome inválido ou duplicado, que bloqueia;
@@ -202,5 +202,5 @@ Fica para as fases seguintes, mesmo que pareça barato agora:
 Cada item já tem um padrão adotado neste spec. Basta confirmar ou trocar.
 
 1. **Limpar o bloco do hosts ao sair.** *Padrão: sim.* Com o app fechado, o proxy não responde, e uma rota sobre um domínio real, como `api.empresa.com`, deixaria o site inacessível sem motivo aparente. O custo é uma gravação no hosts a cada abertura e fechamento do app.
-2. **Mínimo de dois rótulos no domínio.** *Padrão: sim.* Um nome como `callfred` funciona no hosts, mas o navegador o trata como busca, e ele complica a cobertura da CA na Fase 2. Liberar depois não quebra nada.
+2. **Mínimo de dois rótulos no domínio.** *Padrão: sim.* Um nome como `meuapp` funciona no hosts, mas o navegador o trata como busca, e ele complica a cobertura da CA na Fase 2. Liberar depois não quebra nada.
 3. **Destino em qualquer host.** *Padrão: sim.* O destino pode ser outra máquina, como uma VM ou o IP de um container. O proxy continua escutando só em loopback.

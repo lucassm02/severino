@@ -56,7 +56,7 @@ public sealed partial class RouteEditorViewModel : ObservableObject
             RedirectToHttps = HttpsAvailable,
         };
 
-        // The address is written as it is read: callfred.sev/api.
+        // The address is written as it is read: meuapp.sev/api.
         Domain = _original.Domain + _original.Path;
         if (Uri.TryCreate(_original.Target, UriKind.Absolute, out var target))
         {
@@ -166,7 +166,7 @@ public sealed partial class RouteEditorViewModel : ObservableObject
     [ObservableProperty]
     public partial string? DomainError { get; set; }
 
-    /// <summary>"/api" from "callfred.sev/api": this route takes only that part of the domain. Empty for all of it.</summary>
+    /// <summary>"/api" from "meuapp.sev/api": this route takes only that part of the domain. Empty for all of it.</summary>
     public string Path => SplitAddress().Path;
 
     /// <summary>The address has a path, so "tirar o caminho" applies.</summary>
@@ -176,7 +176,7 @@ public sealed partial class RouteEditorViewModel : ObservableObject
     public partial bool StripPath { get; set; }
 
     /// <summary>
-    /// The address field holds the domain and, optionally, a path: "callfred.sev/api". A pasted
+    /// The address field holds the domain and, optionally, a path: "meuapp.sev/api". A pasted
     /// URL loses its scheme.
     /// </summary>
     private (string Domain, string Path) SplitAddress()

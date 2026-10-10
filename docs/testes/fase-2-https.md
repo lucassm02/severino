@@ -8,7 +8,7 @@ Cada teste diz o que fazer, o que tem de acontecer e qual critério ele prova. A
 
 - Os comandos são para **PowerShell**, num terminal comum, sem administrador, a não ser quando o passo disser o contrário.
 - `curl.exe` (com `.exe`, para não cair no apelido do PowerShell) usa o Schannel, o validador do Windows. Ele exige verificação de revogação, e a CA local não publica lista de revogação. Por isso todo `curl.exe` com `https` leva `--ssl-no-revoke`. Os navegadores não exigem isso.
-- "Rota de teste" é qualquer rota com um servidor de dev respondendo. Os exemplos usam `callfred.sev`; troque pela sua.
+- "Rota de teste" é qualquer rota com um servidor de dev respondendo. Os exemplos usam `meuapp.sev`; troque pela sua.
 - Ao fechar o Severino, use **Sair** no ícone da bandeja. Fechar a janela só esconde o app.
 
 ## 0. Preparação
@@ -70,8 +70,8 @@ Prova o critério 9, na parte da remoção, e o item "Remover CA e Ativar de nov
 - O HTTPS para de responder, e o HTTP continua:
 
   ```powershell
-  curl.exe -sS --ssl-no-revoke https://callfred.sev/ -o NUL
-  curl.exe -s -o NUL -w "%{http_code}`n" http://callfred.sev/
+  curl.exe -sS --ssl-no-revoke https://meuapp.sev/ -o NUL
+  curl.exe -s -o NUL -w "%{http_code}`n" http://meuapp.sev/
   ```
 
   Esperado: o primeiro falha com `Could not connect` / `Couldn't connect to server`, e o segundo imprime `200`.
@@ -126,9 +126,9 @@ Prova o critério 1 e o "Ativar de novo" do checklist.
 
 Prova o critério 2. Faça no Edge e repita no Chrome.
 
-1. Abra `https://callfred.sev`.
+1. Abra `https://meuapp.sev`.
    - Esperado: a página abre **sem aviso**, com o cadeado normal.
-   - Clique no cadeado › conexão segura › certificado. Esperado: emitido para `callfred.sev`, por `Severino Local CA (…)`, válido por 397 dias.
+   - Clique no cadeado › conexão segura › certificado. Esperado: emitido para `meuapp.sev`, por `Severino Local CA (…)`, válido por 397 dias.
 2. **HTTP/2.** Abra o DevTools (F12) › Network e recarregue. Clique com o botão direito no cabeçalho das colunas › marque **Protocol**.
    - Esperado: `h2` nas requisições do documento.
 3. **HMR por `wss://`.** Abra `https://hmr.sev`, ou sua rota Vite. No DevTools › Network › filtro **WS**, recarregue.
@@ -142,15 +142,15 @@ Prova o critério 3.
 1. Em Editar, deixe a rota com **HTTPS** e **Redirecionar HTTP→HTTPS** ligados.
 
    ```powershell
-   curl.exe -sI "http://callfred.sev/x?y=1"
+   curl.exe -sI "http://meuapp.sev/x?y=1"
    ```
 
-   Esperado: `HTTP/1.1 307 Temporary Redirect` e `Location: https://callfred.sev/x?y=1`.
+   Esperado: `HTTP/1.1 307 Temporary Redirect` e `Location: https://meuapp.sev/x?y=1`.
 2. Nenhuma resposta do proxy traz HSTS:
 
    ```powershell
-   curl.exe -sI --ssl-no-revoke https://callfred.sev/ | Select-String -Pattern strict-transport
-   curl.exe -sI "http://callfred.sev/x" | Select-String -Pattern strict-transport
+   curl.exe -sI --ssl-no-revoke https://meuapp.sev/ | Select-String -Pattern strict-transport
+   curl.exe -sI "http://meuapp.sev/x" | Select-String -Pattern strict-transport
    curl.exe -sI http://127.0.0.1/ | Select-String -Pattern strict-transport
    ```
 
@@ -158,7 +158,7 @@ Prova o critério 3.
 3. Desligue **Redirecionar** e salve.
 
    ```powershell
-   curl.exe -s -o NUL -w "%{http_code}`n" http://callfred.sev/
+   curl.exe -s -o NUL -w "%{http_code}`n" http://meuapp.sev/
    ```
 
    Esperado: `200`, sem redirecionamento. Religue o redirecionamento depois.
@@ -193,7 +193,7 @@ Prova o critério 5. O exemplo usa `api.empresa.com`, um TLD real. Enquanto a ro
    - Esperado: o cartão mostra "Cobre: api.empresa.com, qualquer nome .sev" e "CA reemitida…". O selo vira `https`, e a barra volta a `HTTPS ok`.
    - Só a CA nova ficou no Windows: o comando do teste 3 mostra **um** certificado, com a impressão digital nova.
    - O `config.json` ganhou `"com": true` em `tldExists`.
-4. Abra `https://api.empresa.com`. Esperado: abre sem aviso. Feche e reabra `https://callfred.sev`: continua abrindo, agora com o certificado assinado pela CA nova.
+4. Abra `https://api.empresa.com`. Esperado: abre sem aviso. Feche e reabra `https://meuapp.sev`: continua abrindo, agora com o certificado assinado pela CA nova.
 5. **Reemitir pelo formulário.** Remova a rota `api.empresa.com`, crie de novo e, no diálogo "Reemitir a CA", clique **Continuar** e **Sim** nas duas confirmações. Esperado: o aviso "CA reemitida. api.empresa.com já abre com https://".
 6. **Enxugar a cobertura.** Remova a rota `api.empresa.com` e clique **Reemitir** em Configurações. Esperado: "Cobre: qualquer nome .sev" de novo.
 
@@ -243,7 +243,7 @@ Prova o critério 7.
 3. Clique **Copiar**, cole o comando num terminal e rode. Depois **abra um terminal novo**, porque o `setx` só vale para terminais abertos depois:
 
    ```powershell
-   node -e "fetch('https://callfred.sev').then(r => console.log(r.status))"
+   node -e "fetch('https://meuapp.sev').then(r => console.log(r.status))"
    ```
 
    Esperado: `200`. O destino da rota precisa estar no ar; um `502` significa que o HTTPS funcionou, mas o servidor de dev está parado.
@@ -267,11 +267,11 @@ Prova o critério 8.
 
 3. Abra o Severino.
    - Esperado: a barra mostra `Proxy ativo :80 · HTTPS: A porta 443 está em uso por pwsh (PID <o mesmo>). Trocar porta`.
-   - O HTTP continua: `curl.exe -s -o NUL -w "%{http_code}`n" http://callfred.sev/` imprime `200`.
+   - O HTTP continua: `curl.exe -s -o NUL -w "%{http_code}`n" http://meuapp.sev/` imprime `200`.
 4. Clique no aviso da barra. Esperado: abre Configurações. Em **Porta HTTPS do proxy**, digite `8443` › **Aplicar**, sem reiniciar o app.
    - Esperado: a barra mostra `Proxy ativo :80 :8443 · HTTPS ok`.
-   - O link da lista abre `https://callfred.sev:8443/`, sem aviso.
-   - `curl.exe -sI "http://callfred.sev/x?y=1"` traz `Location: https://callfred.sev:8443/x?y=1`.
+   - O link da lista abre `https://meuapp.sev:8443/`, sem aviso.
+   - `curl.exe -sI "http://meuapp.sev/x?y=1"` traz `Location: https://meuapp.sev:8443/x?y=1`.
    - Digitar `80` na porta HTTPS mostra "HTTP e HTTPS precisam de portas diferentes.".
 5. Libere a porta, com `$l.Stop()` no terminal, e volte a porta HTTPS para `443` › **Aplicar**. Esperado: `Proxy ativo :80 :443 · HTTPS ok`.
 
@@ -289,7 +289,7 @@ Não é critério da fase. Confere as páginas novas, com o Severino na portaria
 
    - Esperado: "Rota desligada": "api.sev está cadastrada, mas desligada.". Religue a rota depois.
 3. **Destino fora do ar.** Pare o servidor de dev da rota de teste e abra a rota.
-   - Esperado: o selo `502`, "Destino fora do ar", "callfred.sev → localhost:<porta> não respondeu." e "O Severino interfonou, mas ninguém atendeu. Seu servidor está rodando?".
+   - Esperado: o selo `502`, "Destino fora do ar", "meuapp.sev → localhost:<porta> não respondeu." e "O Severino interfonou, mas ninguém atendeu. Seu servidor está rodando?".
 4. A página não carrega nada de fora: no DevTools › Network, só aparece a própria página.
 
 ## 12. Limpeza

@@ -178,7 +178,7 @@ public sealed partial class RoutesViewModel : ListPageViewModel
         ShowToast($"{item.Domain} agora é uma entrada DNS.", "Ver no DNS", () => _navigation.Show(AppTab.Dns, item.Domain));
     }
 
-    /// <summary>"*.callfred.sev espera aprovação…", while a wildcard's suffix is not approved.</summary>
+    /// <summary>"*.meuapp.sev espera aprovação…", while a wildcard's suffix is not approved.</summary>
     [ObservableProperty]
     public partial string? WildcardPendingText { get; set; }
 

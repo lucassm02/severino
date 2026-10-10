@@ -5,19 +5,19 @@
 
 ## Objetivo
 
-Ativar o HTTPS local num clique e abrir `https://callfred.sev` no Edge e no Chrome com o cadeado normal, sem aviso. A CA criada para isso só vale para os domínios cadastrados, então não serve para falsificar outros sites.
+Ativar o HTTPS local num clique e abrir `https://meuapp.sev` no Edge e no Chrome com o cadeado normal, sem aviso. A CA criada para isso só vale para os domínios cadastrados, então não serve para falsificar outros sites.
 
 ## Critérios de pronto
 
 Cada item é verificável e binário. A fase só fecha com todos marcados.
 
 1. **Ativação.** "Ativar HTTPS" em Configurações gera a CA. O Windows pede confirmação uma vez, e a CA aparece em `CurrentUser\Root` com Name Constraints que cobrem os domínios das rotas.
-2. **Navegação.** `https://callfred.sev` abre no Edge e no Chrome sem aviso, por HTTP/2, e o HMR do Vite funciona por `wss://`.
-3. **Redirecionamento.** Com "Redirecionar HTTP→HTTPS" ligado, `http://callfred.sev/x?y=1` responde 307 para `https://callfred.sev/x?y=1`. Nenhuma resposta do proxy traz `Strict-Transport-Security`.
+2. **Navegação.** `https://meuapp.sev` abre no Edge e no Chrome sem aviso, por HTTP/2, e o HMR do Vite funciona por `wss://`.
+3. **Redirecionamento.** Com "Redirecionar HTTP→HTTPS" ligado, `http://meuapp.sev/x?y=1` responde 307 para `https://meuapp.sev/x?y=1`. Nenhuma resposta do proxy traz `Strict-Transport-Security`.
 4. **Cobertura sem nova confirmação.** Com a CA cobrindo `.sev`, criar `api.sev` com HTTPS funciona na hora, sem nova confirmação do Windows.
 5. **Reemissão.** Criar `api.empresa.com` (um TLD real) com HTTPS oferece reemitir a CA. Depois das confirmações do Windows, `https://api.empresa.com` abre sem aviso, a CA antiga sai do repositório e os certificados das rotas existentes continuam válidos.
 6. **Name Constraints valendo.** Um certificado de folha para `banco.com.br` assinado pela chave da CA é rejeitado: por teste automatizado na cadeia do Windows, se ela aplicar a restrição (ver "Validações iniciais"), e manualmente no Chrome.
-7. **Exportar CA.** "Exportar CA" grava um PEM, e `NODE_EXTRA_CA_CERTS=<arquivo> node -e "fetch('https://callfred.sev').then(r => console.log(r.status))"` imprime 200.
+7. **Exportar CA.** "Exportar CA" grava um PEM, e `NODE_EXTRA_CA_CERTS=<arquivo> node -e "fetch('https://meuapp.sev').then(r => console.log(r.status))"` imprime 200.
 8. **Porta 443 ocupada.** Recebe o mesmo tratamento da 80: mostra o dono, permite trocar a porta sem reiniciar o app, e o HTTP segue funcionando enquanto isso.
 9. **Chaves e remoção.** No disco, as chaves privadas só existem cifradas com DPAPI. "Remover CA" tira a CA do repositório e apaga chaves e certificados, e o HTTPS para de responder.
 10. **Testes.** `dotnet test` passa com os testes listados em "Testes", e o build segue sem avisos.
@@ -120,7 +120,7 @@ Remover rotas não dispara reemissão. Configurações › HTTPS mostra os nomes
   - `Severino.exe --cleanup` para o desinstalador;
   - assistente de primeira execução;
   - mudar a cor do ícone da bandeja conforme o estado.
-- **Fase 4:** certificados curinga (`*.callfred.sev`) e rotas por caminho.
+- **Fase 4:** certificados curinga (`*.meuapp.sev`) e rotas por caminho.
 - **Fora do plano:** Let's Encrypt e qualquer CA pública. HTTPS do proxy até o destino já existe desde a Fase 1, pelo "ignorar certificado inválido".
 
 ## Testes

@@ -99,7 +99,7 @@ public static class RouteRules
     public static string? Normalize(string domain) =>
         TryNormalize(domain, out var normalized, out _) ? normalized : null;
 
-    /// <summary>A domain, or a wildcard like *.callfred.sev that covers every name below it.</summary>
+    /// <summary>A domain, or a wildcard like *.meuapp.sev that covers every name below it.</summary>
     public static bool TryNormalize(string? domain, [System.Diagnostics.CodeAnalysis.NotNullWhen(true)] out string? normalized,
         [System.Diagnostics.CodeAnalysis.NotNullWhen(false)] out string? error) =>
         DomainName.IsWildcard(domain)
@@ -138,7 +138,7 @@ public static class RouteRules
 
     /// <summary>
     /// The routes for a request's host: those of the exact domain first, else those of the most
-    /// specific wildcard above it, so api.callfred.sev beats *.callfred.sev.
+    /// specific wildcard above it, so api.meuapp.sev beats *.meuapp.sev.
     /// </summary>
     public static IReadOnlyList<RouteEntry> ForHost(IEnumerable<RouteEntry> routes, string host)
     {

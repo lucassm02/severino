@@ -40,7 +40,7 @@ public sealed class RouteEditorTests : IDisposable
     public async Task The_path_is_typed_in_the_address()
     {
         var form = Open();
-        form.Domain = "https://callfred.sev/api/";
+        form.Domain = "https://meuapp.sev/api/";
         form.TargetPort = "8080";
         form.StripPath = true;
 
@@ -49,15 +49,15 @@ public sealed class RouteEditorTests : IDisposable
         await form.SaveCommand.ExecuteAsync(null);
 
         var route = Assert.Single(_config.Current.Routes);
-        Assert.Equal(("callfred.sev", "/api", true), (route.Domain, route.Path, route.StripPath));
-        Assert.Equal("callfred.sev/api", Open(route).Domain);
+        Assert.Equal(("meuapp.sev", "/api", true), (route.Domain, route.Path, route.StripPath));
+        Assert.Equal("meuapp.sev/api", Open(route).Domain);
     }
 
     [Fact]
     public async Task Without_a_path_nothing_is_stripped()
     {
         var form = Open();
-        form.Domain = "callfred.sev";
+        form.Domain = "meuapp.sev";
         form.StripPath = true;
 
         Assert.False(form.HasPath);

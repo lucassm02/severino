@@ -1,6 +1,6 @@
 # Planejamento: Severino
 
-A ideia é cadastrar `callfred.sev → 127.0.0.1:3000` numa janela e deixar a ferramenta fazer o resto: gravar o nome no hosts, rotear o tráfego pelo proxy e, se você quiser, emitir um certificado HTTPS confiável. Nenhum passo exige terminal ou edição manual de arquivo.
+A ideia é cadastrar `meuapp.sev → 127.0.0.1:3000` numa janela e deixar a ferramenta fazer o resto: gravar o nome no hosts, rotear o tráfego pelo proxy e, se você quiser, emitir um certificado HTTPS confiável. Nenhum passo exige terminal ou edição manual de arquivo.
 
 O domínio é livre. Vale qualquer nome válido, inclusive um que já exista na internet: enquanto a rota estiver ativa, ele passa a apontar para a sua máquina, e o app avisa antes (veja "Domínios" na seção 4). Nos exemplos usamos `.sev`.
 
@@ -13,7 +13,7 @@ Em 2026-10-10 o roadmap ganhou uma Fase 5 de site e publicação (site, deploy p
 ## 1. Arquitetura
 
 ```
- Navegador ──► https://callfred.sev
+ Navegador ──► https://meuapp.sev
                    │  hosts: 127.0.0.1 / ::1
                    ▼
   ┌──────────────────────────────────┐
@@ -86,8 +86,8 @@ O assistente termina abrindo a rota recém-criada no navegador.
 │                                                         │
 │  [+ Nova rota]          Buscar...                       │
 │                                                         │
-│  ●  callfred.sev       →  127.0.0.1:3000  https  [on] ⋯ │
-│  ●  api.callfred.sev   →  127.0.0.1:5000  https  [on] ⋯ │
+│  ●  meuapp.sev       →  127.0.0.1:3000  https  [on] ⋯ │
+│  ●  api.meuapp.sev   →  127.0.0.1:5000  https  [on] ⋯ │
 │  ◐  admin.sev          →  127.0.0.1:4200         [on] ⋯ │
 │  ○  legado.sev         →  127.0.0.1:8080        [off] ⋯ │
 │                                                         │
@@ -108,7 +108,7 @@ Como cada elemento funciona:
 
 ```
 ┌─ Nova rota ────────────────────────────────┐
-│ Domínio   [ callfred.sev               ]   │
+│ Domínio   [ meuapp.sev               ]   │
 │ Destino   [ 127.0.0.1 ] : [ 3000      ▾ ]  │
 │               3000 · node (next dev)       │
 │               5173 · node (vite)           │
@@ -121,7 +121,7 @@ Como cada elemento funciona:
 
 O formulário ajuda em cada campo:
 
-- **Domínio:** nome completo e livre, como `callfred.sev` ou `api.empresa.com`. O texto de exemplo do campo sugere `.sev`, e uma dica lembra que `.test` e `.localhost` são reservados e nunca colidem com a internet.
+- **Domínio:** nome completo e livre, como `meuapp.sev` ou `api.empresa.com`. O texto de exemplo do campo sugere `.sev`, e uma dica lembra que `.test` e `.localhost` são reservados e nunca colidem com a internet.
 - **Porta:** o combo lista as portas que estão escutando, com o nome do processo, então você não precisa lembrar números.
 - **Validação inline:** nome inválido ou duplicado aparece em vermelho e bloqueia. Porta sem nada escutando aparece em amarelo, mas não bloqueia: a rota fica aguardando seu servidor subir.
 - **Avisos de domínio:** aparecem em amarelo e nunca bloqueiam. Os casos estão em "Domínios", na seção 4: nome que já existe na internet, HSTS preload, `.local`, e domínio fora da cobertura da CA.
@@ -130,7 +130,7 @@ O formulário ajuda em cada campo:
   - ignorar certificado inválido do destino, útil para o `https://localhost:5001` do ASP.NET;
   - um campo de observações.
 
-Ao clicar em Criar, a rota fica ativa em cerca de um segundo e aparece "callfred.sev pronto · Abrir".
+Ao clicar em Criar, a rota fica ativa em cerca de um segundo e aparece "meuapp.sev pronto · Abrir".
 
 ### Requisições
 
@@ -174,8 +174,8 @@ O serviço auxiliar mantém um bloco delimitado e nunca toca no resto do arquivo
 
 ```
 # >>> Severino managed block (do not edit)
-127.0.0.1  callfred.sev
-::1        callfred.sev
+127.0.0.1  meuapp.sev
+::1        meuapp.sev
 # <<< Severino
 ```
 
@@ -201,7 +201,7 @@ Ajustes pensados para dev:
 - **Sem limite de corpo.** O limite de tamanho da requisição fica desligado, para permitir uploads grandes.
 - **Host reescrito por padrão.** O Host vai como o do destino, acompanhado de `X-Forwarded-Host/Proto/For`. Isso agrada o Vite e o webpack-dev-server, que bloqueiam Host desconhecido. A opção "Preservar Host original" cobre apps que geram URLs absolutas.
 - **Redirecionamento temporário.** HTTP→HTTPS usa 307, nunca 301, e o proxy nunca envia HSTS. Os dois ficam gravados no navegador e viram dor de cabeça quando você desliga o HTTPS.
-- **Páginas de erro próprias.** Domínio desconhecido mostra um 404 com a lista de rotas. Destino fora do ar mostra um 502 dizendo `callfred.sev → 127.0.0.1:3000 não respondeu. Seu servidor está rodando?`
+- **Páginas de erro próprias.** Domínio desconhecido mostra um 404 com a lista de rotas. Destino fora do ar mostra um 502 dizendo `meuapp.sev → 127.0.0.1:3000 não respondeu. Seu servidor está rodando?`
 - **Proteção contra loop.** O destino não pode ser o próprio proxy.
 
 ### HTTPS
@@ -257,7 +257,7 @@ Fica em `%LOCALAPPDATA%\Severino\config.json`, com as últimas 5 versões guarda
   "routes": [
     {
       "id": "3f2c9a1e-7b44-4d0e-9c1a-2e5b8f6d0a11",
-      "domain": "callfred.sev",
+      "domain": "meuapp.sev",
       "target": "http://127.0.0.1:3000",
       "enabled": true,
       "https": true,
@@ -293,8 +293,8 @@ O `Contracts` existe para que app e serviço usem exatamente o mesmo validador. 
 | Fase | Entrega | Pronto quando |
 |---|---|---|
 | 0. Esqueleto | Solução, janela WPF-UI com abas, bandeja, instância única, carregar e salvar config | O app abre, minimiza para a bandeja e reabre sem duplicar |
-| 1. MVP HTTP | CRUD de rotas, YARP, serviço auxiliar + bloco no hosts, avisos de domínio, status de saúde, páginas de erro, detecção de porta ocupada | `http://callfred.sev` abre seu app e o HMR do Vite funciona |
-| 2. HTTPS | CA com Name Constraints nos domínios cadastrados e reemissão, emissão por SNI, redirecionamento, exportar CA | `https://callfred.sev` abre no Edge e no Chrome sem aviso |
+| 1. MVP HTTP | CRUD de rotas, YARP, serviço auxiliar + bloco no hosts, avisos de domínio, status de saúde, páginas de erro, detecção de porta ocupada | `http://meuapp.sev` abre seu app e o HMR do Vite funciona |
+| 2. HTTPS | CA com Name Constraints nos domínios cadastrados e reemissão, emissão por SNI, redirecionamento, exportar CA | `https://meuapp.sev` abre no Edge e no Chrome sem aviso |
 | 3. Polimento | Assistente de primeira execução, aba de requisições, combo de portas com processo, detector de proxy do sistema, iniciar com Windows, importar e exportar, "Limpar tudo", instalador | Alguém que nunca viu a ferramenta instala e cria uma rota sem ajuda |
 | 4. Serviços | Rotas de serviço com encaminhamento TCP e loopback dedicado; descoberta de services do Kubernetes e containers do Docker, no Windows e no WSL, ou colando a saída dos comandos; nomes no `/etc/hosts` das distros | Um app no Windows ou no WSL chama `pedidos:8080` e chega ao serviço no cluster, pelo gateway, com o nome original |
 | 5. Site e publicação | Site do Severino; pipeline do GitHub Actions que publica o site; pipeline de build que gera a versão e cria a release no GitHub com o instalador `.exe` anexado ([spec](specs/fase-5-site.md)) | O site está no ar, e um clique no Actions publica a próxima versão com o `.exe` |

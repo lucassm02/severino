@@ -35,7 +35,7 @@ public sealed class ConfigStoreTests : IDisposable
         {
             Settings = new AppSettings { HttpPort = 8080, Theme = AppTheme.Dark, StartMinimized = true },
             State = new AppState { CloseToTrayHintShown = true },
-            Routes = [new RouteEntry { Domain = "callfred.sev", Target = "http://127.0.0.1:3000", Https = true }],
+            Routes = [new RouteEntry { Domain = "meuapp.sev", Target = "http://127.0.0.1:3000", Https = true }],
         };
 
         _store.Save(config);

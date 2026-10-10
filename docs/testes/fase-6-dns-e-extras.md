@@ -145,7 +145,7 @@ Prova o critério do curinga.
 
 Prova o critério de acompanhar.
 
-1. Com o callfred importado do Docker (Fase 4), no **WSL**, recrie o container em outra porta publicada.
+1. Com o meuapp importado do Docker (Fase 4), no **WSL**, recrie o container em outra porta publicada.
 2. Esperado, em poucos segundos e sem clicar em nada: o aviso "orchestrator com portas novas, atualizado sozinho", e a porta nova na linha do serviço.
 3. Configurações › **Acompanhar serviços importados** desligado: recriar de novo não muda nada até o **Atualizar**.
 

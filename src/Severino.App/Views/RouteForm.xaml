@@ -31,12 +31,12 @@
         <ui:TextBlock Style="{StaticResource FieldLabel}" Text="Endereço" />
         <ui:TextBox
             x:Name="DomainBox"
-            PlaceholderText="ex.: callfred.sev"
+            PlaceholderText="ex.: meuapp.sev"
             AutomationProperties.Name="Endereço"
             Text="{Binding Domain, UpdateSourceTrigger=PropertyChanged}" />
         <ui:TextBlock
             Style="{StaticResource Hint}"
-            Text="Qualquer nome vale; .test e .localhost nunca colidem com a internet. *.callfred.sev atende os nomes abaixo dele, e callfred.sev/api fica só com esse caminho." />
+            Text="Qualquer nome vale; .test e .localhost nunca colidem com a internet. *.meuapp.sev atende os nomes abaixo dele, e meuapp.sev/api fica só com esse caminho." />
         <ui:TextBlock Style="{StaticResource ErrorText}" Text="{Binding DomainError}" Visibility="{Binding DomainError, Converter={StaticResource NullToCollapsed}}" />
         <ItemsControl Margin="0,4,0,0" ItemsSource="{Binding DomainWarnings}">
             <ItemsControl.ItemTemplate>
@@ -135,7 +135,7 @@
                 AutomationProperties.Name="Grupo" />
             <ui:TextBlock
                 Style="{StaticResource Hint}"
-                Text="Rotas do mesmo grupo aparecem juntas e ligam ou desligam de uma vez, como callfred para o app e a API." />
+                Text="Rotas do mesmo grupo aparecem juntas e ligam ou desligam de uma vez, como meuapp para o app e a API." />
         </StackPanel>
 
         <!-- The first-run wizard asks about HTTPS its own way, before the CA exists. -->

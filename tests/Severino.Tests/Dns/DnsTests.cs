@@ -50,13 +50,13 @@ public sealed class DnsTests : IDisposable
     {
         _config.Update(c => c with
         {
-            Routes = [new RouteEntry { Domain = "callfred.sev", Target = "http://localhost:3000" }],
+            Routes = [new RouteEntry { Domain = "meuapp.sev", Target = "http://localhost:3000" }],
             Services = [new ServiceRoute { Names = ["redis"], Address = "127.77.0.2" }],
         });
         _dns.Save(Entry("10.0.0.20", "api.interno"));
 
         Assert.Equal("api.interno já está em outra entrada DNS.", _dns.Validate(Entry("10.0.0.21", "api.interno")).Error);
-        Assert.Equal("callfred.sev já é uma rota.", _dns.Validate(Entry("10.0.0.21", "callfred.sev")).Error);
+        Assert.Equal("meuapp.sev já é uma rota.", _dns.Validate(Entry("10.0.0.21", "meuapp.sev")).Error);
         Assert.Equal("redis já é um serviço.", _dns.Validate(Entry("10.0.0.21", "redis")).Error);
         Assert.StartsWith("sql.interno já está no hosts, fora do Severino.", _dns.Validate(Entry("10.0.0.21", "sql.interno")).Error);
 
@@ -77,10 +77,10 @@ public sealed class DnsTests : IDisposable
         Assert.Equal(["*.dev.interno"], _dns.Save(Entry("10.0.0.5", "*.Dev.Interno")).Names);
         Assert.StartsWith("Nome inválido '*.com'", _dns.Validate(Entry("10.0.0.5", "*.com")).Error);
 
-        _config.Update(c => c with { Routes = [new RouteEntry { Domain = "*.callfred.sev", Target = "http://localhost:3000" }] });
-        Assert.Contains(new HostEntry("*.callfred.sev", "127.0.0.1"), HostsEntries.For(_config.Current));
+        _config.Update(c => c with { Routes = [new RouteEntry { Domain = "*.meuapp.sev", Target = "http://localhost:3000" }] });
+        Assert.Contains(new HostEntry("*.meuapp.sev", "127.0.0.1"), HostsEntries.For(_config.Current));
         Assert.Contains(new HostEntry("*.dev.interno", "10.0.0.5"), DnsRules.BlockEntries(_config.Current.DnsEntries));
-        Assert.Equal("*.callfred.sev", RouteRules.Find(_config.Current.Routes, "cliente42.callfred.sev")!.Domain);
+        Assert.Equal("*.meuapp.sev", RouteRules.Find(_config.Current.Routes, "cliente42.meuapp.sev")!.Domain);
     }
 
     [Fact]
@@ -95,13 +95,13 @@ public sealed class DnsTests : IDisposable
     {
         _config.Update(c => c with
         {
-            Routes = [new RouteEntry { Domain = "api.callfred.sev", Target = "http://gateway.k8s:8080" }],
+            Routes = [new RouteEntry { Domain = "api.meuapp.sev", Target = "http://gateway.k8s:8080" }],
             Services = [new ServiceRoute { Names = ["postgres"], Address = "127.77.0.2", Ports = [new ServicePort { Port = 5432, TargetHost = "gateway.k8s", TargetPort = 30711 }] }],
         });
 
         var (routes, services) = DnsRules.UsedBy(["Gateway.K8s"], _config.Current);
 
-        Assert.Equal("api.callfred.sev", Assert.Single(routes).Domain);
+        Assert.Equal("api.meuapp.sev", Assert.Single(routes).Domain);
         Assert.Equal("postgres", Assert.Single(services).Names[0]);
     }
 

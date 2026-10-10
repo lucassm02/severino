@@ -45,12 +45,12 @@ public sealed class PowerShellModuleTests : IAsyncLifetime
     [Fact]
     public void The_handler_uses_the_same_rules_as_the_screens()
     {
-        Assert.True(Send("routes.add", new JsonObject { ["domain"] = "Callfred.sev", ["target"] = "http://localhost:3000", ["group"] = "callfred" })["ok"]!.GetValue<bool>());
-        var duplicate = Send("routes.add", new JsonObject { ["domain"] = "callfred.sev", ["target"] = "http://localhost:4000" });
+        Assert.True(Send("routes.add", new JsonObject { ["domain"] = "Meuapp.sev", ["target"] = "http://localhost:3000", ["group"] = "meuapp" })["ok"]!.GetValue<bool>());
+        var duplicate = Send("routes.add", new JsonObject { ["domain"] = "meuapp.sev", ["target"] = "http://localhost:4000" });
         Assert.Equal("Já existe uma rota para este domínio.", duplicate["error"]!.GetValue<string>());
         Assert.StartsWith("sql.interno já está no hosts", Send("dns.set", new JsonObject { ["names"] = new JsonArray("sql.interno"), ["address"] = "10.0.0.9" })["error"]!.GetValue<string>());
 
-        Assert.True(Send("routes.set-enabled", new JsonObject { ["group"] = "callfred", ["enabled"] = false })["ok"]!.GetValue<bool>());
+        Assert.True(Send("routes.set-enabled", new JsonObject { ["group"] = "meuapp", ["enabled"] = false })["ok"]!.GetValue<bool>());
         Assert.False(_config.Current.Routes[0].Enabled);
         Assert.Equal("Pedido inválido.", JsonNode.Parse(_handler.Handle("nada"))!["error"]!.GetValue<string>());
     }
@@ -61,15 +61,15 @@ public sealed class PowerShellModuleTests : IAsyncLifetime
         var module = Path.Combine(Root(), "powershell", "Severino", "Severino.psd1");
         var script =
             $"Import-Module '{module}'; " +
-            "New-SeverinoRoute api.callfred.sev http://localhost:8080 -Path /v1 -Group callfred | Out-Null; " +
+            "New-SeverinoRoute api.meuapp.sev http://localhost:8080 -Path /v1 -Group meuapp | Out-Null; " +
             "Set-SeverinoDns gateway.k8s, gw 192.168.203.100 | Out-Null; " +
-            "$r = Get-SeverinoRoute api.callfred.sev; $d = Get-SeverinoDns; $o = Get-SeverinoDns -Outside; " +
+            "$r = Get-SeverinoRoute api.meuapp.sev; $d = Get-SeverinoDns; $o = Get-SeverinoDns -Outside; " +
             "\"$($r.domain)$($r.path)|$($r.group)|$($d.names -join ',')=$($d.address)|$($o.names -join ',')\"; " +
             "try { Remove-SeverinoDns nao.existe -Confirm:$false } catch { \"erro: $($_.Exception.Message)\" }";
 
         var output = await RunPowerShellAsync(script);
 
-        Assert.Contains("api.callfred.sev/v1|callfred|gateway.k8s,gw=192.168.203.100|sql.interno", output);
+        Assert.Contains("api.meuapp.sev/v1|meuapp|gateway.k8s,gw=192.168.203.100|sql.interno", output);
         Assert.Contains("erro: Nenhuma entrada DNS do Severino com nao.existe.", output);
         Assert.Equal("gateway.k8s", Assert.Single(_config.Current.DnsEntries).Names[0]);
     }

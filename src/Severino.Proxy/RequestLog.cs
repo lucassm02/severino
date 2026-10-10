@@ -31,7 +31,7 @@ public sealed class RequestEntry
     public DateTimeOffset Time { get; }
     public string Scheme { get; }
 
-    /// <summary>Host and port as the browser sent them, e.g. "callfred.sev:8080".</summary>
+    /// <summary>Host and port as the browser sent them, e.g. "meuapp.sev:8080".</summary>
     public string Authority { get; }
 
     public string Host { get; }

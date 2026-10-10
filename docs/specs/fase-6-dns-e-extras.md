@@ -10,7 +10,7 @@ O Severino passa a ser o lugar de todos os nomes da máquina de desenvolvimento,
 
 - **DNS simples:** `sql.interno → 10.0.0.8`, cadastrado numa aba própria, como hoje se faz à mão no hosts;
 - **integrado:** esse nome vira destino de rotas e de serviços, e mudar o IP num lugar só atualiza tudo que depende dele;
-- **e os extras:** curinga (`*.callfred.sev`), rotas por caminho, grupos, `kubectl port-forward`, acompanhar o cluster sozinho e um módulo PowerShell.
+- **e os extras:** curinga (`*.meuapp.sev`), rotas por caminho, grupos, `kubectl port-forward`, acompanhar o cluster sozinho e um módulo PowerShell.
 
 ## O que a máquina de referência mostrou
 
@@ -27,7 +27,7 @@ Consultas só de leitura, em 2026-10-10:
 1. **Aba DNS.** Cadastrar, editar, ligar e desligar e remover uma entrada `nome → IP`, com IPv4 ou IPv6 de qualquer faixa. O nome resolve no Windows e no WSL.
 2. **O hosts inteiro à vista.** As linhas do hosts que não são do Severino, como as 20 feitas à mão, aparecem na aba DNS marcadas como "fora do Severino". Dá para editá-las e removê-las pelo Severino, com aviso a cada passo, e cada mudança deixa no hosts um comentário acima da linha dizendo que ela não era do Severino, o que mudou e quando.
 3. **Persistência.** As entradas DNS continuam valendo com o Severino fechado ou pausado, como entradas escritas à mão. "Limpar tudo" e o desinstalador tiram os dois blocos do Severino. Linhas de fora que a pessoa editou pelo Severino ficam como ela deixou, com o comentário.
-4. **Nomes como destino.** Uma rota `api.callfred.sev → http://gateway.k8s:8080` e um serviço `postgres → gateway.k8s:30711` funcionam. Mudar o IP de `gateway.k8s` na aba DNS muda o destino dos dois, sem editá-los.
+4. **Nomes como destino.** Uma rota `api.meuapp.sev → http://gateway.k8s:8080` e um serviço `postgres → gateway.k8s:30711` funcionam. Mudar o IP de `gateway.k8s` na aba DNS muda o destino dos dois, sem editá-los.
 5. **Uma lista só de nomes.** Um nome é de uma entrada DNS, de uma rota ou de um serviço, nunca de dois. O app avisa também quando um nome novo já está no hosts fora do Severino.
 6. **Os extras**, cada um com o próprio critério na seção dele.
 7. **Testes.** `dotnet test` passa e o build segue sem avisos.
@@ -106,8 +106,8 @@ Cada um com o seu critério de pronto, na ordem de implementação.
 
 ### Curinga por DNS embutido e NRPT
 
-- **O que é:** uma rota `*.callfred.sev → localhost:3000` (e uma entrada DNS `*.dev.interno → 10.0.0.5`) vale para qualquer subdomínio, em qualquer profundidade. O hosts não aceita curinga, então o Severino responde esses nomes com um DNS próprio. Uma regra NRPT do Windows manda só os sufixos curinga para ele; todo o resto segue para o DNS normal e o da VPN. O curinga mais específico vence, e um nome que está no hosts vence o curinga.
-- **Critério:** `curl https://cliente42.callfred.sev` abre o app, com certificado curinga, sem cadastrar `cliente42`.
+- **O que é:** uma rota `*.meuapp.sev → localhost:3000` (e uma entrada DNS `*.dev.interno → 10.0.0.5`) vale para qualquer subdomínio, em qualquer profundidade. O hosts não aceita curinga, então o Severino responde esses nomes com um DNS próprio. Uma regra NRPT do Windows manda só os sufixos curinga para ele; todo o resto segue para o DNS normal e o da VPN. O curinga mais específico vence, e um nome que está no hosts vence o curinga.
+- **Critério:** `curl https://cliente42.meuapp.sev` abre o app, com certificado curinga, sem cadastrar `cliente42`.
 - **Validado em 2026-10-10**, com o servidor da implementação rodando como usuário e uma regra NRPT de teste criada pela pessoa como administrador:
   - o servidor responde em `127.53.0.1:53`, UDP e TCP: A e AAAA para o curinga, nada para outros tipos, "não existe" para nomes fora dele;
   - com a regra `.spike.sev → 127.53.0.1`, a resolução normal do Windows (`Resolve-DnsName`, .NET, `ping`, `curl`) segue a regra, e o curinga mais específico vence;
@@ -120,13 +120,13 @@ Cada um com o seu critério de pronto, na ordem de implementação.
 
 ### Rotas por caminho
 
-- **O que é:** `callfred.sev/api → localhost:8080` e `callfred.sev → localhost:3000` no mesmo domínio, com a opção de tirar o prefixo antes de repassar.
-- **Critério:** as duas respondem pelo mesmo `https://callfred.sev`, cada uma no seu app.
+- **O que é:** `meuapp.sev/api → localhost:8080` e `meuapp.sev → localhost:3000` no mesmo domínio, com a opção de tirar o prefixo antes de repassar.
+- **Critério:** as duas respondem pelo mesmo `https://meuapp.sev`, cada uma no seu app.
 
 ### Grupos de rotas
 
-- **O que é:** um rótulo por rota ("callfred", "loja"), para ligar, desligar e filtrar o grupo inteiro. Os serviços continuam agrupados pela origem.
-- **Critério:** desligar o grupo "callfred" tira todas as rotas dele do hosts de uma vez.
+- **O que é:** um rótulo por rota ("meuapp", "loja"), para ligar, desligar e filtrar o grupo inteiro. Os serviços continuam agrupados pela origem.
+- **Critério:** desligar o grupo "meuapp" tira todas as rotas dele do hosts de uma vez.
 
 ### `kubectl port-forward` gerenciado
 

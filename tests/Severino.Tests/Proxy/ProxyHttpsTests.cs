@@ -35,7 +35,7 @@ public sealed class ProxyHttpsTests : IAsyncLifetime
         _httpsPort = TestBackend.FreePort();
         await _proxy.StartAsync(_httpPort, _httpsPort,
         [
-            Route("callfred.sev", https: true, redirect: true),
+            Route("meuapp.sev", https: true, redirect: true),
             Route("plain.sev", https: false),
             Route("noredirect.sev", https: true, redirect: false),
         ]);
@@ -105,7 +105,7 @@ public sealed class ProxyHttpsTests : IAsyncLifetime
     public async Task Serves_https_over_http2_with_forwarded_proto()
     {
         using var client = new HttpClient(Handler());
-        using var request = new HttpRequestMessage(HttpMethod.Get, Https("callfred.sev", "/echo"))
+        using var request = new HttpRequestMessage(HttpMethod.Get, Https("meuapp.sev", "/echo"))
         {
             Version = HttpVersion.Version20,
             VersionPolicy = HttpVersionPolicy.RequestVersionExact,
@@ -146,10 +146,10 @@ public sealed class ProxyHttpsTests : IAsyncLifetime
     {
         using var client = new HttpClient(Handler());
 
-        using var response = await client.GetAsync(Http("callfred.sev", "/x?y=1"));
+        using var response = await client.GetAsync(Http("meuapp.sev", "/x?y=1"));
 
         Assert.Equal(HttpStatusCode.TemporaryRedirect, response.StatusCode);
-        Assert.Equal(Https("callfred.sev", "/x?y=1"), response.Headers.Location);
+        Assert.Equal(Https("meuapp.sev", "/x?y=1"), response.Headers.Location);
         var logged = _log.Since(-1)[^1];
         Assert.Equal((307, true, "http"), (logged.Status, logged.FromProxy, logged.Scheme));
     }
@@ -171,8 +171,8 @@ public sealed class ProxyHttpsTests : IAsyncLifetime
     {
         using var client = new HttpClient(Handler());
 
-        using var secure = await client.GetAsync(Https("callfred.sev", "/echo"));
-        using var redirect = await client.GetAsync(Http("callfred.sev"));
+        using var secure = await client.GetAsync(Https("meuapp.sev", "/echo"));
+        using var redirect = await client.GetAsync(Http("meuapp.sev"));
         using var notFound = await client.GetAsync(Http("nothere.sev"));
 
         Assert.All(new[] { secure, redirect, notFound }, r => Assert.False(r.Headers.Contains("Strict-Transport-Security")));
@@ -183,7 +183,7 @@ public sealed class ProxyHttpsTests : IAsyncLifetime
     {
         using var socket = new ClientWebSocket();
         using var invoker = new HttpMessageInvoker(Handler());
-        await socket.ConnectAsync(new Uri($"wss://callfred.sev:{_httpsPort}/ws"), invoker, CancellationToken.None);
+        await socket.ConnectAsync(new Uri($"wss://meuapp.sev:{_httpsPort}/ws"), invoker, CancellationToken.None);
 
         await socket.SendAsync("hmr"u8.ToArray(), WebSocketMessageType.Text, true, CancellationToken.None);
         var buffer = new byte[64];
@@ -200,7 +200,7 @@ public sealed class ProxyHttpsTests : IAsyncLifetime
         _ca = CertificateAuthority.Create(["sev"], TimeProvider.System);
 
         using var client = new HttpClient(Handler(cert => presented = cert));
-        using var response = await client.GetAsync(Https("callfred.sev", "/echo"));
+        using var response = await client.GetAsync(Https("meuapp.sev", "/echo"));
 
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         Assert.Equal(_ca.Certificate.Subject, presented!.Issuer);
@@ -216,7 +216,7 @@ public sealed class ProxyHttpsTests : IAsyncLifetime
         try
         {
             var httpPort = TestBackend.FreePort();
-            await other.StartAsync(httpPort, busyPort, [Route("callfred.sev", https: true)]);
+            await other.StartAsync(httpPort, busyPort, [Route("meuapp.sev", https: true)]);
 
             Assert.Equal(ProxyState.Running, other.Status.State);
             Assert.Equal(ProxyState.PortInUse, other.HttpsStatus.State);

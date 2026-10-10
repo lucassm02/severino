@@ -8,7 +8,7 @@ namespace Severino.Helper;
 /// <summary>Severino's NRPT rules: one per suffix, pointing at the wildcard DNS server.</summary>
 public interface INrptRules
 {
-    /// <summary>Leaves exactly these suffixes (".callfred.sev") among the rules commented "Severino".</summary>
+    /// <summary>Leaves exactly these suffixes (".meuapp.sev") among the rules commented "Severino".</summary>
     void Apply(IReadOnlyCollection<string> namespaces);
 }
 

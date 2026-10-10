@@ -54,10 +54,10 @@ public sealed class CertificateAuthorityTests : IDisposable
     [Fact]
     public void Leaf_has_san_server_auth_and_chains_to_the_root()
     {
-        using var leaf = _ca.IssueLeaf("callfred.sev", TimeProvider.System);
+        using var leaf = _ca.IssueLeaf("meuapp.sev", TimeProvider.System);
 
         Assert.True(leaf.HasPrivateKey);
-        Assert.Equal("callfred.sev", leaf.GetNameInfo(X509NameType.DnsName, forIssuer: false));
+        Assert.Equal("meuapp.sev", leaf.GetNameInfo(X509NameType.DnsName, forIssuer: false));
         Assert.Contains(leaf.Extensions.OfType<X509EnhancedKeyUsageExtension>().Single().EnhancedKeyUsages.Cast<Oid>(), o => o.Value == "1.3.6.1.5.5.7.3.1");
         Assert.Equal(X509KeyUsageFlags.DigitalSignature, leaf.Extensions.OfType<X509KeyUsageExtension>().Single().KeyUsages);
         Assert.InRange((leaf.NotAfter - DateTime.Now).TotalDays, 395, 397);
@@ -92,7 +92,7 @@ public sealed class CertificateAuthorityTests : IDisposable
     {
         var nearExpiry = new FixedTime(_ca.NotAfter.AddDays(-10));
 
-        using var leaf = _ca.IssueLeaf("callfred.sev", nearExpiry);
+        using var leaf = _ca.IssueLeaf("meuapp.sev", nearExpiry);
 
         Assert.True(leaf.NotAfter <= _ca.NotAfter);
     }
@@ -100,7 +100,7 @@ public sealed class CertificateAuthorityTests : IDisposable
     [Fact]
     public async Task Leaf_works_as_a_server_certificate_in_schannel()
     {
-        using var leaf = _ca.IssueLeaf("callfred.sev", TimeProvider.System);
+        using var leaf = _ca.IssueLeaf("meuapp.sev", TimeProvider.System);
         var listener = new TcpListener(IPAddress.Loopback, 0);
         listener.Start();
         try
@@ -114,7 +114,7 @@ public sealed class CertificateAuthorityTests : IDisposable
             using var client = new TcpClient();
             await client.ConnectAsync(IPAddress.Loopback, ((IPEndPoint)listener.LocalEndpoint).Port);
             await using var clientSsl = new SslStream(client.GetStream(), false, (_, cert, _, _) => cert is not null && Chain(X509CertificateLoader.LoadCertificate(cert.GetRawCertData())) == "VALID");
-            await clientSsl.AuthenticateAsClientAsync("callfred.sev");
+            await clientSsl.AuthenticateAsClientAsync("meuapp.sev");
             await server;
 
             Assert.True(clientSsl.IsAuthenticated);

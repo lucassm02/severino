@@ -13,9 +13,9 @@ public sealed partial class SettingsViewModel
         Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), "WindowsPowerShell", "Modules", "Severino", "Severino.psd1");
 
     public string TerminalExamples =>
-        "New-SeverinoRoute api.sev http://localhost:8080 -Https -Group callfred\n" +
+        "New-SeverinoRoute api.sev http://localhost:8080 -Https -Group meuapp\n" +
         "Set-SeverinoDns sql.interno 10.0.0.8\n" +
-        "Disable-SeverinoRoute -Group callfred";
+        "Disable-SeverinoRoute -Group meuapp";
 
     public string TerminalStatus => File.Exists(ModulePath)
         ? "Instalado. Com o app aberto, qualquer PowerShell usa os comandos, com as mesmas regras das telas. Get-Command -Module Severino lista todos."

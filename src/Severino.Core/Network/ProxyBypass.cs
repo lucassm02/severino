@@ -34,7 +34,7 @@ public static partial class ProxyBypass
 
     /// <summary>
     /// WinINet's rules: case-insensitive, '*' matches anything, and the special <c>&lt;local&gt;</c>
-    /// matches names without a dot only, so not "callfred.sev".
+    /// matches names without a dot only, so not "meuapp.sev".
     /// </summary>
     public static bool Matches(string entry, string host)
     {

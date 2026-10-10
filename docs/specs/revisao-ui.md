@@ -48,8 +48,8 @@ Dois níveis. O primeiro é só ajuste e resolve os itens 4 a 8. O segundo inclu
 
 **Rotas e editor de rota**
 
-- O endereço vira um campo só: `callfred.sev/api` no campo do domínio já cria a rota com caminho. "Tirar o caminho antes de repassar" aparece logo abaixo, só quando houver caminho. O campo Caminho separado deixa de existir.
-- Uma dica sob o campo: "Use *.callfred.sev para atender qualquer nome abaixo dele."
+- O endereço vira um campo só: `meuapp.sev/api` no campo do domínio já cria a rota com caminho. "Tirar o caminho antes de repassar" aparece logo abaixo, só quando houver caminho. O campo Caminho separado deixa de existir.
+- Uma dica sob o campo: "Use *.meuapp.sev para atender qualquer nome abaixo dele."
 - Grupo sai do Avançado e vira um campo opcional visível.
 - HTTPS vira uma linha só: "Usar HTTPS" e, abaixo, "Redirecionar HTTP para HTTPS".
 - O Avançado fica com o que é raro: preservar o Host, ignorar certificado inválido e observações.
@@ -148,7 +148,7 @@ Cada bloco sai num commit próprio, com testes nos view models e as telas render
 ## Decisões
 
 1. Nível 2, que inclui o nível 1.
-2. O caminho vai no campo do endereço (`callfred.sev/api`).
+2. O caminho vai no campo do endereço (`meuapp.sev/api`).
 3. Linhas de fora do hosts: selo discreto na lista; os avisos fortes ficam no editor e na confirmação.
 4. O Backup completo entra agora e substitui o export só de rotas. O arquivo antigo, só com rotas, continua sendo lido.
 

@@ -111,7 +111,7 @@ public sealed class SystemCleanupTests : IDisposable
         autoStart.Enable();
 
         SetProxy(true, "proxy.empresa:8080", "<local>");
-        SetRoutes("callfred.sev");
+        SetRoutes("meuapp.sev");
         await _proxy.AddExceptionsAsync();
 
         var result = new SystemCleanup(ca, autoStart, _proxy).Run();
@@ -150,7 +150,7 @@ public sealed class SystemCleanupTests : IDisposable
     public async Task Exceptions_are_added_once_and_removed_without_touching_the_company_ones()
     {
         SetProxy(true, "proxy.empresa:8080", "<local>;*.empresa.local");
-        SetRoutes("callfred.sev", "api.sev", "api.empresa.com");
+        SetRoutes("meuapp.sev", "api.sev", "api.empresa.com");
         Assert.Equal(3, _proxy.Uncovered().Count);
 
         var added = await _proxy.AddExceptionsAsync();
@@ -169,7 +169,7 @@ public sealed class SystemCleanupTests : IDisposable
     public async Task An_entry_the_company_already_had_is_not_claimed()
     {
         SetProxy(true, "proxy.empresa:8080", "*.sev");
-        SetRoutes("callfred.sev", "api.empresa.com");
+        SetRoutes("meuapp.sev", "api.empresa.com");
 
         await _proxy.AddExceptionsAsync();
         _proxy.RemoveAddedExceptions();

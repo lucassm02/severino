@@ -32,11 +32,11 @@ public sealed class HostsFileTests : IDisposable
         var original = Encoding.Latin1.GetBytes("# comentário em Latin-1\r\n");
         File.WriteAllBytes(_path, original);
 
-        Assert.True(_hosts.Write(["callfred.sev"]));
+        Assert.True(_hosts.Write(["meuapp.sev"]));
 
         var written = File.ReadAllBytes(_path);
         Assert.Equal(original, written[..original.Length]);
-        Assert.Contains("127.0.0.1  callfred.sev", Encoding.ASCII.GetString(written));
+        Assert.Contains("127.0.0.1  meuapp.sev", Encoding.ASCII.GetString(written));
         Assert.Equal(original, File.ReadAllBytes(_hosts.BackupPath));
         Assert.Equal(1, _flushes);
     }

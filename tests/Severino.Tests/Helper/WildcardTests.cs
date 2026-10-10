@@ -53,15 +53,15 @@ public sealed class WildcardTests : IDisposable
     [Fact]
     public void The_responder_answers_the_most_specific_wildcard_at_any_depth()
     {
-        _table.Set([new HostEntry("*.callfred.sev", "127.0.0.1"), new HostEntry("*.callfred.sev", "::1"), new HostEntry("*.dev.callfred.sev", "10.0.0.5")]);
+        _table.Set([new HostEntry("*.meuapp.sev", "127.0.0.1"), new HostEntry("*.meuapp.sev", "::1"), new HostEntry("*.dev.meuapp.sev", "10.0.0.5")]);
 
-        Assert.Equal([IPAddress.Loopback], Read(DnsResponder.Answer(Query("a.b.callfred.sev", 1), _table.Lookup)!).Addresses);
-        Assert.Equal([IPAddress.IPv6Loopback], Read(DnsResponder.Answer(Query("cliente42.callfred.sev", 28), _table.Lookup)!).Addresses);
-        Assert.Equal([IPAddress.Parse("10.0.0.5")], Read(DnsResponder.Answer(Query("x.dev.callfred.sev", 1), _table.Lookup)!).Addresses);
-        var mx = Read(DnsResponder.Answer(Query("x.callfred.sev", 15), _table.Lookup)!); // MX: the name exists, no data
+        Assert.Equal([IPAddress.Loopback], Read(DnsResponder.Answer(Query("a.b.meuapp.sev", 1), _table.Lookup)!).Addresses);
+        Assert.Equal([IPAddress.IPv6Loopback], Read(DnsResponder.Answer(Query("cliente42.meuapp.sev", 28), _table.Lookup)!).Addresses);
+        Assert.Equal([IPAddress.Parse("10.0.0.5")], Read(DnsResponder.Answer(Query("x.dev.meuapp.sev", 1), _table.Lookup)!).Addresses);
+        var mx = Read(DnsResponder.Answer(Query("x.meuapp.sev", 15), _table.Lookup)!); // MX: the name exists, no data
         Assert.Equal(0, mx.Rcode);
         Assert.Empty(mx.Addresses);
-        Assert.Equal(3, Read(DnsResponder.Answer(Query("callfred.sev", 1), _table.Lookup)!).Rcode); // the base is not covered
+        Assert.Equal(3, Read(DnsResponder.Answer(Query("meuapp.sev", 1), _table.Lookup)!).Rcode); // the base is not covered
         Assert.Equal(3, Read(DnsResponder.Answer(Query("outro.sev", 1), _table.Lookup)!).Rcode);
         Assert.Null(DnsResponder.Answer([1, 2, 3], _table.Lookup));
     }
@@ -71,32 +71,32 @@ public sealed class WildcardTests : IDisposable
     {
         var wildcards = NewWildcards();
 
-        var pending = wildcards.SetRoutes([new HostEntry("*.callfred.sev", "127.0.0.1")]);
+        var pending = wildcards.SetRoutes([new HostEntry("*.meuapp.sev", "127.0.0.1")]);
 
         Assert.Single(pending);
-        Assert.Null(_table.Lookup("x.callfred.sev"));
+        Assert.Null(_table.Lookup("x.meuapp.sev"));
         Assert.Empty(_nrpt.Applied[^1]);
 
-        _approvals.Approve([new HostEntry("*.callfred.sev", WildcardDnsAddress.Server)]);
-        Assert.Empty(wildcards.SetRoutes([new HostEntry("*.callfred.sev", "127.0.0.1")]));
-        Assert.Equal([".callfred.sev"], _nrpt.Applied[^1]);
-        Assert.NotNull(_table.Lookup("x.callfred.sev"));
+        _approvals.Approve([new HostEntry("*.meuapp.sev", WildcardDnsAddress.Server)]);
+        Assert.Empty(wildcards.SetRoutes([new HostEntry("*.meuapp.sev", "127.0.0.1")]));
+        Assert.Equal([".meuapp.sev"], _nrpt.Applied[^1]);
+        Assert.NotNull(_table.Lookup("x.meuapp.sev"));
     }
 
     [Fact]
     public void Dns_wildcards_survive_a_restart_and_route_ones_do_not()
     {
-        _approvals.Approve([new HostEntry("*.dev.interno", WildcardDnsAddress.Server), new HostEntry("*.callfred.sev", WildcardDnsAddress.Server)]);
+        _approvals.Approve([new HostEntry("*.dev.interno", WildcardDnsAddress.Server), new HostEntry("*.meuapp.sev", WildcardDnsAddress.Server)]);
         var first = NewWildcards();
         first.SetDns([new HostEntry("*.dev.interno", "10.0.0.5")]);
-        first.SetRoutes([new HostEntry("*.callfred.sev", "127.0.0.1")]);
-        Assert.Equal([".callfred.sev", ".dev.interno"], _nrpt.Applied[^1]);
+        first.SetRoutes([new HostEntry("*.meuapp.sev", "127.0.0.1")]);
+        Assert.Equal([".dev.interno", ".meuapp.sev"], _nrpt.Applied[^1]);
 
         var table = new WildcardTable();
         new Wildcards(table, _nrpt, _approvals, NullLogger<Wildcards>.Instance, _state).Load();
 
         Assert.Equal([IPAddress.Parse("10.0.0.5")], table.Lookup("x.dev.interno"));
-        Assert.Null(table.Lookup("x.callfred.sev"));
+        Assert.Null(table.Lookup("x.meuapp.sev"));
         Assert.Equal([".dev.interno"], _nrpt.Applied[^1]);
     }
 
@@ -118,12 +118,12 @@ public sealed class WildcardTests : IDisposable
         var hosts = new RecordingHosts();
         var handler = new HelperRequestHandler(hosts, _approvals, NullLogger<HelperRequestHandler>.Instance, wildcards: NewWildcards());
 
-        var response = handler.Handle(HelperProtocol.Serialize(HelperRequest.Sync([new HostEntry("*.callfred.sev", "127.0.0.1"), new HostEntry("callfred.sev", "127.0.0.1")])));
+        var response = handler.Handle(HelperProtocol.Serialize(HelperRequest.Sync([new HostEntry("*.meuapp.sev", "127.0.0.1"), new HostEntry("meuapp.sev", "127.0.0.1")])));
 
         Assert.True(response.Ok);
-        Assert.Equal([new HostEntry("callfred.sev", "127.0.0.1")], hosts.Routes);
-        Assert.Equal([new HostEntry("*.callfred.sev", "127.0.0.1")], response.Pending);
-        Assert.False(handler.Handle(HelperProtocol.Serialize(HelperRequest.Sync([new HostEntry("*.callfred.sev", "10.0.0.5")]))).Ok); // routes stay loopback
+        Assert.Equal([new HostEntry("meuapp.sev", "127.0.0.1")], hosts.Routes);
+        Assert.Equal([new HostEntry("*.meuapp.sev", "127.0.0.1")], response.Pending);
+        Assert.False(handler.Handle(HelperProtocol.Serialize(HelperRequest.Sync([new HostEntry("*.meuapp.sev", "10.0.0.5")]))).Ok); // routes stay loopback
         Assert.False(handler.Handle(HelperProtocol.Serialize(HelperRequest.Sync([new HostEntry("*.sev", "127.0.0.1")]))).Ok); // never a whole TLD
     }
 

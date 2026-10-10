@@ -15,7 +15,7 @@ public sealed class CaCoverageTests
     [Fact]
     public void Missing_tld_is_covered_whole_and_real_tld_by_exact_name()
     {
-        var names = CaCoverage.Compute(["callfred.sev", "api.empresa.com"], Known);
+        var names = CaCoverage.Compute(["meuapp.sev", "api.empresa.com"], Known);
 
         Assert.Equal(["api.empresa.com", "sev"], names);
     }

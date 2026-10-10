@@ -104,7 +104,7 @@ public sealed class RequestLogProxyTests : IAsyncLifetime
         _port = TestBackend.FreePort();
         await _proxy.StartAsync(_port,
         [
-            new RouteEntry { Domain = "callfred.sev", Target = $"http://127.0.0.1:{_backendPort}" },
+            new RouteEntry { Domain = "meuapp.sev", Target = $"http://127.0.0.1:{_backendPort}" },
             new RouteEntry { Domain = "fora.sev", Target = $"http://127.0.0.1:{TestBackend.FreePort()}" },
         ]);
     }
@@ -129,7 +129,7 @@ public sealed class RequestLogProxyTests : IAsyncLifetime
     public async Task Records_forwarded_and_proxy_answers()
     {
         using var client = Client();
-        await client.GetAsync($"http://callfred.sev:{_port}/echo?x=1");
+        await client.GetAsync($"http://meuapp.sev:{_port}/echo?x=1");
         await client.GetAsync($"http://nada.sev:{_port}/");
         await client.GetAsync($"http://fora.sev:{_port}/");
 
@@ -138,8 +138,8 @@ public sealed class RequestLogProxyTests : IAsyncLifetime
         Assert.Collection(entries,
             e =>
             {
-                Assert.Equal(("callfred.sev", "/echo?x=1", 200, false), (e.Host, e.PathAndQuery, e.Status, e.FromProxy));
-                Assert.Equal($"callfred.sev:{_port}", e.Authority);
+                Assert.Equal(("meuapp.sev", "/echo?x=1", 200, false), (e.Host, e.PathAndQuery, e.Status, e.FromProxy));
+                Assert.Equal($"meuapp.sev:{_port}", e.Authority);
                 Assert.NotNull(e.Duration);
             },
             e => Assert.Equal(("nada.sev", 404, true), (e.Host, e.Status, e.FromProxy)),
@@ -159,7 +159,7 @@ public sealed class RequestLogProxyTests : IAsyncLifetime
                 return new NetworkStream(s, ownsSocket: true);
             },
         });
-        await socket.ConnectAsync(new Uri($"ws://callfred.sev:{_port}/ws"), invoker, CancellationToken.None);
+        await socket.ConnectAsync(new Uri($"ws://meuapp.sev:{_port}/ws"), invoker, CancellationToken.None);
 
         var open = Assert.Single(_log.Since(-1));
         Assert.True(open.IsWebSocket);

@@ -39,7 +39,7 @@ public sealed class TrayMenuTests
             menu.IsOpen = true;
             menu.Dispatcher.Invoke(() => { }, DispatcherPriority.ApplicationIdle);
             var container = (MenuItem)menu.ItemContainerGenerator.ContainerFromItem(route);
-            Assert.Equal("callfred.sev", container.Header);
+            Assert.Equal("meuapp.sev", container.Header);
             Assert.Same(route.Open, container.Command);
             menu.IsOpen = false;
         });
@@ -74,6 +74,6 @@ public sealed class TrayMenuTests
         public string PauseLabel => "Pausar";
         public string ToolTip => "Severino · tudo certo";
         public bool HasNoRoutes => false;
-        public ObservableCollection<TrayRoute> Routes { get; } = [new("callfred.sev", new RelayCommand(() => { }))];
+        public ObservableCollection<TrayRoute> Routes { get; } = [new("meuapp.sev", new RelayCommand(() => { }))];
     }
 }

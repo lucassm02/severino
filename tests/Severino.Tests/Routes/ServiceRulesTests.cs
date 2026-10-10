@@ -44,10 +44,10 @@ public sealed class ServiceRulesTests
     public void A_name_already_routed_elsewhere_is_refused()
     {
         var other = Service("127.77.0.3", "redis");
-        var web = new RouteEntry { Domain = "Callfred.sev", Target = "http://localhost:3000" };
+        var web = new RouteEntry { Domain = "Meuapp.sev", Target = "http://localhost:3000" };
 
         Assert.Equal("redis já está em outra rota.", ServiceRules.Validate(Service(names: ["redis"]), [other], []).Error);
-        Assert.Equal("callfred.sev já está em outra rota.", ServiceRules.Validate(Service(names: ["callfred.sev"]), [], [web]).Error);
+        Assert.Equal("meuapp.sev já está em outra rota.", ServiceRules.Validate(Service(names: ["meuapp.sev"]), [], [web]).Error);
         // Editing a route does not clash with itself.
         Assert.Null(ServiceRules.Validate(other, [other], []).Error);
     }
@@ -80,7 +80,7 @@ public sealed class ServiceRulesTests
     {
         var config = new SeverinoConfig
         {
-            Routes = [new RouteEntry { Domain = "callfred.sev", Target = "http://localhost:24600" }],
+            Routes = [new RouteEntry { Domain = "meuapp.sev", Target = "http://localhost:24600" }],
             Services =
             [
                 Service("127.77.0.2", "algarbffapi", "algarbffapi.staging"),
@@ -90,7 +90,7 @@ public sealed class ServiceRulesTests
 
         Assert.Equal(
         [
-            new HostEntry("callfred.sev", "127.0.0.1"), new HostEntry("callfred.sev", "::1"),
+            new HostEntry("meuapp.sev", "127.0.0.1"), new HostEntry("meuapp.sev", "::1"),
             new HostEntry("algarbffapi", "127.77.0.2"), new HostEntry("algarbffapi.staging", "127.77.0.2"),
         ], HostsEntries.For(config));
     }

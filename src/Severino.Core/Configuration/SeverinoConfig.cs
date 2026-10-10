@@ -90,7 +90,7 @@ public sealed record RouteEntry
     /// <summary>Sends "/api/pedidos" to the target as "/pedidos".</summary>
     public bool StripPath { get; set; }
 
-    /// <summary>A label shared by routes switched on and off together, like "callfred"; empty for none.</summary>
+    /// <summary>A label shared by routes switched on and off together, like "meuapp"; empty for none.</summary>
     public string Group { get; set; } = "";
 }
 

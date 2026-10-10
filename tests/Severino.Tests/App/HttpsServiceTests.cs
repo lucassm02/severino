@@ -183,7 +183,7 @@ public sealed class HttpsServiceTests : IDisposable
         var form = Editor();
         form.Https = false;
 
-        form.Domain = "callfred.dev";
+        form.Domain = "meuapp.dev";
 
         Assert.True(form.Https);
         Assert.False(form.CanToggleHttps);

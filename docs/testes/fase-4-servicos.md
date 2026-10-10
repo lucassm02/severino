@@ -28,13 +28,13 @@ Cada teste diz o que fazer, o que tem de acontecer e qual critério ele prova. A
    ```
 
 3. **VPN conectada.** Com ela ligada, o GitHub não responde nesta máquina; faça qualquer push antes.
-4. **Distro rodando** com o container do callfred de pé:
+4. **Distro rodando** com o container do meuapp de pé:
 
    ```powershell
    wsl -d Ubuntu-22.04 -- docker ps --format "{{.Names}} {{.Ports}}"
    ```
 
-   Esperado: `callfred-orchestrator-1 0.0.0.0:24600->4000/tcp` (o nome pode variar).
+   Esperado: `meuapp-orchestrator-1 0.0.0.0:24600->4000/tcp` (o nome pode variar).
 5. **Referência direta**, para comparar depois. No **PowerShell**:
 
    ```powershell
@@ -62,7 +62,7 @@ Prova o critério 1.
    - **Endereço do cluster** em `192.168.203.100`.
 2. Na lista, confira:
    - `postgres  database · NodePort` com `5432 → 192.168.203.100:30711` e os quatro nomes, de `postgres` a `postgres.database.svc.cluster.local`;
-   - `orchestrator  callfred · Docker` com `4000 → 127.0.0.1:24600`;
+   - `orchestrator  meuapp · Docker` com `4000 → 127.0.0.1:24600`;
    - `kubernetes  default · ClusterIP` apagado, sem caixa, com "Só ClusterIP: não tem acesso de fora do cluster.";
    - services sem pods com o aviso laranja "Nenhum pod pronto agora".
 3. **Filtros.** Escolha o namespace `staging`. Busque `algar`. Esperado: só os services do `staging` com "algar" no nome. O rodapé diz "0 de N marcados · M na lista".
@@ -82,7 +82,7 @@ A parte do Docker Desktop visto do Windows e das distros não se aplica: esta m�
 
 Prova os critérios 4 e 5.
 
-1. Importar serviços. Em `staging`, marque `algaractivationmicroservice`. Em `database`, marque `postgres`. Em `callfred`, marque `orchestrator`. Esperado: o botão mostra **Importar 3**.
+1. Importar serviços. Em `staging`, marque `algaractivationmicroservice`. Em `database`, marque `postgres`. Em `meuapp`, marque `orchestrator`. Esperado: o botão mostra **Importar 3**.
 2. **Importar 3**. Esperado:
    - o aviso "3 serviços importados. Apps no WSL · Ubuntu-22.04 também chamam pelos nomes.";
    - na aba **Serviços**, dois grupos: "Kubernetes · kubernetes-admin@kubernetes · WSL · Ubuntu-22.04" e "Docker · WSL · Ubuntu-22.04";
@@ -155,11 +155,11 @@ Prova o item do checklist "a distro reiniciada mantém o bloco".
    Esperado: Configurações › WSL mostra "Parada. Recebe os nomes quando iniciar." em até 10 s.
 2. Abra a distro de novo (`wsl -d Ubuntu-22.04`). Em até 10 s, rode no **WSL** os comandos do teste 4, passo 2. Esperado: tudo funciona, sem você fazer nada no Severino.
 
-O container do callfred volta junto se ele tiver `restart: unless-stopped` no Compose. Se não voltar, suba-o antes de testar o `orchestrator`.
+O container do meuapp volta junto se ele tiver `restart: unless-stopped` no Compose. Se não voltar, suba-o antes de testar o `orchestrator`.
 
 ## 6. Atualizar
 
-Prova o critério 7. Usa um container de teste para não mexer no callfred.
+Prova o critério 7. Usa um container de teste para não mexer no meuapp.
 
 1. No **WSL**:
 

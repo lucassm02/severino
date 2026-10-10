@@ -18,9 +18,9 @@ public sealed class HostsBlockTests
     [Fact]
     public void Appends_block_to_file_without_one()
     {
-        var merged = HostsBlock.Merge(Original, ["callfred.sev"]);
+        var merged = HostsBlock.Merge(Original, ["meuapp.sev"]);
 
-        Assert.Equal(Original + Block("callfred.sev"), merged);
+        Assert.Equal(Original + Block("meuapp.sev"), merged);
     }
 
     [Fact]

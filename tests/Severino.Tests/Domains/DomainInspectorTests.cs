@@ -7,7 +7,7 @@ public sealed class DomainInspectorTests
 {
     [Theory]
     [InlineData("app.dev")]
-    [InlineData("callfred.app")]
+    [InlineData("meuapp.app")]
     public void Hsts_preloaded_tld_warns(string domain)
     {
         var warning = Assert.Single(new DomainInspector(new FakeDns()).CheckLocal(domain));
@@ -22,7 +22,7 @@ public sealed class DomainInspectorTests
     }
 
     [Theory]
-    [InlineData("callfred.sev")]
+    [InlineData("meuapp.sev")]
     [InlineData("app.devel.sev")]
     public void Ordinary_tld_has_no_local_warnings(string domain)
     {
@@ -45,7 +45,7 @@ public sealed class DomainInspectorTests
     {
         var inspector = new DomainInspector(new FakeDns(new(DnsLookupOutcome.NotFound)));
 
-        Assert.Null(await inspector.CheckInternetAsync("callfred.sev", CancellationToken.None));
+        Assert.Null(await inspector.CheckInternetAsync("meuapp.sev", CancellationToken.None));
     }
 
     [Fact]

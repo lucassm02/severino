@@ -7,16 +7,16 @@ public sealed class ProxyBypassTests
 {
     [Theory]
     [InlineData("<local>", "intranet", true)]
-    [InlineData("<local>", "callfred.sev", false)] // the trap: <local> skips only names without a dot
-    [InlineData("*.sev", "callfred.sev", true)]
-    [InlineData("*.sev", "api.callfred.sev", true)]
+    [InlineData("<local>", "meuapp.sev", false)] // the trap: <local> skips only names without a dot
+    [InlineData("*.sev", "meuapp.sev", true)]
+    [InlineData("*.sev", "api.meuapp.sev", true)]
     [InlineData("*.sev", "sev", false)]
-    [InlineData("*.SEV", "CallFred.sev", true)]
+    [InlineData("*.SEV", "MeuApp.sev", true)]
     [InlineData("api.empresa.com", "api.empresa.com", true)]
     [InlineData("api.empresa.com", "xapi.empresa.com", false)]
-    [InlineData("http://callfred.sev", "callfred.sev", true)]
-    [InlineData("callfred.sev:80", "callfred.sev", true)]
-    [InlineData("10.*", "callfred.sev", false)]
+    [InlineData("http://meuapp.sev", "meuapp.sev", true)]
+    [InlineData("meuapp.sev:80", "meuapp.sev", true)]
+    [InlineData("10.*", "meuapp.sev", false)]
     public void Matches_like_wininet(string entry, string host, bool expected)
     {
         Assert.Equal(expected, ProxyBypass.Matches(entry, host));
@@ -25,20 +25,20 @@ public sealed class ProxyBypassTests
     [Fact]
     public void Only_a_fixed_proxy_that_is_on_takes_domains()
     {
-        string[] domains = ["callfred.sev", "api.sev", "intranet"];
+        string[] domains = ["meuapp.sev", "api.sev", "intranet"];
 
         Assert.Empty(ProxyBypass.Uncovered(new(false, "127.0.0.1:5559", null, null), domains)); // filled in but off
         Assert.Empty(ProxyBypass.Uncovered(new(true, "", null, null), domains));
         Assert.Empty(ProxyBypass.Uncovered(new(false, null, null, "http://wpad/proxy.pac"), domains)); // a script decides alone
 
         var taken = ProxyBypass.Uncovered(new(true, "proxy.empresa:8080", "<local>;api.sev", null), domains);
-        Assert.Equal(["callfred.sev"], taken);
+        Assert.Equal(["meuapp.sev"], taken);
     }
 
     [Fact]
     public void Entries_cover_a_whole_tld_that_does_not_exist()
     {
-        var entries = ProxyBypass.EntriesFor(["callfred.sev", "api.sev", "api.empresa.com"], tld => tld == "com");
+        var entries = ProxyBypass.EntriesFor(["meuapp.sev", "api.sev", "api.empresa.com"], tld => tld == "com");
 
         Assert.Equal(["*.sev", "api.empresa.com"], entries.Order(StringComparer.Ordinal));
     }

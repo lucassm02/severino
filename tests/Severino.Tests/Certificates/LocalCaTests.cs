@@ -78,7 +78,7 @@ public sealed class LocalCaTests : IDisposable
     {
         _ca.Activate(["sev"]);
 
-        Assert.NotNull(_ca.CertificateFor("callfred.sev"));
+        Assert.NotNull(_ca.CertificateFor("meuapp.sev"));
         Assert.Null(_ca.CertificateFor("banco.com.br"));
     }
 

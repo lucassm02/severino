@@ -48,7 +48,7 @@ public sealed class HostsTextTests
         "192.168.1.5 host.docker.internal\r\n" +
         "# End of section\r\n" +
         "# >>> Severino managed block (do not edit)\r\n" +
-        "127.0.0.1  callfred.sev\r\n" +
+        "127.0.0.1  meuapp.sev\r\n" +
         "# <<< Severino\r\n" +
         "# >>> Severino DNS (do not edit)\r\n" +
         "10.0.0.20  api.interno\r\n" +
@@ -97,7 +97,7 @@ public sealed class HostsTextTests
     [Fact]
     public void Lines_inside_the_blocks_and_missing_lines_cannot_be_edited()
     {
-        Assert.Null(HostsText.ReplaceLine(Sample, "127.0.0.1  callfred.sev", "127.0.0.1  outro.sev", When));
+        Assert.Null(HostsText.ReplaceLine(Sample, "127.0.0.1  meuapp.sev", "127.0.0.1  outro.sev", When));
         Assert.Null(HostsText.ReplaceLine(Sample, "10.0.0.20  api.interno", "10.0.0.21  api.interno", When));
         Assert.Null(HostsText.ReplaceLine(Sample, "10.0.0.99 nao.existe", "10.0.0.1 x", When));
     }
@@ -109,7 +109,7 @@ public sealed class HostsTextTests
         var routesEmptied = HostsBlock.Merge(withDns, Array.Empty<HostEntry>());
 
         Assert.Contains("10.0.0.21  api.interno", routesEmptied);
-        Assert.DoesNotContain("callfred.sev", routesEmptied);
+        Assert.DoesNotContain("meuapp.sev", routesEmptied);
         Assert.Contains("# >>> Severino DNS (do not edit)", routesEmptied);
         Assert.Contains("10.0.0.8 sql.interno sql # banco", routesEmptied);
         Assert.Equal(routesEmptied, HostsBlock.Merge(routesEmptied, Array.Empty<HostEntry>()));

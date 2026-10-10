@@ -30,7 +30,7 @@ public sealed class ProxyServerTests : IAsyncLifetime
         _backendPort = TestBackend.PortOf(_backend);
         _proxyPort = FreePort();
         _client = new HttpClient(Handler());
-        await _proxy.StartAsync(_proxyPort, [Route("callfred.sev", $"http://127.0.0.1:{_backendPort}")]);
+        await _proxy.StartAsync(_proxyPort, [Route("meuapp.sev", $"http://127.0.0.1:{_backendPort}")]);
         Assert.Equal(ProxyState.Running, _proxy.Status.State);
     }
 
@@ -60,10 +60,10 @@ public sealed class ProxyServerTests : IAsyncLifetime
     [Fact]
     public async Task Routes_by_host_and_rewrites_host_header_by_default()
     {
-        var body = await _client.GetStringAsync(Url("callfred.sev", "/echo"));
+        var body = await _client.GetStringAsync(Url("meuapp.sev", "/echo"));
 
         Assert.Contains($"host=127.0.0.1:{_backendPort}", body);
-        Assert.Contains($"x-forwarded-host=callfred.sev:{_proxyPort}", body);
+        Assert.Contains($"x-forwarded-host=meuapp.sev:{_proxyPort}", body);
         Assert.Contains("x-forwarded-proto=http", body);
         Assert.Contains("x-forwarded-for=127.0.0.1", body);
     }
@@ -71,11 +71,11 @@ public sealed class ProxyServerTests : IAsyncLifetime
     [Fact]
     public async Task Preserve_host_keeps_original_host()
     {
-        _proxy.UpdateRoutes([Route("callfred.sev", $"http://127.0.0.1:{_backendPort}", preserveHost: true)]);
+        _proxy.UpdateRoutes([Route("meuapp.sev", $"http://127.0.0.1:{_backendPort}", preserveHost: true)]);
 
-        var body = await _client.GetStringAsync(Url("callfred.sev", "/echo"));
+        var body = await _client.GetStringAsync(Url("meuapp.sev", "/echo"));
 
-        Assert.Contains($"host=callfred.sev:{_proxyPort}", body);
+        Assert.Contains($"host=meuapp.sev:{_proxyPort}", body);
     }
 
     [Fact]
@@ -86,7 +86,7 @@ public sealed class ProxyServerTests : IAsyncLifetime
         Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
         var html = await response.Content.ReadAsStringAsync();
         Assert.Contains("nada.sev", html);
-        Assert.Contains($"http://callfred.sev:{_proxyPort}/", html);
+        Assert.Contains($"http://meuapp.sev:{_proxyPort}/", html);
     }
 
     [Fact]
@@ -108,7 +108,7 @@ public sealed class ProxyServerTests : IAsyncLifetime
     {
         var before = _proxy.Status;
 
-        _proxy.UpdateRoutes([Route("callfred.sev", $"http://127.0.0.1:{_backendPort}"), Route("novo.sev", $"http://127.0.0.1:{_backendPort}")]);
+        _proxy.UpdateRoutes([Route("meuapp.sev", $"http://127.0.0.1:{_backendPort}"), Route("novo.sev", $"http://127.0.0.1:{_backendPort}")]);
 
         Assert.Equal(HttpStatusCode.OK, (await _client.GetAsync(Url("novo.sev", "/echo"))).StatusCode);
         Assert.Same(before, _proxy.Status);
@@ -120,15 +120,15 @@ public sealed class ProxyServerTests : IAsyncLifetime
         var deadPort = TestBackend.FreePort();
         _proxy.UpdateRoutes(
         [
-            Route("*.callfred.sev", $"http://127.0.0.1:{deadPort}"),
-            Route("api.callfred.sev", $"http://127.0.0.1:{_backendPort}"),
+            Route("*.meuapp.sev", $"http://127.0.0.1:{deadPort}"),
+            Route("api.meuapp.sev", $"http://127.0.0.1:{_backendPort}"),
         ]);
 
-        Assert.Equal(HttpStatusCode.OK, (await _client.GetAsync(Url("api.callfred.sev", "/echo"))).StatusCode);
+        Assert.Equal(HttpStatusCode.OK, (await _client.GetAsync(Url("api.meuapp.sev", "/echo"))).StatusCode);
         // The wildcard's target is down: a 502 shows the wildcard route was the one chosen.
-        Assert.Equal(HttpStatusCode.BadGateway, (await _client.GetAsync(Url("cliente42.callfred.sev", "/echo"))).StatusCode);
-        Assert.Equal(HttpStatusCode.BadGateway, (await _client.GetAsync(Url("a.b.callfred.sev", "/echo"))).StatusCode);
-        Assert.Equal(HttpStatusCode.NotFound, (await _client.GetAsync(Url("callfred.sev", "/echo"))).StatusCode);
+        Assert.Equal(HttpStatusCode.BadGateway, (await _client.GetAsync(Url("cliente42.meuapp.sev", "/echo"))).StatusCode);
+        Assert.Equal(HttpStatusCode.BadGateway, (await _client.GetAsync(Url("a.b.meuapp.sev", "/echo"))).StatusCode);
+        Assert.Equal(HttpStatusCode.NotFound, (await _client.GetAsync(Url("meuapp.sev", "/echo"))).StatusCode);
     }
 
     [Fact]
@@ -137,18 +137,18 @@ public sealed class ProxyServerTests : IAsyncLifetime
         var deadPort = TestBackend.FreePort();
         _proxy.UpdateRoutes(
         [
-            Route("callfred.sev", $"http://127.0.0.1:{deadPort}"),
-            new RouteEntry { Domain = "callfred.sev", Path = "/api", Target = $"http://127.0.0.1:{_backendPort}", StripPath = true },
-            new RouteEntry { Domain = "callfred.sev", Path = "/raw", Target = $"http://127.0.0.1:{_backendPort}" },
+            Route("meuapp.sev", $"http://127.0.0.1:{deadPort}"),
+            new RouteEntry { Domain = "meuapp.sev", Path = "/api", Target = $"http://127.0.0.1:{_backendPort}", StripPath = true },
+            new RouteEntry { Domain = "meuapp.sev", Path = "/raw", Target = $"http://127.0.0.1:{_backendPort}" },
         ]);
 
         // /api/echo reaches the backend as /echo.
-        Assert.Equal(HttpStatusCode.OK, (await _client.GetAsync(Url("callfred.sev", "/api/echo"))).StatusCode);
+        Assert.Equal(HttpStatusCode.OK, (await _client.GetAsync(Url("meuapp.sev", "/api/echo"))).StatusCode);
         // /raw keeps its prefix, so the backend sees /raw/echo, which it does not have.
-        Assert.Equal(HttpStatusCode.NotFound, (await _client.GetAsync(Url("callfred.sev", "/raw/echo"))).StatusCode);
+        Assert.Equal(HttpStatusCode.NotFound, (await _client.GetAsync(Url("meuapp.sev", "/raw/echo"))).StatusCode);
         // Anything else is the domain's own route, whose target is down; /apix is not /api.
-        Assert.Equal(HttpStatusCode.BadGateway, (await _client.GetAsync(Url("callfred.sev", "/outra"))).StatusCode);
-        Assert.Equal(HttpStatusCode.BadGateway, (await _client.GetAsync(Url("callfred.sev", "/apix/echo"))).StatusCode);
+        Assert.Equal(HttpStatusCode.BadGateway, (await _client.GetAsync(Url("meuapp.sev", "/outra"))).StatusCode);
+        Assert.Equal(HttpStatusCode.BadGateway, (await _client.GetAsync(Url("meuapp.sev", "/apix/echo"))).StatusCode);
     }
 
     [Fact]
@@ -156,11 +156,11 @@ public sealed class ProxyServerTests : IAsyncLifetime
     {
         _proxy.UpdateRoutes(
         [
-            Route("callfred.sev", $"http://127.0.0.1:{_backendPort}") with { Enabled = false },
+            Route("meuapp.sev", $"http://127.0.0.1:{_backendPort}") with { Enabled = false },
             Route("loop.sev", $"http://127.0.0.1:{_proxyPort}"),
         ]);
 
-        var disabled = await _client.GetAsync(Url("callfred.sev"));
+        var disabled = await _client.GetAsync(Url("meuapp.sev"));
         Assert.Equal(HttpStatusCode.NotFound, disabled.StatusCode);
         Assert.Contains("Rota desligada", await disabled.Content.ReadAsStringAsync());
         Assert.Equal(HttpStatusCode.NotFound, (await _client.GetAsync(Url("loop.sev"))).StatusCode);
@@ -181,11 +181,11 @@ public sealed class ProxyServerTests : IAsyncLifetime
     public async Task Localhost_target_on_ipv4_only_answers_without_the_refused_ipv6_delay()
     {
         // The backend listens on 127.0.0.1 only; "localhost" resolves to ::1 first.
-        _proxy.UpdateRoutes([Route("callfred.sev", $"http://localhost:{_backendPort}")]);
+        _proxy.UpdateRoutes([Route("meuapp.sev", $"http://localhost:{_backendPort}")]);
         using var client = new HttpClient(Handler());
 
         var watch = System.Diagnostics.Stopwatch.StartNew();
-        var response = await client.GetAsync(Url("callfred.sev", "/echo"));
+        var response = await client.GetAsync(Url("meuapp.sev", "/echo"));
 
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         Assert.True(watch.Elapsed < TimeSpan.FromSeconds(1), $"took {watch.Elapsed}");
@@ -196,7 +196,7 @@ public sealed class ProxyServerTests : IAsyncLifetime
     {
         using var socket = new ClientWebSocket();
         using var invoker = new HttpMessageInvoker(Handler());
-        await socket.ConnectAsync(new Uri($"ws://callfred.sev:{_proxyPort}/ws"), invoker, CancellationToken.None);
+        await socket.ConnectAsync(new Uri($"ws://meuapp.sev:{_proxyPort}/ws"), invoker, CancellationToken.None);
 
         await socket.SendAsync("olá hmr"u8.ToArray(), WebSocketMessageType.Text, true, CancellationToken.None);
         var buffer = new byte[64];
@@ -211,7 +211,7 @@ public sealed class ProxyServerTests : IAsyncLifetime
     {
         var payload = new byte[40 * 1024 * 1024]; // above Kestrel's default 30 MB limit
 
-        var response = await _client.PostAsync(Url("callfred.sev", "/size"), new ByteArrayContent(payload));
+        var response = await _client.PostAsync(Url("meuapp.sev", "/size"), new ByteArrayContent(payload));
 
         Assert.Equal(payload.Length.ToString(), await response.Content.ReadAsStringAsync());
     }
@@ -242,11 +242,11 @@ public sealed class ProxyServerTests : IAsyncLifetime
     {
         var newPort = FreePort();
 
-        await _proxy.StartAsync(newPort, [Route("callfred.sev", $"http://127.0.0.1:{_backendPort}")]);
+        await _proxy.StartAsync(newPort, [Route("meuapp.sev", $"http://127.0.0.1:{_backendPort}")]);
         _proxyPort = newPort;
 
         Assert.Equal(new ProxyStatus(ProxyState.Running, newPort), _proxy.Status);
-        Assert.Equal(HttpStatusCode.OK, (await _client.GetAsync(Url("callfred.sev", "/echo"))).StatusCode);
+        Assert.Equal(HttpStatusCode.OK, (await _client.GetAsync(Url("meuapp.sev", "/echo"))).StatusCode);
     }
 
     [Fact]
