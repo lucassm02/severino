@@ -7,6 +7,7 @@ using CommunityToolkit.Mvvm.Input;
 using Severino.App.Services;
 using Severino.Core.Certificates;
 using Severino.Core.Configuration;
+using Severino.Core.Discovery;
 using Severino.Core.Routes;
 using Severino.Proxy.Certificates;
 
@@ -30,8 +31,11 @@ public sealed partial class SettingsViewModel : ObservableObject
     private readonly Func<FirstRunViewModel> _firstRun;
 
     public SettingsViewModel(ConfigService config, ThemeService themes, HttpsService https, RouteService routes,
-        AutoStart autoStart, SystemCleanup cleanup, Lazy<ShellService> shell, Func<FirstRunViewModel> firstRun)
+        AutoStart autoStart, SystemCleanup cleanup, Lazy<ShellService> shell, Func<FirstRunViewModel> firstRun,
+        WslCallers wsl, ServiceDiscovery discovery)
     {
+        _wsl = wsl;
+        _discovery = discovery;
         _firstRun = firstRun;
         _config = config;
         _themes = themes;
@@ -51,6 +55,7 @@ public sealed partial class SettingsViewModel : ObservableObject
         RefreshHttps();
         https.Changed += (_, _) => Dispatch(RefreshHttps);
         config.Changed += (_, _) => Dispatch(RefreshHttps);
+        InitializeWsl();
     }
 
     public IReadOnlyList<ThemeOption> Themes { get; } =

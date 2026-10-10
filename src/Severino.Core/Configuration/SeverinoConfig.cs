@@ -26,6 +26,9 @@ public sealed record AppSettings
     public bool StartWithWindows { get; set; }
     public bool StartMinimized { get; set; }
     public AppTheme Theme { get; set; } = AppTheme.Auto;
+
+    /// <summary>WSL distros whose apps call the service routes by name; each gets the hosts block and the NAT rules.</summary>
+    public IReadOnlyList<string> WslDistros { get; set; } = [];
 }
 
 /// <summary>Flags the app records about itself; not shown as settings.</summary>
@@ -41,6 +44,11 @@ public sealed record AppState
 
     /// <summary>Entries Severino added to the Windows proxy bypass list, so cleanup removes these and only these.</summary>
     public IReadOnlyList<string> ProxyBypassAdded { get; set; } = [];
+
+    /// <summary>Which tools "Importar serviços" asks, as last left.</summary>
+    public bool ImportKubernetes { get; set; } = true;
+
+    public bool ImportDocker { get; set; } = true;
 }
 
 public sealed record RouteEntry

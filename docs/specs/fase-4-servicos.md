@@ -180,6 +180,16 @@ Assim nada roda dentro da distro, não há processo para cair, e vale para qualq
 
 O WSL regenera o `/etc/hosts` e as regras somem quando a distro reinicia. O Severino confere o bloco e a cadeia sempre que vê a distro rodando de novo, e regrava o que faltar. Remover as rotas, "Limpar tudo" e o `--cleanup` apagam o bloco e a cadeia.
 
+Como ficou na implementação (passo 6):
+
+- **Quais distros:** Configurações › WSL lista as distros instaladas, cada uma com um botão de ligar. Importar serviços de uma distro já liga aquela distro, e o aviso da importação diz isso.
+- **Um script só, como root:** `wsl.exe -d <distro> -u root --exec sh -s`, com o script na entrada padrão. Ele grava o bloco no `/etc/hosts` (mesmos marcadores do Windows, no lugar do anterior ou no fim) e refaz as cadeias `SEVERINO` (DNAT, em `OUTPUT`) e `SEVERINO-POST` (MASQUERADE, em `POSTROUTING`). O valor anterior do `route_localnet` fica em `/run`, e a remoção o devolve.
+- **Quando roda:** a cada mudança de config, e quando uma distro marcada aparece rodando. A lista de distros rodando é consultada a cada 10 s, sem tocar nas distros. Uma falha fica na tela até mudar a config, a distro reiniciar ou "Aplicar de novo", para não manter a distro acordada tentando.
+- **Pausar e sair** tiram os nomes das distros, como o bloco do Windows. O `--cleanup` passa também pelas distros paradas.
+- **Destinos por nome** (o `hostname` de um LoadBalancer) são resolvidos dentro da distro; um que não resolve aparece como falha parcial.
+
+Na importação, as caixas **Kubernetes** e **Docker** escolhem o que perguntar e filtram a lista. Desmarcar o Kubernetes evita esperar o `kubectl` quando o cluster não interessa ou a VPN está desligada. A escolha fica guardada.
+
 ## Fora do escopo
 
 - **Fase 5:** `kubectl port-forward` gerenciado pelo Severino, para services só `ClusterIP` e sem gateway.

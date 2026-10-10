@@ -35,7 +35,7 @@ public sealed class ImportServicesTests : IDisposable
 
     private async Task<ImportServicesViewModel> OpenAsync()
     {
-        var viewModel = new ImportServicesViewModel(new ServiceDiscovery(new Runner()), _services);
+        var viewModel = new ImportServicesViewModel(new ServiceDiscovery(new Runner()), _services, _config);
         await viewModel.InitializeAsync();
         return viewModel;
     }
@@ -47,7 +47,7 @@ public sealed class ImportServicesTests : IDisposable
 
         Assert.Equal(["Windows", "WSL · Ubuntu", "WSL · Debian (parada; procurar inicia a distro)", "Colar saída de comando"], viewModel.Sources.Select(s => s.Label));
         Assert.Equal("WSL · Ubuntu", viewModel.SelectedSource!.Label);
-        Assert.Equal("Kubernetes · trabalho · 4 services, 3 com acesso de fora", viewModel.KubernetesStatus);
+        Assert.Equal("trabalho · 4 services, 3 com acesso de fora", viewModel.KubernetesStatus);
         Assert.True(viewModel.DockerFailed);
         Assert.Equal(4, viewModel.Visible.Count);
     }
@@ -81,11 +81,38 @@ public sealed class ImportServicesTests : IDisposable
         Assert.Equal("redis.cache já está em outra rota e fica de fora.", redis.Warning);
     }
 
+    [Fact]
+    public async Task Unchecked_tools_are_not_asked_and_hide_their_rows()
+    {
+        _config.Update(c => c with { State = c.State with { ImportKubernetes = false } });
+        var runner = new Runner();
+        var viewModel = new ImportServicesViewModel(new ServiceDiscovery(runner), _services, _config);
+        await viewModel.InitializeAsync();
+
+        Assert.DoesNotContain(runner.Asked, a => a.StartsWith("kubectl"));
+        Assert.Null(viewModel.KubernetesStatus);
+        Assert.False(viewModel.HasCandidates);
+
+        viewModel.SelectedSource = viewModel.Sources.Single(s => s.Label == "WSL · Ubuntu");
+        viewModel.UseKubernetes = true;
+        await Task.Delay(50);
+        Assert.Equal(4, viewModel.Visible.Count);
+        Assert.True(_config.Current.State.ImportKubernetes);
+
+        viewModel.UseKubernetes = false;
+        Assert.Empty(viewModel.Visible);
+        Assert.True(viewModel.DockerFailed);
+    }
+
     private sealed class Runner : ICommandRunner
     {
+        public List<string> Asked { get; } = [];
+
         public Task<CommandResult> RunAsync(CommandSource source, string program, IReadOnlyList<string> arguments, CancellationToken cancellationToken)
         {
             var args = string.Join(' ', arguments);
+            lock (Asked)
+                Asked.Add($"{program} {args}");
             CommandResult Ok(string output) => new(0, output, "", false);
             return Task.FromResult((source.Distro, program, args) switch
             {

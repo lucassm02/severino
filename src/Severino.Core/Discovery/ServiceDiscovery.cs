@@ -30,6 +30,13 @@ public sealed class ServiceDiscovery(ICommandRunner runner)
         return [CommandSource.Windows, .. distros.Select(CommandSource.Wsl)];
     }
 
+    /// <summary>Every installed distro, running or not, except Docker Desktop's.</summary>
+    public async Task<IReadOnlyList<string>> InstalledDistrosAsync(CancellationToken cancellationToken)
+    {
+        var all = await runner.RunAsync(CommandSource.Windows, "wsl.exe", ["--list", "--quiet"], cancellationToken);
+        return all.Succeeded ? ParseDistros(all.Output) : [];
+    }
+
     /// <summary>Installed distros that are not running: offered apart, since asking them starts them.</summary>
     public async Task<IReadOnlyList<CommandSource>> StoppedSourcesAsync(CancellationToken cancellationToken)
     {

@@ -31,15 +31,55 @@ public sealed partial class ImportServicesViewModel : ObservableObject
 
     private readonly ServiceDiscovery _discovery;
     private readonly ServiceRouteService _services;
+    private readonly ConfigService _config;
     private readonly Dictionary<SourceOption, SourceScan> _scans = [];
     private List<CandidateItemViewModel> _all = [];
     private CancellationTokenSource? _loading;
     private bool _batch;
 
-    public ImportServicesViewModel(ServiceDiscovery discovery, ServiceRouteService services)
+    public ImportServicesViewModel(ServiceDiscovery discovery, ServiceRouteService services, ConfigService config)
     {
         _discovery = discovery;
         _services = services;
+        _config = config;
+        UseKubernetes = config.Current.State.ImportKubernetes;
+        UseDocker = config.Current.State.ImportDocker;
+        _toolsReady = true;
+    }
+
+    /// <summary>False while the constructor reads the saved choice, so reading it does not save half of it.</summary>
+    private readonly bool _toolsReady;
+
+    /// <summary>Ask kubectl, and show what it found. Off, a slow or absent cluster costs nothing.</summary>
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(NoTool))]
+    public partial bool UseKubernetes { get; set; }
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(NoTool))]
+    public partial bool UseDocker { get; set; }
+
+    public bool NoTool => !UseKubernetes && !UseDocker;
+
+    partial void OnUseKubernetesChanged(bool value) => OnToolChanged();
+
+    partial void OnUseDockerChanged(bool value) => OnToolChanged();
+
+    /// <summary>Remembers the choice, asks the tool just turned on if it was not asked yet, and filters the list.</summary>
+    private void OnToolChanged()
+    {
+        if (!_toolsReady)
+            return;
+        _config.Update(c => c with { State = c.State with { ImportKubernetes = UseKubernetes, ImportDocker = UseDocker } });
+        if (SelectedSource is not { IsPaste: false } source)
+            return;
+        _scans.TryGetValue(source, out var scan);
+        var kubernetes = UseKubernetes && scan?.Kubernetes is null;
+        var docker = UseDocker && scan?.Docker is null;
+        if (kubernetes || docker)
+            _ = LoadAsync(source, SelectedNode, kubernetes, docker);
+        else
+            ShowScan(scan);
     }
 
     public ObservableCollection<SourceOption> Sources { get; } = [];
@@ -131,7 +171,8 @@ public sealed partial class ImportServicesViewModel : ObservableObject
             Sources.Add(new SourceOption(source, Stopped: true));
         Sources.Add(new SourceOption(null));
 
-        var scans = await Task.WhenAll(Sources.Where(s => s is { IsPaste: false, Stopped: false }).Select(async s => (Option: s, Scan: await ScanAsync(s.Source!, null))));
+        var scans = await Task.WhenAll(Sources.Where(s => s is { IsPaste: false, Stopped: false })
+            .Select(async s => (Option: s, Scan: await ScanAsync(s.Source!, null, UseKubernetes, UseDocker, previous: null))));
         foreach (var (option, scan) in scans)
             _scans[option] = scan;
         IsLoading = false;
@@ -140,8 +181,8 @@ public sealed partial class ImportServicesViewModel : ObservableObject
         SelectedSource = best;
     }
 
-    private static int Count(SourceScan scan) =>
-        (scan.Kubernetes?.Services.Count ?? 0) + (scan.Docker?.Containers.Count ?? 0);
+    private int Count(SourceScan scan) =>
+        (UseKubernetes ? scan.Kubernetes?.Services.Count ?? 0 : 0) + (UseDocker ? scan.Docker?.Containers.Count ?? 0 : 0);
 
     partial void OnSelectedSourceChanged(SourceOption? value)
     {
@@ -150,10 +191,13 @@ public sealed partial class ImportServicesViewModel : ObservableObject
             ShowScan(null);
             return;
         }
-        if (_scans.TryGetValue(value, out var scan))
-            ShowScan(scan);
+        _scans.TryGetValue(value, out var scan);
+        var kubernetes = UseKubernetes && scan?.Kubernetes is null;
+        var docker = UseDocker && scan?.Docker is null;
+        if (kubernetes || docker)
+            _ = LoadAsync(value, null, kubernetes, docker);
         else
-            _ = LoadAsync(value, null);
+            ShowScan(scan);
     }
 
     partial void OnSelectedNodeChanged(string? value)
@@ -161,21 +205,23 @@ public sealed partial class ImportServicesViewModel : ObservableObject
         // Picking another node points every NodePort at it: ask again with it.
         if (value is not null && SelectedSource is { IsPaste: false } source && _scans.TryGetValue(source, out var scan)
             && scan.Kubernetes is { } kubernetes && kubernetes.Node != value)
-            _ = LoadAsync(source, value);
+            _ = LoadAsync(source, value, kubernetes: true, docker: false);
     }
 
     [RelayCommand]
     private Task ReloadAsync() =>
-        SelectedSource is { IsPaste: false } source ? LoadAsync(source, SelectedNode) : Task.CompletedTask;
+        SelectedSource is { IsPaste: false } source ? LoadAsync(source, SelectedNode, UseKubernetes, UseDocker) : Task.CompletedTask;
 
-    private async Task LoadAsync(SourceOption option, string? node)
+    /// <summary>Asks the given tools of the source again; the other tool's answer, if any, stays.</summary>
+    private async Task LoadAsync(SourceOption option, string? node, bool kubernetes, bool docker)
     {
         _loading?.Cancel();
         var loading = _loading = new CancellationTokenSource();
         IsLoading = true;
         try
         {
-            var scan = await ScanAsync(option.Source!, node, loading.Token);
+            _scans.TryGetValue(option, out var previous);
+            var scan = await ScanAsync(option.Source!, node, kubernetes, docker, previous, loading.Token);
             if (loading.IsCancellationRequested)
                 return;
             _scans[option] = scan;
@@ -201,11 +247,11 @@ public sealed partial class ImportServicesViewModel : ObservableObject
         }
     }
 
-    private async Task<SourceScan> ScanAsync(CommandSource source, string? node, CancellationToken cancellationToken = default)
+    private async Task<SourceScan> ScanAsync(CommandSource source, string? node, bool kubernetes, bool docker, SourceScan? previous, CancellationToken cancellationToken = default)
     {
-        var kubernetes = _discovery.KubernetesAsync(source, cancellationToken, node);
-        var docker = _discovery.DockerAsync(source, cancellationToken);
-        return new SourceScan(await kubernetes, await docker);
+        var kubernetesTask = kubernetes ? _discovery.KubernetesAsync(source, cancellationToken, node) : Task.FromResult(previous?.Kubernetes!);
+        var dockerTask = docker ? _discovery.DockerAsync(source, cancellationToken) : Task.FromResult(previous?.Docker!);
+        return new SourceScan(await kubernetesTask, await dockerTask);
     }
 
     private void ShowScan(SourceScan? scan)
@@ -215,12 +261,14 @@ public sealed partial class ImportServicesViewModel : ObservableObject
 
         KubernetesStatus = null;
         DockerStatus = null;
-        if (scan?.Kubernetes is { } kubernetes && source is not null)
+        KubernetesFailed = false;
+        DockerFailed = false;
+        if (scan?.Kubernetes is { } kubernetes && source is not null && UseKubernetes)
         {
             KubernetesFailed = kubernetes.Error is not null;
             KubernetesStatus = kubernetes.Error is { } error
-                ? $"Kubernetes: {error}"
-                : $"Kubernetes · {kubernetes.Context} · {Plural(kubernetes.Services.Count, "service", "services")}, {kubernetes.Services.Count(s => s.CanImport)} com acesso de fora";
+                ? error
+                : $"{kubernetes.Context} · {Plural(kubernetes.Services.Count, "service", "services")}, {kubernetes.Services.Count(s => s.CanImport)} com acesso de fora";
             candidates.AddRange(kubernetes.Services.Select(s => new ServiceCandidate(s, new ServiceOrigin
             {
                 Kind = ServiceKind.Kubernetes,
@@ -230,12 +278,12 @@ public sealed partial class ImportServicesViewModel : ObservableObject
                 Name = s.Name,
             })));
         }
-        if (scan?.Docker is { } docker && source is not null)
+        if (scan?.Docker is { } docker && source is not null && UseDocker)
         {
             DockerFailed = docker.Error is not null;
             DockerStatus = docker.Error is { } error
-                ? $"Docker: {error}"
-                : $"Docker · {Plural(docker.Containers.Count, "container rodando", "containers rodando")}";
+                ? error
+                : $"{Plural(docker.Containers.Count, "container rodando", "containers rodando")}";
             candidates.AddRange(docker.Containers.Select(s => new ServiceCandidate(s, new ServiceOrigin
             {
                 Kind = ServiceKind.Docker,
@@ -248,9 +296,10 @@ public sealed partial class ImportServicesViewModel : ObservableObject
 
         _batch = true;
         Nodes.Clear();
-        foreach (var node in scan?.Kubernetes?.Nodes ?? [])
+        var shownKubernetes = UseKubernetes ? scan?.Kubernetes : null;
+        foreach (var node in shownKubernetes?.Nodes ?? [])
             Nodes.Add(node);
-        SelectedNode = scan?.Kubernetes?.Node;
+        SelectedNode = shownKubernetes?.Node;
         OnPropertyChanged(nameof(HasNodes));
         _batch = false;
 

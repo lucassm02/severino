@@ -13,12 +13,12 @@ using FluentResult = Wpf.Ui.Controls.MessageBoxResult;
 
 namespace Severino.App.Services;
 
-public sealed class DialogService(RouteService routes, ServiceRouteService services, ServiceDiscovery discovery, DomainInspector inspector, HttpsService https, Navigation navigation)
+public sealed class DialogService(RouteService routes, ServiceRouteService services, ServiceDiscovery discovery, ConfigService config, DomainInspector inspector, HttpsService https, Navigation navigation)
 {
     /// <summary>The "Importar serviços" window; returns what was imported, or null when cancelled.</summary>
     public IReadOnlyList<PlannedService>? ImportServices()
     {
-        var viewModel = new ImportServicesViewModel(discovery, services);
+        var viewModel = new ImportServicesViewModel(discovery, services, config);
         var window = new ImportServicesWindow(viewModel) { Owner = Application.Current.MainWindow };
         return window.ShowDialog() == true ? viewModel.Result : null;
     }
@@ -96,7 +96,7 @@ public sealed class DialogService(RouteService routes, ServiceRouteService servi
         var deleteData = new CheckBox { Content = "Apagar também as rotas e configurações", Margin = new Thickness(0, 0, 0, 4) };
         var content = new StackPanel { MaxWidth = 460 };
         content.Children.Add(Paragraph(
-            "O Severino tira do Windows tudo o que colocou: o bloco do arquivo hosts, a CA local, a inicialização automática e as exceções de proxy que ele adicionou. " +
+            "O Severino tira do Windows tudo o que colocou: o bloco do arquivo hosts, a CA local, a inicialização automática, as exceções de proxy que ele adicionou e os nomes nas distros do WSL que estão rodando. " +
             "Depois, o app fecha. O Windows pede confirmação para remover a CA."));
         content.Children.Add(Paragraph("Sem a caixa abaixo, suas rotas ficam guardadas para quando você abrir o Severino de novo."));
         content.Children.Add(deleteData);

@@ -5,8 +5,8 @@ using Severino.Proxy.Certificates;
 
 namespace Severino.App.Services;
 
-/// <summary>Keeps the proxy, the health monitor, the hosts block and HTTPS in step with the config.</summary>
-public sealed class ProxyCoordinator(ConfigService config, ProxyServer proxy, HealthMonitor health, HostsSync hosts, LocalCa ca, ServiceForwarder services)
+/// <summary>Keeps the proxy, the health monitor, the hosts block, HTTPS and the WSL distros in step with the config.</summary>
+public sealed class ProxyCoordinator(ConfigService config, ProxyServer proxy, HealthMonitor health, HostsSync hosts, LocalCa ca, ServiceForwarder services, WslCallers wsl)
 {
     private static readonly TimeSpan ClearTimeout = TimeSpan.FromSeconds(3);
 
@@ -24,6 +24,7 @@ public sealed class ProxyCoordinator(ConfigService config, ProxyServer proxy, He
         ca.Changed += OnCaChanged;
         await proxy.StartAsync(current.Settings.HttpPort, HttpsPort, current.Routes);
         await services.UpdateAsync(current.Services);
+        wsl.Start();
     }
 
     /// <summary>Tries the configured ports again, e.g. after the user freed them. Does nothing while paused.</summary>
@@ -56,6 +57,7 @@ public sealed class ProxyCoordinator(ConfigService config, ProxyServer proxy, He
         await ClearHostsAsync(hosts.PauseAsync);
         await proxy.StopAsync();
         await services.StopAsync();
+        await wsl.PauseAsync();
     }
 
     public async Task ResumeAsync()
@@ -67,6 +69,7 @@ public sealed class ProxyCoordinator(ConfigService config, ProxyServer proxy, He
         hosts.Resume();
         await proxy.StartAsync(config.Current.Settings.HttpPort, HttpsPort, config.Current.Routes);
         await services.UpdateAsync(config.Current.Services);
+        await wsl.ResumeAsync();
     }
 
     /// <summary>Removes the hosts block and stops listening. Waits at most a few seconds for the Helper.</summary>
@@ -81,6 +84,7 @@ public sealed class ProxyCoordinator(ConfigService config, ProxyServer proxy, He
         // Stop, not dispose: the DI container disposes the proxy when the host shuts down.
         await proxy.StopAsync();
         await services.StopAsync();
+        await wsl.StopAsync(ClearTimeout);
         await health.DisposeAsync();
     }
 

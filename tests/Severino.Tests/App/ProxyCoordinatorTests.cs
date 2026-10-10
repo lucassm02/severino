@@ -3,6 +3,8 @@ using System.Net.Sockets;
 using Microsoft.Extensions.Logging.Abstractions;
 using Severino.App.Services;
 using Severino.Core.Configuration;
+using Severino.Core.Discovery;
+using Severino.Core.Wsl;
 using Severino.Core.Routes;
 using Severino.Proxy;
 using Severino.Proxy.Certificates;
@@ -24,6 +26,7 @@ public sealed class ProxyCoordinatorTests : IAsyncLifetime
     private ServiceForwarder _services = null!;
     private readonly string _serviceAddress = $"127.77.{Random.Shared.Next(100, 250)}.250";
     private int _servicePort;
+    private readonly FakeWslShell _wslShell = new();
 
     public async Task InitializeAsync()
     {
@@ -32,7 +35,7 @@ public sealed class ProxyCoordinatorTests : IAsyncLifetime
         _port = TestBackend.FreePort();
         _config.Update(c => c with
         {
-            Settings = c.Settings with { HttpPort = _port },
+            Settings = c.Settings with { HttpPort = _port, WslDistros = ["Ubuntu"] },
             Routes = [new RouteEntry { Domain = "a.sev", Target = "http://127.0.0.1:1" }],
             Services =
             [
@@ -41,6 +44,7 @@ public sealed class ProxyCoordinatorTests : IAsyncLifetime
                     Names = ["redis"],
                     Address = _serviceAddress,
                     Ports = [new ServicePort { Port = _servicePort = TestBackend.FreePort(), TargetHost = "127.0.0.1", TargetPort = 1 }],
+                    Origin = new ServiceOrigin { Kind = ServiceKind.Docker, Source = "wsl:Ubuntu", Name = "redis" },
                 },
             ],
         });
@@ -48,7 +52,10 @@ public sealed class ProxyCoordinatorTests : IAsyncLifetime
         _hosts = new HostsSync(_config, _helper, NullLogger<HostsSync>.Instance);
         var ca = new LocalCa(new CaStore(Path.Combine(_dir, "ca")), new FakeTrustStore(), TimeProvider.System, NullLogger<LocalCa>.Instance);
         _services = new ServiceForwarder(NullLoggerFactory.Instance);
-        _coordinator = new ProxyCoordinator(_config, _proxy, new HealthMonitor(TimeSpan.FromHours(1)), _hosts, ca, _services);
+        var wslRunner = new FakeWslRunner();
+        wslRunner.Running.Add("Ubuntu");
+        var wsl = new WslCallers(_config, _wslShell, new ServiceDiscovery(wslRunner), NullLogger<WslCallers>.Instance);
+        _coordinator = new ProxyCoordinator(_config, _proxy, new HealthMonitor(TimeSpan.FromHours(1)), _hosts, ca, _services, wsl);
         await _coordinator.StartAsync();
         await WaitUntil(() => _helper.Requests.Count > 0);
     }
@@ -103,6 +110,23 @@ public sealed class ProxyCoordinatorTests : IAsyncLifetime
 
         await _coordinator.ResumeAsync();
         Assert.Equal(ProxyState.Running, Assert.Single(_services.Statuses).State);
+    }
+
+    [Fact]
+    public async Task Wsl_distros_get_the_names_lose_them_on_pause_and_on_exit()
+    {
+        await WaitUntil(() => _wslShell.Runs.Count > 0);
+        Assert.Equal("Ubuntu", _wslShell.Runs[^1].Distro);
+        Assert.Contains($"{_serviceAddress}  redis", _wslShell.Runs[^1].Script);
+
+        await _coordinator.PauseAsync();
+        Assert.Equal(WslCallerScript.Remove(), _wslShell.Runs[^1].Script);
+
+        await _coordinator.ResumeAsync();
+        Assert.Contains("redis", _wslShell.Runs[^1].Script);
+
+        await _coordinator.StopAsync();
+        Assert.Equal(WslCallerScript.Remove(), _wslShell.Runs[^1].Script);
     }
 
     [Fact]

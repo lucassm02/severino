@@ -15,6 +15,7 @@ using Severino.Core.Discovery;
 using Severino.Core.Domains;
 using Severino.Core.Helper;
 using Severino.Core.Routes;
+using Severino.Core.Wsl;
 using Severino.Proxy;
 using Severino.Proxy.Certificates;
 using Severino.Core.Certificates;
@@ -156,7 +157,10 @@ public partial class App : Application
             NullLogger<LocalCa>.Instance);
         ca.Load();
         using var proxy = new SystemProxy(config, new TldDirectory(config, new WindowsDnsResolver()));
-        return new SystemCleanup(ca, new AutoStart(), proxy).Run().CaRemoved ? 0 : 1;
+        var result = new SystemCleanup(ca, new AutoStart(), proxy).Run();
+        // The WSL distros too, stopped ones included: they may keep the /etc/hosts block.
+        WslCallers.RemoveAsync(new WslShell(), [.. config.Current.Settings.WslDistros], TimeSpan.FromSeconds(30)).Wait();
+        return result.CaRemoved ? 0 : 1;
     }
 
     private async Task StartProxyAsync(ProxyCoordinator coordinator)
@@ -191,6 +195,8 @@ public partial class App : Application
         services.AddSingleton<ServiceRouteService>();
         services.AddSingleton<ICommandRunner>(_ => new CommandRunner());
         services.AddSingleton<ServiceDiscovery>();
+        services.AddSingleton<IWslShell>(_ => new WslShell());
+        services.AddSingleton<WslCallers>();
         services.AddSingleton<IHelperClient>(_ => new HelperClient());
         services.AddSingleton<HostsSync>();
         services.AddSingleton<IDnsResolver, WindowsDnsResolver>();

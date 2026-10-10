@@ -81,8 +81,40 @@
             </DockPanel>
 
             <!-- What each tool answered -->
-            <StackPanel Grid.Row="1" Margin="0,10,0,0" Visibility="{Binding IsDiscovery, Converter={StaticResource TrueToVisible}}">
-                <TextBlock Text="{Binding KubernetesStatus}" Visibility="{Binding KubernetesStatus, Converter={StaticResource NullToCollapsed}}">
+            <Grid Grid.Row="1" Margin="0,10,0,0" Visibility="{Binding IsDiscovery, Converter={StaticResource TrueToVisible}}">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+                <CheckBox
+                    Grid.Row="0"
+                    Grid.Column="0"
+                    MinWidth="0"
+                    Margin="0,0,12,0"
+                    Content="Kubernetes"
+                    IsChecked="{Binding UseKubernetes}"
+                    ToolTip="Perguntar ao kubectl e mostrar os services" />
+                <CheckBox
+                    Grid.Row="1"
+                    Grid.Column="0"
+                    MinWidth="0"
+                    Margin="0,0,12,0"
+                    Content="Docker"
+                    IsChecked="{Binding UseDocker}"
+                    ToolTip="Perguntar ao docker e mostrar os containers com portas publicadas" />
+                <TextBlock
+                    Grid.Row="2"
+                    Grid.Column="0"
+                    Grid.ColumnSpan="2"
+                    Style="{StaticResource StatusText}"
+                    Text="Marque Kubernetes, Docker ou os dois para procurar."
+                    Visibility="{Binding NoTool, Converter={StaticResource TrueToVisible}}" />
+                <TextBlock Grid.Row="0" Grid.Column="1" VerticalAlignment="Center" Text="{Binding KubernetesStatus}" Visibility="{Binding KubernetesStatus, Converter={StaticResource NullToCollapsed}}">
                     <TextBlock.Style>
                         <Style TargetType="TextBlock" BasedOn="{StaticResource StatusText}">
                             <Style.Triggers>
@@ -93,7 +125,7 @@
                         </Style>
                     </TextBlock.Style>
                 </TextBlock>
-                <TextBlock Text="{Binding DockerStatus}" Visibility="{Binding DockerStatus, Converter={StaticResource NullToCollapsed}}">
+                <TextBlock Grid.Row="1" Grid.Column="1" VerticalAlignment="Center" Text="{Binding DockerStatus}" Visibility="{Binding DockerStatus, Converter={StaticResource NullToCollapsed}}">
                     <TextBlock.Style>
                         <Style TargetType="TextBlock" BasedOn="{StaticResource StatusText}">
                             <Style.Triggers>
@@ -104,7 +136,7 @@
                         </Style>
                     </TextBlock.Style>
                 </TextBlock>
-            </StackPanel>
+            </Grid>
 
             <!-- Pasted output -->
             <StackPanel Grid.Row="2" Margin="0,10,0,0" Visibility="{Binding IsPaste, Converter={StaticResource TrueToVisible}}">
