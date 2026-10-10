@@ -193,7 +193,7 @@ Aparece quando `state.firstRunCompleted` é falso, numa janela própria sobre a 
 - **Pausar e retomar:** as portas ficam livres e voltam, e o `HostsSync` recebe a lista vazia e depois a cheia.
 - **`--cleanup`:** com o `FakeTrustStore` e um diretório temporário, remove a CA, a entrada de inicialização e as exceções.
 
-**Checklist manual** (num Windows Sandbox, no fim da fase)
+**Checklist manual** (num Windows Sandbox, no fim da fase; roteiro passo a passo em [docs/testes/fase-3-polimento.md](../testes/fase-3-polimento.md))
 
 - os critérios de pronto 1, 2, 3, 6, 7 e 11;
 - atualizar por cima de uma versão anterior preserva as rotas;

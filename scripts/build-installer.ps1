@@ -9,12 +9,20 @@
 
     Needs Inno Setup 6: winget install JRSoftware.InnoSetup
 
+.PARAMETER Version
+    Overrides the version from Directory.Build.props, e.g. to build a "newer" setup and test an
+    update over the installed one.
+
 .EXAMPLE
     ./scripts/build-installer.ps1
+
+.EXAMPLE
+    ./scripts/build-installer.ps1 -Version 0.3.1
 #>
 [CmdletBinding()]
 param(
-    [string] $Configuration = 'Release'
+    [string] $Configuration = 'Release',
+    [string] $Version
 )
 
 $ErrorActionPreference = 'Stop'
@@ -39,12 +47,12 @@ if (-not $iscc) {
 # A clean publish folder: leftovers from an older build would end up in the installer.
 Remove-Item $publish -Recurse -Force -ErrorAction SilentlyContinue
 
+$version = if ($Version) { $Version } else { (dotnet msbuild $app -getProperty:Version).Trim() }
+
 foreach ($project in @(@{ Path = $app; Out = 'app' }, @{ Path = $helper; Out = 'helper' })) {
-    dotnet publish $project.Path -c $Configuration -r win-x64 --self-contained -o (Join-Path $publish $project.Out) --nologo
+    dotnet publish $project.Path -c $Configuration -r win-x64 --self-contained -o (Join-Path $publish $project.Out) --nologo "-p:Version=$version"
     if ($LASTEXITCODE -ne 0) { throw "dotnet publish falhou: $($project.Path)" }
 }
-
-$version = (dotnet msbuild $app -getProperty:Version).Trim()
 
 & $iscc /Q "/DAppVersion=$version" "/DPublishDir=$publish" "/O$(Join-Path $artifacts 'installer')" (Join-Path $root 'installer\severino.iss')
 if ($LASTEXITCODE -ne 0) { throw 'ISCC falhou.' }
