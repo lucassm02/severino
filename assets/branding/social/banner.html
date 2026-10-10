@@ -1,0 +1,154 @@
+<!doctype html>
+<!--
+  Social images for Severino, one page with a variant per size. Regenerate with
+  scripts/build-social.ps1, which opens this page in headless Edge:
+    ?v=og        1200x630   site/assets/og-banner.png (Open Graph, X, LinkedIn, WhatsApp)
+    ?v=github    1280x640   github-social-preview.png (repo Settings › Social preview)
+    ?v=quadrado  1080x1080  post-quadrado.png (Instagram, LinkedIn feed)
+    ?v=icone     180x180    site/assets/apple-touch-icon.png
+-->
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wdth,wght@12..96,75..100,400..800&family=Source+Sans+3:wght@400;600&display=block" rel="stylesheet">
+  <style>
+    :root {
+      --farda: #011d41;
+      --feltro: #0a2546;
+      --letra: #f6f8fb;
+      --laranja: #ee8f3b;
+      --suave: #c5d3e6;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { width: 100%; height: 100%; overflow: hidden; }
+    body {
+      background:
+        radial-gradient(120% 90% at 85% 10%, #0b3a75 0%, transparent 55%),
+        var(--farda);
+      color: #fff;
+      font-family: "Source Sans 3", "Segoe UI", sans-serif;
+      display: grid;
+    }
+
+    .peca { position: relative; display: grid; align-items: center; }
+
+    .marca { display: flex; align-items: center; gap: 14px; font-family: "Bricolage Grotesque"; font-weight: 800; }
+    .marca img { border-radius: 50%; }
+
+    h1 {
+      font-family: "Bricolage Grotesque";
+      font-weight: 800;
+      font-variation-settings: "wdth" 80, "opsz" 96;
+      letter-spacing: -0.025em;
+      line-height: 0.92;
+    }
+    .sub { color: var(--suave); line-height: 1.3; }
+    .url { font-family: "Bricolage Grotesque"; font-weight: 700; color: var(--laranja); letter-spacing: 0.01em; }
+
+    /* The lobby board, as on the site. */
+    .quadro {
+      position: relative;
+      background-color: var(--feltro);
+      background-image: repeating-linear-gradient(to bottom, rgb(255 255 255 / 0.035) 0 1px, transparent 1px 13px, rgb(0 0 0 / 0.22) 13px 14px);
+      border: 14px solid #5b3a22;
+      border-image: linear-gradient(135deg, #7a5233, #4e3019 60%, #6b462b) 1;
+      box-shadow: 0 30px 50px -20px rgb(0 0 0 / 0.65), inset 0 0 40px rgb(0 0 0 / 0.35);
+      color: var(--letra);
+      font-family: "Bricolage Grotesque";
+      font-variation-settings: "wdth" 75;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.07em;
+    }
+    .quadro-titulo {
+      text-align: center;
+      font-weight: 700;
+      letter-spacing: 0.35em;
+      padding-bottom: 0.55em;
+      margin-bottom: 0.4em;
+      border-bottom: 2px solid rgb(246 248 251 / 0.18);
+    }
+    .quadro ul { list-style: none; }
+    .quadro li { display: flex; align-items: baseline; gap: 0.5em; padding: 0.28em 0; white-space: nowrap; }
+    .quadro .pontos { flex: 1; min-width: 12px; border-bottom: 3px dotted rgb(246 248 251 / 0.35); transform: translateY(-0.3em); }
+    .quadro .porta { color: var(--laranja); }
+    .letra { display: inline-block; }
+
+    .porteiro { position: absolute; transform: rotate(8deg); filter: drop-shadow(0 12px 16px rgb(0 0 0 / 0.45)); z-index: 2; }
+
+    /* ---------- 1200x630 and 1280x640: text left, board right ---------- */
+    .og .peca, .github .peca {
+      grid-template-columns: 1.08fr 1fr;
+      gap: 56px;
+      padding: 0 72px 0 64px;
+    }
+    .og .marca, .github .marca { font-size: 30px; margin-bottom: 34px; }
+    .og h1, .github h1 { font-size: 96px; }
+    .og .sub, .github .sub { font-size: 29px; margin-top: 26px; max-width: 21em; }
+    .og .url, .github .url { font-size: 24px; margin-top: 34px; }
+    .og .quadro, .github .quadro { font-size: 25px; padding: 22px 24px 24px; margin-top: 40px; }
+    .og .porteiro, .github .porteiro { width: 150px; right: -6px; top: 70px; }
+
+    /* ---------- 1080x1080: stacked ---------- */
+    .quadrado .peca { padding: 84px 84px 72px; align-content: space-between; }
+    .quadrado .marca { font-size: 34px; }
+    .quadrado h1 { font-size: 124px; margin-top: 40px; }
+    .quadrado .sub { font-size: 34px; margin-top: 26px; max-width: 22em; }
+    .quadrado .quadro { font-size: 30px; padding: 26px 30px 30px; margin: 56px 120px 0 0; }
+    .quadrado .porteiro { width: 220px; right: 40px; top: 560px; }
+    .quadrado .url { font-size: 30px; margin-top: 48px; }
+
+    /* ---------- 180x180: the face on navy ---------- */
+    .icone .peca { place-items: center; }
+    .icone .peca > :not(.so-icone) { display: none; }
+    .so-icone { display: none; }
+    .icone .so-icone { display: block; position: fixed; left: 12px; top: 12px; width: 156px; height: 156px; }
+  </style>
+</head>
+<body>
+  <div class="peca">
+    <img class="so-icone" src="../severino-rosto.png" alt="">
+    <div class="texto">
+      <div class="marca"><img src="../severino-rosto.png" width="56" height="56" alt="">Severino</div>
+      <h1>Chega de localhost:3000.</h1>
+      <p class="sub">Nomes com HTTPS para os seus apps de dev, no Windows, no WSL, no Docker e no cluster.</p>
+      <p class="url">lucassm02.github.io/severino</p>
+    </div>
+    <div class="lado">
+      <img class="porteiro" src="../severino-rosto.png" alt="">
+      <div class="quadro">
+        <p class="quadro-titulo">Portaria</p>
+        <ul>
+          <li><span class="nome">meuapp.sev</span><span class="pontos"></span><span class="porta">3000</span></li>
+          <li><span class="nome">meuapp.sev/api</span><span class="pontos"></span><span class="porta">8080</span></li>
+          <li><span class="nome">pedidos.loja</span><span class="pontos"></span><span class="porta">80</span></li>
+          <li><span class="nome">postgres.database</span><span class="pontos"></span><span class="porta">5432</span></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+  <script>
+    const variant = new URLSearchParams(location.search).get("v") || "og";
+    document.body.className = variant;
+    // The quadrado stacks: the board goes under the text, inside the same column.
+    if (variant === "quadrado") {
+      const texto = document.querySelector(".texto");
+      texto.insertBefore(document.querySelector(".lado"), texto.querySelector(".url"));
+    }
+    // Each letter slightly off, with the same fixed sequence as the site.
+    let seed = 7;
+    const next = () => ((seed = (seed * 9301 + 49297) % 233280) / 233280) - 0.5;
+    for (const el of document.querySelectorAll(".quadro-titulo, .nome, .porta")) {
+      const text = el.textContent;
+      el.textContent = "";
+      for (const ch of text) {
+        const span = document.createElement("span");
+        span.className = "letra";
+        span.textContent = ch;
+        span.style.transform = `rotate(${(next() * 2.4).toFixed(2)}deg) translateY(${(next() * 1.6).toFixed(2)}px)`;
+        el.append(span);
+      }
+    }
+  </script>
+</body>
+</html>

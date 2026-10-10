@@ -1,4 +1,5 @@
-// Two small jobs: set the board's letters by hand, and point the download at the latest release.
+// Three small jobs: set the board's letters by hand, turn the Rotas/Serviços/DNS panels into
+// tabs, and point the download at the latest release.
 
 (function board() {
   const quadro = document.querySelector(".quadro");
@@ -35,6 +36,39 @@
   }
 })();
 
+// Without this, the three panels show one after the other, which reads fine too.
+(function tabs() {
+  const root = document.querySelector("[data-abas]");
+  if (!root) return;
+  const list = root.querySelector("[role=tablist]");
+  const buttons = [...list.querySelectorAll("[role=tab]")];
+  const panels = buttons.map((b) => document.getElementById(b.getAttribute("aria-controls")));
+
+  const select = (index, focus) => {
+    buttons.forEach((button, i) => {
+      const on = i === index;
+      button.setAttribute("aria-selected", String(on));
+      button.tabIndex = on ? 0 : -1;
+      panels[i].hidden = !on;
+    });
+    if (focus) buttons[index].focus();
+  };
+
+  list.hidden = false;
+  root.classList.add("ativa");
+  select(0, false);
+  buttons.forEach((button, i) => {
+    button.addEventListener("click", () => select(i, false));
+    button.addEventListener("keydown", (e) => {
+      const last = buttons.length - 1;
+      const to = { ArrowRight: i === last ? 0 : i + 1, ArrowLeft: i === 0 ? last : i - 1, Home: 0, End: last }[e.key];
+      if (to === undefined) return;
+      e.preventDefault();
+      select(to, true);
+    });
+  });
+})();
+
 (async function latestRelease() {
   const repo = "lucassm02/severino";
   try {
@@ -52,7 +86,7 @@
     const version = (release.tag_name || "").replace(/^v/, "");
     const size = `${Math.round(setup.size / (1024 * 1024))} MB`;
     const note = document.querySelector("[data-release-note]");
-    if (note) note.textContent = `Versão ${version}, ${size}. Para Windows 10 e 11, 64 bits.`;
+    if (note) note.textContent = `Versão ${version}, ${size}. Grátis e com código aberto. Para Windows 10 e 11, 64 bits.`;
   } catch {
     // Offline or rate-limited: the links already go to the releases page.
   }

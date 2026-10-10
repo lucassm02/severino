@@ -3,17 +3,60 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Severino: domínios para seus apps locais no Windows</title>
-  <meta name="description" content="O Severino dá um nome para cada app que roda na sua máquina, como callfred.sev, e cuida do arquivo hosts, do proxy e do HTTPS. Também traz serviços do Kubernetes e do Docker pelo nome, no Windows e no WSL.">
-  <meta property="og:title" content="Severino: chega de localhost:3000">
-  <meta property="og:description" content="Um nome para cada app local, com HTTPS de verdade e sem editar o hosts à mão.">
-  <meta property="og:image" content="assets/severino-rosto-480.png">
+  <title>Severino: nomes com HTTPS para apps locais, WSL, Docker e Kubernetes</title>
+  <meta name="description" content="Dê um nome com HTTPS a cada app de desenvolvimento: no Windows, no WSL, no Docker ou no cluster. O Severino cuida do hosts, do proxy e dos certificados. Grátis.">
+  <link rel="canonical" href="https://lucassm02.github.io/severino/">
+  <meta name="author" content="lucassm02">
+  <meta name="robots" content="index, follow">
   <meta name="theme-color" content="#011D41">
-  <link rel="icon" type="image/png" href="assets/favicon-64.png">
+
+  <meta property="og:type" content="website">
+  <meta property="og:locale" content="pt_BR">
+  <meta property="og:site_name" content="Severino">
+  <meta property="og:url" content="https://lucassm02.github.io/severino/">
+  <meta property="og:title" content="Severino: chega de localhost:3000">
+  <meta property="og:description" content="Um nome com HTTPS para cada app de dev, esteja ele no Windows, no WSL, num container ou no cluster.">
+  <meta property="og:image" content="https://lucassm02.github.io/severino/assets/og-banner.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="Severino, o porteiro, ao lado do quadro da portaria: meuapp.sev na porta 3000, meuapp.sev/api na 8080, pedidos.loja na 80 e postgres.database na 5432.">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Severino: chega de localhost:3000">
+  <meta name="twitter:description" content="Um nome com HTTPS para cada app de dev, esteja ele no Windows, no WSL, num container ou no cluster.">
+  <meta name="twitter:image" content="https://lucassm02.github.io/severino/assets/og-banner.png">
+  <meta name="twitter:image:alt" content="Severino, o porteiro, ao lado do quadro da portaria com os nomes dos apps e suas portas.">
+
+  <link rel="icon" type="image/png" sizes="64x64" href="assets/favicon-64.png">
+  <link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
+  <link rel="license" href="https://github.com/lucassm02/severino/blob/main/LICENSE">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wdth,wght@12..96,75..100,400..800&family=Source+Sans+3:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles.css">
+
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "SoftwareApplication",
+    "name": "Severino",
+    "description": "Dá um nome com HTTPS a cada app de desenvolvimento no Windows, no WSL, no Docker e no Kubernetes, e cuida do arquivo hosts, do proxy reverso e dos certificados.",
+    "applicationCategory": "DeveloperApplication",
+    "operatingSystem": "Windows 10, Windows 11",
+    "url": "https://lucassm02.github.io/severino/",
+    "downloadUrl": "https://github.com/lucassm02/severino/releases/latest",
+    "image": "https://lucassm02.github.io/severino/assets/og-banner.png",
+    "screenshot": [
+      "https://lucassm02.github.io/severino/assets/app-rotas.png",
+      "https://lucassm02.github.io/severino/assets/app-servicos.png",
+      "https://lucassm02.github.io/severino/assets/app-dns.png"
+    ],
+    "license": "https://opensource.org/licenses/MIT",
+    "isAccessibleForFree": true,
+    "inLanguage": "pt-BR",
+    "offers": { "@type": "Offer", "price": "0", "priceCurrency": "BRL" },
+    "codeRepository": "https://github.com/lucassm02/severino"
+  }
+  </script>
 </head>
 <body>
   <a class="skip" href="#conteudo">Pular para o conteúdo</a>
@@ -24,10 +67,10 @@
       <span>Severino</span>
     </a>
     <nav aria-label="Seções">
+      <a href="#onde">WSL, Docker e k8s</a>
       <a href="#como-funciona">Como funciona</a>
-      <a href="#dns">DNS</a>
-      <a href="#servicos">Kubernetes e Docker</a>
-      <a href="#seguranca">O que ele mexe</a>
+      <a href="#tres-jeitos">Recursos</a>
+      <a href="#perguntas">Perguntas</a>
       <a href="https://github.com/lucassm02/severino">GitHub</a>
     </nav>
     <a class="botao botao-pequeno" href="#baixar">Baixar</a>
@@ -37,22 +80,22 @@
     <section class="abertura">
       <div class="abertura-texto">
         <h1>Chega de localhost:<wbr>3000.</h1>
-        <p class="abertura-lead">O Severino dá um nome para cada app que roda na sua máquina, como <strong>callfred.sev</strong>, e cuida do resto: o arquivo hosts, o proxy e um HTTPS que o navegador aceita. Você não edita nada à mão.</p>
+        <p class="abertura-lead">O Severino é o porteiro dos seus apps de dev. Cada um ganha um nome, como <strong>meuapp.sev</strong>, com HTTPS de verdade, esteja ele no Windows, no WSL, num container ou no cluster. Hosts, proxy e certificado ficam por conta dele.</p>
         <div class="acoes">
           <a class="botao" href="https://github.com/lucassm02/severino/releases/latest" data-download>Baixar para Windows</a>
           <a class="link-forte" href="https://github.com/lucassm02/severino">Ver o código no GitHub</a>
         </div>
-        <p class="nota" data-release-note>Para Windows 10 e 11, 64 bits.</p>
+        <p class="nota" data-release-note>Grátis e com código aberto. Para Windows 10 e 11, 64 bits.</p>
       </div>
 
       <figure class="quadro-moldura">
         <img class="quadro-porteiro" src="assets/severino-rosto-480.png" width="240" height="240" alt="Severino, o porteiro, de quepe azul e bigode.">
-        <div class="quadro" role="img" aria-label="Quadro da portaria: callfred.sev na porta 3000, callfred.sev/api na 8080, qualquer nome abaixo de lojas.sev na 5173, pedidos.loja na 80 e postgres.database na 5432.">
+        <div class="quadro" role="img" aria-label="Quadro da portaria: meuapp.sev na porta 3000, meuapp.sev/api na 8080, admin.meuapp.sev na 5173, pedidos.loja na 80 e postgres.database na 5432.">
           <p class="quadro-titulo" aria-hidden="true">Portaria</p>
           <ul aria-hidden="true">
-            <li><span class="nome">callfred.sev</span><span class="pontos"></span><span class="porta">3000</span></li>
-            <li><span class="nome">callfred.sev/api</span><span class="pontos"></span><span class="porta">8080</span></li>
-            <li><span class="nome">*.lojas.sev</span><span class="pontos"></span><span class="porta">5173</span></li>
+            <li><span class="nome">meuapp.sev</span><span class="pontos"></span><span class="porta">3000</span></li>
+            <li><span class="nome">meuapp.sev/api</span><span class="pontos"></span><span class="porta">8080</span></li>
+            <li><span class="nome">admin.meuapp.sev</span><span class="pontos"></span><span class="porta">5173</span></li>
             <li><span class="nome">pedidos.loja</span><span class="pontos"></span><span class="porta">80</span></li>
             <li><span class="nome">postgres.database</span><span class="pontos"></span><span class="porta">5432</span></li>
           </ul>
@@ -60,94 +103,137 @@
       </figure>
     </section>
 
+    <section class="onde" id="onde" aria-labelledby="onde-titulo">
+      <h2 id="onde-titulo">Seu app mora em um de quatro endereços. O porteiro atende todos.</h2>
+      <p class="secao-lead">Front no Windows, API no WSL, worker num container, banco no cluster. Do navegador ou do terminal, cada um responde pelo nome.</p>
+      <ul class="onde-lista">
+        <li>
+          <h3>Windows</h3>
+          <p>O Vite, o .NET, o Spring: o que roda em localhost ganha nome e cadeado.</p>
+          <code>meuapp.sev → localhost:3000</code>
+        </li>
+        <li>
+          <h3>WSL</h3>
+          <p>Ligue a distro, e os apps lá dentro chamam os mesmos nomes. Ninguém edita /etc/hosts à mão.</p>
+          <code>~$ curl http://pedidos.loja</code>
+        </li>
+        <li>
+          <h3>Docker</h3>
+          <p>Container pelo nome do serviço no Compose. Recriou e a porta mudou? Ele percebe sozinho.</p>
+          <code>worker:4000 → container</code>
+        </li>
+        <li>
+          <h3>Kubernetes</h3>
+          <p>O service pelo nome de dentro do cluster. NodePort, port-forward ou Ingress: ele escolhe o caminho.</p>
+          <code>postgres.database:5432</code>
+        </li>
+      </ul>
+    </section>
+
     <section class="como" id="como-funciona" aria-labelledby="como-titulo">
-      <h2 id="como-titulo">Como funciona</h2>
-      <p class="secao-lead">Três passos, e o primeiro é o único que é seu.</p>
+      <h2 id="como-titulo">Três passos. Um é seu, dois são dele.</h2>
       <ol class="passos">
         <li>
           <h3>Diga o nome e a porta</h3>
-          <p>Numa janela, sem terminal: o domínio que você quer e onde o app está rodando.</p>
+          <p>Numa janela, sem terminal. Se o destino for um banco ou outra máquina, ele sugere o tipo certo de nome.</p>
           <div class="mock-form" aria-hidden="true">
-            <span class="mock-rotulo">Domínio</span>
-            <span class="mock-campo">callfred.sev</span>
+            <span class="mock-rotulo">Endereço</span>
+            <span class="mock-campo">meuapp.sev</span>
             <span class="mock-rotulo">Destino</span>
             <span class="mock-campo">http://localhost:3000</span>
           </div>
         </li>
         <li>
-          <h3>O Severino arruma a portaria</h3>
-          <p>Ele grava o nome no arquivo hosts, num bloco só dele, e passa a atender nas portas 80 e 443.</p>
+          <h3>Ele arruma a portaria</h3>
+          <p>Grava o nome no hosts, num bloco só dele, e passa a atender nas portas 80 e 443.</p>
           <pre class="mock-arquivo" aria-label="Trecho do arquivo hosts"><code><span class="comentario"># &gt;&gt;&gt; Severino managed block (do not edit)</span>
-127.0.0.1   callfred.sev
-::1         callfred.sev
+127.0.0.1   meuapp.sev
+::1         meuapp.sev
 <span class="comentario"># &lt;&lt;&lt; Severino</span></code></pre>
         </li>
         <li>
           <h3>Abra no navegador</h3>
-          <p>Com cadeado e tudo. O hot reload do Vite e os WebSockets continuam funcionando.</p>
+          <p>Com cadeado e tudo. Hot reload e WebSocket continuam funcionando.</p>
           <div class="mock-barra" aria-hidden="true">
             <svg viewBox="0 0 16 16" width="14" height="14"><path d="M4.5 7V5a3.5 3.5 0 0 1 7 0v2h.5A1 1 0 0 1 13 8v6a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V8a1 1 0 0 1 1-1zm1.5 0h4V5a2 2 0 0 0-4 0z" fill="currentColor"/></svg>
-            <span>https://callfred.sev</span>
+            <span>https://meuapp.sev</span>
           </div>
         </li>
       </ol>
     </section>
 
-    <section class="janela" aria-labelledby="janela-titulo">
+    <section class="janela" id="tres-jeitos" aria-labelledby="tres-titulo">
       <div class="janela-texto">
-        <h2 id="janela-titulo">Todas as rotas numa janela só</h2>
-        <p>Cada rota mostra se o app do outro lado está respondendo. Um clique liga ou desliga uma rota, e uma chave liga ou desliga um grupo inteiro; o botão de pausa, na bandeja, devolve os domínios à internet na hora.</p>
+        <h2 id="tres-titulo">Três jeitos de dar nome. Cada um na sua aba.</h2>
+        <p>Rota para o navegador, serviço para o resto, DNS para outras máquinas. E as três abas conversam: um IP mudado no DNS muda o destino de tudo que usa aquele nome.</p>
       </div>
-      <img class="captura captura-grande" src="assets/app-rotas.png" width="1960" height="1400" loading="lazy"
-           alt="A janela do Severino com o grupo callfred: callfred.sev, callfred.sev/api, o curinga *.callfred.sev e admin.callfred.sev, todos respondendo com HTTPS; docs.sev desligada; e os serviços pedidos e postgres vindos do Kubernetes.">
+
+      <div class="abas" data-abas>
+        <div class="abas-lista" role="tablist" aria-label="Rotas, serviços e DNS" hidden>
+          <button type="button" role="tab" id="aba-rotas" aria-controls="painel-rotas" aria-selected="true">Rotas</button>
+          <button type="button" role="tab" id="aba-servicos" aria-controls="painel-servicos" aria-selected="false" tabindex="-1">Serviços</button>
+          <button type="button" role="tab" id="aba-dns" aria-controls="painel-dns" aria-selected="false" tabindex="-1">DNS</button>
+        </div>
+
+        <div class="painel" id="painel-rotas" role="tabpanel" aria-labelledby="aba-rotas">
+          <div class="painel-texto">
+            <h3>Rotas: para abrir no navegador</h3>
+            <ul class="fatos">
+              <li><strong>HTTPS sem drama.</strong> Uma autoridade certificadora só sua, que só assina os seus domínios.</li>
+              <li><strong>Um domínio, vários apps.</strong> meuapp.sev/api vai para a API, o resto vai para o front.</li>
+              <li><strong>Curinga.</strong> *.meuapp.sev atende cliente42.meuapp.sev e qualquer outro nome abaixo.</li>
+              <li><strong>Grupos.</strong> Uma chave liga ou desliga o projeto inteiro.</li>
+            </ul>
+          </div>
+          <img class="captura" src="assets/app-rotas.png" width="1960" height="1400" loading="lazy"
+               alt="A aba Rotas: docs.sev desligada e o grupo meuapp com meuapp.sev, meuapp.sev/api, o curinga *.meuapp.sev e admin.meuapp.sev, todos respondendo com HTTPS.">
+        </div>
+
+        <div class="painel" id="painel-servicos" role="tabpanel" aria-labelledby="aba-servicos">
+          <div class="painel-texto">
+            <h3>Serviços: para bancos, filas e o resto</h3>
+            <ul class="fatos">
+              <li><strong>Qualquer protocolo.</strong> Postgres, Redis, gRPC, RabbitMQ: o nome leva direto à porta, byte a byte.</li>
+              <li><strong>Vêm prontos.</strong> Importe do Kubernetes e do Docker, no Windows ou no WSL.</li>
+              <li><strong>Se corrigem sozinhos.</strong> Container recriado em outra porta volta a responder em segundos.</li>
+              <li><strong>Destino por nome.</strong> gateway.k8s em vez do IP do nó, com o IP sempre à vista.</li>
+            </ul>
+          </div>
+          <img class="captura" src="assets/app-servicos.png" width="1960" height="1400" loading="lazy"
+               alt="A aba Serviços: pedidos, postgres e redis vindos do Kubernetes pelo gateway.k8s, e o worker vindo do Docker, todos respondendo.">
+        </div>
+
+        <div class="painel" id="painel-dns" role="tabpanel" aria-labelledby="aba-dns">
+          <div class="painel-texto">
+            <h3>DNS: um nome direto para um IP</h3>
+            <ul class="fatos">
+              <li><strong>Vale com o app fechado.</strong> banco.interno para 10.0.0.8, como uma linha escrita à mão, e também no WSL.</li>
+              <li><strong>O hosts inteiro à vista.</strong> Linhas de outros programas aparecem marcadas, e só mudam se você pedir.</li>
+              <li><strong>Sem Bloco de Notas de administrador.</strong> Rede privada entra na hora; IP público pede a confirmação do Windows.</li>
+            </ul>
+          </div>
+          <img class="captura" src="assets/app-dns.png" width="1960" height="1760" loading="lazy"
+               alt="A aba DNS: gateway.k8s, destino de 3 serviços; banco.interno; nas.casa; staging.exemplo.com.br aguardando aprovação; e as linhas do hosts de outros programas, marcadas como fora do Severino.">
+        </div>
+      </div>
+
+      <div class="janela-par">
+        <div class="janela-texto">
+          <h3>Errou o tipo? Ele avisa.</h3>
+          <p>Uma rota para a 5432 nunca abriria no navegador. O Severino reconhece a porta do PostgreSQL e oferece criar um serviço com o que você já digitou.</p>
+        </div>
+        <img class="captura captura-estreita" src="assets/app-editor.png" width="1080" height="1298" loading="lazy"
+             alt="O formulário Nova rota com banco.sev para localhost:5432 e o aviso: 5432 é a porta do PostgreSQL, que não fala HTTP, com o botão Criar como serviço.">
+      </div>
+
       <div class="janela-par">
         <div class="janela-texto">
           <h3>Cada requisição, com status e tempo</h3>
-          <p>A aba Requisições mostra o que passou pelo Severino, inclusive os WebSockets e as conexões dos serviços. Fica só na memória: nada vai para o disco.</p>
+          <p>O que passou pelo porteiro, inclusive WebSockets e conexões dos serviços. Fica só na memória: nada vai para o disco.</p>
         </div>
         <img class="captura" src="assets/app-requisicoes.png" width="1960" height="1400" loading="lazy"
-             alt="A aba Requisições, com chamadas GET e POST para api.callfred.sev, um WebSocket aberto e uma conexão TCP para postgres.database.">
+             alt="A aba Requisições, com chamadas para meuapp.sev e admin.meuapp.sev, um WebSocket aberto e conexões TCP para postgres.database e redis.cache.">
       </div>
-    </section>
-
-    <section class="mais" aria-labelledby="mais-titulo">
-      <h2 id="mais-titulo">Para quando um nome por app não basta</h2>
-      <ul class="mais-lista">
-        <li>
-          <h3>Curinga</h3>
-          <p><strong>*.lojas.sev</strong> atende cliente42.lojas.sev, a.b.lojas.sev e qualquer outro nome abaixo, cada um com o seu certificado HTTPS. Um nome exato, como api.lojas.sev, continua tendo a sua própria rota.</p>
-        </li>
-        <li>
-          <h3>Um domínio, vários apps</h3>
-          <p><strong>callfred.sev/api</strong> vai para a API e o resto de callfred.sev vai para o front. O caminho mais longo vence, e dá para tirar o /api antes de repassar.</p>
-        </li>
-        <li>
-          <h3>Grupos</h3>
-          <p>As rotas de um projeto ficam juntas, e uma chave liga ou desliga todas de uma vez.</p>
-        </li>
-        <li>
-          <h3>Pelo terminal</h3>
-          <p>Um módulo PowerShell fala com o app aberto, com as mesmas regras das telas.</p>
-          <pre class="terminal" aria-label="Exemplo no PowerShell"><code><span class="prompt">PS&gt;</span> New-SeverinoRoute callfred.sev http://localhost:3000 -Https -Group callfred
-<span class="prompt">PS&gt;</span> Set-SeverinoDns sql.interno 10.0.0.8
-<span class="prompt">PS&gt;</span> Disable-SeverinoRoute -Group callfred</code></pre>
-        </li>
-      </ul>
-    </section>
-
-    <section class="dns" id="dns" aria-labelledby="dns-titulo">
-      <div class="dns-texto">
-        <h2 id="dns-titulo">O hosts inteiro, sem abrir o Bloco de Notas como administrador</h2>
-        <p class="secao-lead">A aba DNS guarda nomes que vão direto a um IP, como <strong>sql.interno</strong> para 10.0.0.8, e mostra tudo o que já estava no seu hosts.</p>
-        <ul class="fatos">
-          <li><strong>Valem com o app fechado.</strong> Como uma linha escrita à mão, e também no WSL.</li>
-          <li><strong>O que não é dele fica marcado.</strong> As linhas que outra pessoa ou outro programa escreveu aparecem como "fora do Severino". Editar uma delas pede confirmação, mostra como vai ficar e deixa um comentário no hosts dizendo o que mudou.</li>
-          <li><strong>Um nome serve de destino.</strong> Rotas e serviços podem apontar para gateway.k8s em vez do IP: mudar o IP num lugar só atualiza todos.</li>
-          <li><strong>Rede privada direto, o resto com confirmação.</strong> IPs da rede interna entram na hora; IP público e curinga pedem a confirmação de administrador do Windows.</li>
-        </ul>
-      </div>
-      <img class="captura" src="assets/app-dns.png" width="1960" height="1400" loading="lazy"
-           alt="A aba DNS: entradas do Severino como gateway.k8s, destino de 3 serviços, e staging.exemplo.com.br aguardando aprovação; abaixo, as linhas do hosts que não são do Severino, marcadas.">
     </section>
 
     <section class="servicos" id="servicos" aria-labelledby="servicos-titulo">
@@ -155,19 +241,17 @@
         <h2 id="servicos-titulo">O cluster pelo nome de dentro do cluster</h2>
         <p class="secao-lead">Seu app chama <strong>postgres.database:5432</strong> como faria dentro do Kubernetes, e chega lá. Sem mudar uma linha de configuração.</p>
         <ul class="fatos">
-          <li><strong>Importa sozinho.</strong> O Severino pergunta ao kubectl e ao docker que você já tem, no Windows ou dentro do WSL, e lista os services e containers. Você marca quais quer.</li>
-          <li><strong>Os quatro nomes.</strong> pedidos, pedidos.loja, pedidos.loja.svc e pedidos.loja.svc.cluster.local levam ao mesmo lugar: a NodePort do service, com o nome original na requisição.</li>
-          <li><strong>Qualquer protocolo.</strong> HTTP, gRPC, Postgres, Redis: cada serviço ganha um endereço próprio e o tráfego passa byte a byte.</li>
-          <li><strong>Docker pelo nome do Compose.</strong> orchestrator:4000 chega à porta publicada do container, seja qual for.</li>
-          <li><strong>Só ClusterIP também.</strong> Para o que não tem acesso de fora, o Severino mantém um kubectl port-forward rodando e o reinicia se a VPN cair.</li>
-          <li><strong>Acompanha sozinho.</strong> Recriou o container em outra porta? A rota se corrige em segundos, sem clique.</li>
-          <li><strong>O nome público pelo caminho curto.</strong> Os hosts dos Ingress viram rotas direto para o gateway interno, sem dar a volta pela internet.</li>
-          <li><strong>Apps no WSL também.</strong> As distros que você escolher recebem os mesmos nomes, e o que roda nelas chama os serviços do mesmo jeito.</li>
+          <li><strong>Importa sozinho.</strong> Pergunta ao kubectl e ao docker que você já tem, no Windows ou dentro do WSL, e lista o que achou. Você só marca.</li>
+          <li><strong>Os quatro nomes.</strong> pedidos, pedidos.loja, pedidos.loja.svc e pedidos.loja.svc.cluster.local levam ao mesmo lugar.</li>
+          <li><strong>Só ClusterIP? Tudo bem.</strong> Ele mantém um kubectl port-forward rodando e o reinicia quando a VPN pisca.</li>
+          <li><strong>Ingress pelo caminho curto.</strong> O nome público vira uma rota direto para o controlador, sem dar a volta pela internet.</li>
+          <li><strong>Docker pelo nome do Compose.</strong> worker:4000 chega à porta publicada do container, seja qual for hoje.</li>
+          <li><strong>Apps no WSL também.</strong> As distros que você ligar recebem os mesmos nomes.</li>
         </ul>
       </div>
       <div class="servicos-visual">
-        <img class="captura" src="assets/app-importar.png" width="1720" height="1280" loading="lazy"
-             alt="A janela Importar serviços, procurando no WSL Ubuntu-22.04: sete services do Kubernetes e um container do Docker, com o namespace loja marcado.">
+        <img class="captura" src="assets/app-importar.png" width="1720" height="1520" loading="lazy"
+             alt="A janela Importar serviços, procurando no WSL Ubuntu-22.04: services do Kubernetes por namespace, um ClusterIP por port-forward, um container do Docker e os hosts dos Ingress.">
         <pre class="terminal" aria-label="Exemplo no terminal do WSL"><code><span class="prompt">~$</span> curl http://pedidos.loja/saude
 {"status":"ok"}
 <span class="prompt">~$</span> psql -h postgres.database -U app
@@ -176,9 +260,34 @@ app=&gt;</code></pre>
       </div>
     </section>
 
+    <section class="mais" aria-labelledby="mais-titulo">
+      <h2 id="mais-titulo">E as miudezas que fazem diferença</h2>
+      <ul class="mais-lista">
+        <li>
+          <h3>Pelo terminal</h3>
+          <p>Um módulo PowerShell fala com o app aberto, com as mesmas regras das telas.</p>
+          <pre class="terminal" aria-label="Exemplo no PowerShell"><code><span class="prompt">PS&gt;</span> New-SeverinoRoute api.sev http://localhost:8080 -Https
+<span class="prompt">PS&gt;</span> Set-SeverinoDns banco.interno 10.0.0.8
+<span class="prompt">PS&gt;</span> Disable-SeverinoRoute -Group meuapp</code></pre>
+        </li>
+        <li>
+          <h3>Pausa num clique</h3>
+          <p>O botão da bandeja devolve os domínios à internet na hora. Clicou de novo, voltou tudo.</p>
+        </li>
+        <li>
+          <h3>Backup</h3>
+          <p>Rotas, serviços e entradas DNS num arquivo só, para a máquina nova ou para o colega.</p>
+        </li>
+        <li>
+          <h3>Primeiro uso conferido</h3>
+          <p>Um assistente olha a porta 80, o serviço auxiliar e o proxy do sistema antes da primeira rota.</p>
+        </li>
+      </ul>
+    </section>
+
     <section class="seguranca" id="seguranca" aria-labelledby="seguranca-titulo">
-      <h2 id="seguranca-titulo">O que o Severino mexe na sua máquina</h2>
-      <p class="secao-lead">Uma ferramenta que pede administrador precisa dizer exatamente o que faz com ele.</p>
+      <h2 id="seguranca-titulo">Tem acesso de administrador. Por isso conta tudo.</h2>
+      <p class="secao-lead">Um porteiro de confiança diz exatamente o que faz com a chave do prédio.</p>
       <dl class="lista-seguranca">
         <div>
           <dt>Arquivo hosts</dt>
@@ -186,7 +295,7 @@ app=&gt;</code></pre>
         </div>
         <div>
           <dt>Serviço auxiliar</dt>
-          <dd>É a única parte que roda como administrador. Grava os blocos do hosts, responde os nomes curinga num DNS só dele em 127.53.0.1 e cria as regras do Windows que mandam esses sufixos para lá. IP público e sufixo curinga novos só entram depois da sua confirmação no aviso do Windows. O app em si roda como você.</dd>
+          <dd>A única parte que roda como administrador. Grava os blocos do hosts, responde os curingas num DNS só dele em 127.53.0.1 e cria as regras do Windows que mandam esses sufixos para lá. IP público e curinga novos só entram depois da sua confirmação. O app em si roda como você.</dd>
         </div>
         <div>
           <dt>Proxy</dt>
@@ -194,7 +303,7 @@ app=&gt;</code></pre>
         </div>
         <div>
           <dt>HTTPS</dt>
-          <dd>Uma autoridade certificadora só sua, que só consegue assinar os domínios das suas rotas. A chave fica protegida pelo Windows, na sua conta.</dd>
+          <dd>Uma autoridade certificadora só sua, que só consegue assinar os seus domínios. A chave fica protegida pelo Windows, na sua conta.</dd>
         </div>
         <div>
           <dt>Ir embora</dt>
@@ -203,22 +312,71 @@ app=&gt;</code></pre>
       </dl>
     </section>
 
+    <section class="perguntas" id="perguntas" aria-labelledby="perguntas-titulo">
+      <h2 id="perguntas-titulo">Perguntas na portaria</h2>
+      <div class="perguntas-lista">
+        <details>
+          <summary>Funciona no macOS ou no Linux?</summary>
+          <p>Não: o Severino é um app de Windows. Mas se você desenvolve no Linux pelo WSL 2, esse é exatamente o caso dele.</p>
+        </details>
+        <details>
+          <summary>Preciso do Docker Desktop?</summary>
+          <p>Não. Ele usa o docker que estiver à mão, no Windows ou dentro de uma distro do WSL. Sem Docker nenhum, rotas e DNS funcionam do mesmo jeito.</p>
+        </details>
+        <details>
+          <summary>E para o Kubernetes, preciso de quê?</summary>
+          <p>Do kubectl configurado, no Windows ou no WSL. O Severino usa o contexto atual. Se o cluster fica atrás de uma VPN, vale a VPN que você já usa.</p>
+        </details>
+        <details>
+          <summary>O HTTPS funciona em qualquer navegador?</summary>
+          <p>No Edge e no Chrome, sim: a autoridade certificadora entra no repositório do Windows. O Firefox tem lista própria; o Severino percebe e diz qual opção ligar.</p>
+        </details>
+        <details>
+          <summary>Posso usar .dev ou um domínio que existe de verdade?</summary>
+          <p>Pode, qualquer nome vale. O app avisa quando o nome existe na internet ou quando o navegador exige HTTPS, como no .dev. Os sufixos .test e .localhost nunca colidem com nada.</p>
+        </details>
+        <details>
+          <summary>Meus apps ficam expostos na rede?</summary>
+          <p>Não. O proxy escuta só em 127.0.0.1 e ::1, e o hosts só aponta para esta máquina, a não ser que você cadastre uma entrada DNS para outra.</p>
+        </details>
+        <details>
+          <summary>Quanto custa?</summary>
+          <p>Nada. É grátis, com o código no GitHub sob a licença MIT.</p>
+        </details>
+      </div>
+    </section>
+
     <section class="baixar" id="baixar" aria-labelledby="baixar-titulo">
       <img src="assets/severino-rosto-480.png" width="200" height="200" alt="" loading="lazy">
       <div>
-        <h2 id="baixar-titulo">O porteiro está pronto para começar</h2>
+        <h2 id="baixar-titulo">O porteiro já está de quepe</h2>
         <p>Um instalador para Windows 10 e 11, 64 bits, com tudo incluído. Ao abrir, um assistente confere a porta 80, o serviço auxiliar e o proxy do sistema antes da primeira rota.</p>
         <a class="botao" href="https://github.com/lucassm02/severino/releases/latest" data-download>Baixar para Windows</a>
-        <p class="nota" data-release-note-download>Todas as versões ficam nas <a href="https://github.com/lucassm02/severino/releases">releases do GitHub</a>.</p>
+        <p class="nota">Todas as versões e o que mudou em cada uma ficam nas <a href="https://github.com/lucassm02/severino/releases">releases do GitHub</a>.</p>
         <p class="nota">O instalador ainda não tem assinatura digital. Se o Windows SmartScreen avisar, clique em "Mais informações" e depois em "Executar assim mesmo".</p>
       </div>
     </section>
   </main>
 
   <footer class="rodape">
-    <p>Severino é feito para quem desenvolve no Windows. <a href="https://github.com/lucassm02/severino">Código, issues e versões no GitHub</a>.</p>
+    <p>Severino é feito para quem desenvolve no Windows, com ou sem WSL, Docker e Kubernetes. Licença MIT. <a href="https://github.com/lucassm02/severino">Código, issues e versões no GitHub</a>.</p>
   </footer>
 
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": [
+      { "@type": "Question", "name": "O Severino funciona no macOS ou no Linux?", "acceptedAnswer": { "@type": "Answer", "text": "Não: o Severino é um app de Windows. Mas se você desenvolve no Linux pelo WSL 2, esse é exatamente o caso dele." } },
+      { "@type": "Question", "name": "Preciso do Docker Desktop?", "acceptedAnswer": { "@type": "Answer", "text": "Não. Ele usa o docker que estiver à mão, no Windows ou dentro de uma distro do WSL. Sem Docker nenhum, rotas e DNS funcionam do mesmo jeito." } },
+      { "@type": "Question", "name": "E para o Kubernetes, preciso de quê?", "acceptedAnswer": { "@type": "Answer", "text": "Do kubectl configurado, no Windows ou no WSL. O Severino usa o contexto atual. Se o cluster fica atrás de uma VPN, vale a VPN que você já usa." } },
+      { "@type": "Question", "name": "O HTTPS funciona em qualquer navegador?", "acceptedAnswer": { "@type": "Answer", "text": "No Edge e no Chrome, sim: a autoridade certificadora entra no repositório do Windows. O Firefox tem lista própria; o Severino percebe e diz qual opção ligar." } },
+      { "@type": "Question", "name": "Posso usar .dev ou um domínio que existe de verdade?", "acceptedAnswer": { "@type": "Answer", "text": "Pode, qualquer nome vale. O app avisa quando o nome existe na internet ou quando o navegador exige HTTPS, como no .dev. Os sufixos .test e .localhost nunca colidem com nada." } },
+      { "@type": "Question", "name": "Meus apps ficam expostos na rede?", "acceptedAnswer": { "@type": "Answer", "text": "Não. O proxy escuta só em 127.0.0.1 e ::1, e o hosts só aponta para esta máquina, a não ser que você cadastre uma entrada DNS para outra." } },
+      { "@type": "Question", "name": "Quanto custa o Severino?", "acceptedAnswer": { "@type": "Answer", "text": "Nada. É grátis, com o código no GitHub sob a licença MIT." } }
+    ]
+  }
+  </script>
   <script src="site.js" defer></script>
 </body>
 </html>

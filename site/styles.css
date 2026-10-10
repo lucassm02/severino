@@ -274,6 +274,50 @@ p { margin: 0; }
   .quadro-moldura { max-width: 560px; }
 }
 
+/* ---------- Where apps live: four places, one doorman ---------- */
+
+.onde {
+  max-width: var(--largura);
+  margin: 0 auto;
+  padding: clamp(56px, 8vw, 96px) var(--gutter);
+  border-top: 1px solid var(--linha);
+}
+.onde h2 { max-width: 24ch; }
+
+.onde-lista {
+  list-style: none;
+  margin: 44px 0 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: clamp(24px, 3vw, 36px);
+}
+.onde-lista li {
+  border-top: 4px solid var(--laranja);
+  padding-top: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.onde-lista p { color: var(--texto-suave); flex: 1; }
+.onde-lista code {
+  font-family: var(--codigo);
+  font-size: 0.82rem;
+  background: var(--feltro);
+  color: var(--letra);
+  border-radius: 6px;
+  padding: 8px 10px;
+  white-space: nowrap;
+  overflow-x: auto;
+}
+
+@media (max-width: 980px) {
+  .onde-lista { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 560px) {
+  .onde-lista { grid-template-columns: minmax(0, 1fr); }
+}
+
 /* ---------- How it works: a real sequence, so numbered ---------- */
 
 .como {
@@ -381,8 +425,46 @@ p { margin: 0; }
   gap: clamp(28px, 5vw, 64px);
   align-items: center;
 }
+.captura-estreita { width: 100%; max-width: min(460px, 100%); justify-self: center; }
 @media (max-width: 860px) {
   .janela-par { grid-template-columns: minmax(0, 1fr); }
+}
+
+/* Rotas, Serviços, DNS: tabs with JS; without it, the three panels one after the other. */
+.abas { margin-top: 44px; }
+.abas-lista { display: flex; gap: 6px; border-bottom: 1px solid rgb(255 255 255 / 0.16); }
+.abas-lista[hidden] { display: none; }
+.abas-lista button {
+  font: inherit;
+  font-family: var(--display);
+  font-weight: 700;
+  font-size: 1.125rem;
+  color: #c5d3e6;
+  background: none;
+  border: 0;
+  border-bottom: 3px solid transparent;
+  padding: 12px 18px 10px;
+  margin-bottom: -1px;
+  cursor: pointer;
+}
+.abas-lista button:hover { color: #fff; }
+.abas-lista button[aria-selected="true"] { color: #fff; border-bottom-color: var(--laranja); }
+
+.painel {
+  display: grid;
+  grid-template-columns: minmax(0, 0.75fr) minmax(0, 1.25fr);
+  gap: clamp(28px, 5vw, 56px);
+  align-items: start;
+  padding-top: 36px;
+}
+.painel + .painel { margin-top: 48px; }
+.abas.ativa .painel + .painel { margin-top: 0; }
+.painel[hidden] { display: none; }
+.painel .fatos li { color: #c5d3e6; }
+.painel .fatos strong { color: #fff; }
+
+@media (max-width: 900px) {
+  .painel { grid-template-columns: minmax(0, 1fr); }
 }
 
 /* ---------- More than one name per app ---------- */
@@ -410,22 +492,39 @@ p { margin: 0; }
   .mais-lista { grid-template-columns: minmax(0, 1fr); }
 }
 
-/* ---------- DNS: a band of its own, so the light sections do not run together ---------- */
+/* ---------- FAQ ---------- */
 
-.dns {
+.perguntas {
   background: #e2e8f1;
   padding: clamp(56px, 8vw, 104px) max(var(--gutter), calc((100% - var(--largura)) / 2 + var(--gutter)));
-  display: grid;
-  grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
-  gap: clamp(32px, 5vw, 64px);
-  align-items: center;
 }
-.dns .secao-lead strong { color: var(--farda); }
-.dns .captura { box-shadow: 0 24px 48px -24px rgb(1 29 65 / 0.45), 0 0 0 1px var(--linha); }
 
-@media (max-width: 900px) {
-  .dns { grid-template-columns: minmax(0, 1fr); }
+.perguntas-lista { margin-top: 36px; max-width: 820px; }
+.perguntas details { border-top: 1px solid var(--linha); }
+.perguntas details:last-child { border-bottom: 1px solid var(--linha); }
+.perguntas summary {
+  cursor: pointer;
+  list-style: none;
+  padding: 18px 40px 18px 0;
+  position: relative;
+  font-family: var(--display);
+  font-weight: 700;
+  font-size: 1.2rem;
 }
+.perguntas summary::-webkit-details-marker { display: none; }
+/* A plus that turns into a minus: says it opens, and that it is open. */
+.perguntas summary::after {
+  content: "+";
+  position: absolute;
+  right: 6px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 1.6rem;
+  font-weight: 600;
+  color: var(--quepe);
+}
+.perguntas details[open] summary::after { content: "−"; }
+.perguntas details p { padding: 0 0 20px; max-width: 62ch; color: var(--texto-suave); }
 
 /* ---------- Services ---------- */
 
@@ -512,6 +611,27 @@ p { margin: 0; }
 @media (max-width: 720px) {
   .baixar { grid-template-columns: minmax(0, 1fr); }
 }
+
+/* ---------- 404 ---------- */
+
+.sumiu {
+  min-height: 100vh;
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  gap: 20px;
+  text-align: center;
+  padding: 48px var(--gutter);
+}
+.sumiu img { width: 160px; transform: rotate(-6deg); }
+.sumiu h1 {
+  font-size: clamp(2.25rem, 6vw, 4rem);
+  font-weight: 800;
+  font-variation-settings: "wdth" 80;
+  letter-spacing: -0.02em;
+  max-width: 16ch;
+}
+.sumiu p { max-width: 46ch; color: var(--texto-suave); }
 
 /* ---------- Footer ---------- */
 
