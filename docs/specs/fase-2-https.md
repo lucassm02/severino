@@ -155,7 +155,7 @@ Remover rotas não dispara reemissão. Configurações › HTTPS mostra os nomes
 - WebSocket por `wss://`;
 - folha nova depois de trocar a CA, sem reiniciar o Kestrel.
 
-**Checklist manual** (no fim da fase)
+**Checklist manual** (no fim da fase; roteiro passo a passo em [docs/testes/fase-2-https.md](../testes/fase-2-https.md))
 
 - os critérios de pronto 1, 2, 4, 5, 6 (Chrome), 7 e 8;
 - recusar o aviso do Windows na ativação desfaz tudo;
