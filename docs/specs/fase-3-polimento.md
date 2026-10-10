@@ -51,6 +51,9 @@ São perguntas que mudam o desenho. Vêm antes de tudo, como testes descartávei
 
 - **Custo do log (2026-10-09):** 40 mil requisições com 32 conexões, alternando proxy sem e com log. Deu 1295 e 1774 req/s sem log, contra 1414 e 1477 com log. A variação entre rodadas iguais é maior que a diferença entre as duas versões, então o custo fica abaixo do ruído.
 - **As outras quatro** dependem do Inno Setup, de um Windows Sandbox ou de alterar o registro do usuário. Elas são feitas no começo do passo que depende de cada uma: proxy e Firefox no passo 6, instalador no passo 8.
+- **Limpeza da CA na desinstalação (passo 8):** confirmado. O compilador do Inno Setup 6.7.3 recusa `runasoriginaluser` em `[UninstallRun]` ("a flag that is not supported in this section"). O `--cleanup` roda então com a conta que aprovou o UAC, que no caso comum é o próprio usuário. Quando o SID gravado na instalação é de outra conta, o desinstalador avisa antes de começar e sugere usar "Limpar tudo" com aquele usuário.
+- **SID no instalador (passo 8):** implementado com `ExecAsOriginalUser` e `whoami /user /fo csv`. A saída vai para um arquivo em `C:\ProgramData`, e não na pasta temporária, porque com outra conta aprovando o UAC o usuário original não escreveria na pasta temporária dela. Falta confirmar na prática, no checklist.
+- **Tamanho (passo 8):** o instalador saiu com 78 MB, e não os ~50 MB estimados. O app e o Helper levam cada um o seu runtime (175 MB e 79 MB publicados), e a compressão sólida não junta tudo.
 - **Exceções de proxy e Firefox (passo 6):** implementados e cobertos por testes, numa chave de registro de teste e com perfis falsos do Firefox. A confirmação num navegador de verdade fica para o checklist manual no Windows Sandbox. Nesta máquina, ela exigiria ligar um proxy no Windows do usuário, o que derrubaria a navegação dele, e o Firefox não está instalado.
 
 ## Escopo

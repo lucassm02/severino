@@ -6,5 +6,7 @@
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     <Company>Severino</Company>
     <Product>Severino</Product>
+    <!-- 0.(phase).x until 1.0; scripts/build-installer.ps1 names the setup after it. -->
+    <Version>0.3.0</Version>
   </PropertyGroup>
 </Project>
