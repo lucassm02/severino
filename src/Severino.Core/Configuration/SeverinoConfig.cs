@@ -80,6 +80,12 @@ public sealed record RouteEntry
     public bool PreserveHost { get; set; }
     public bool IgnoreTargetCertErrors { get; set; }
     public string Notes { get; set; } = "";
+
+    /// <summary>"/api" to take only that part of the domain; empty for all of it. The longest matching path wins.</summary>
+    public string Path { get; set; } = "";
+
+    /// <summary>Sends "/api/pedidos" to the target as "/pedidos".</summary>
+    public bool StripPath { get; set; }
 }
 
 /// <summary>

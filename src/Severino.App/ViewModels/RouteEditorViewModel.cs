@@ -65,7 +65,9 @@ public sealed partial class RouteEditorViewModel : ObservableObject
         PreserveHost = _original.PreserveHost;
         IgnoreTargetCertErrors = _original.IgnoreTargetCertErrors;
         Notes = _original.Notes;
-        ShowAdvanced = PreserveHost || IgnoreTargetCertErrors || Notes.Length > 0;
+        Path = _original.Path;
+        StripPath = _original.StripPath;
+        ShowAdvanced = PreserveHost || IgnoreTargetCertErrors || Notes.Length > 0 || Path.Length > 0;
         UpdateHttpsRules();
         IsReady = true;
         ScheduleChecks();
@@ -152,6 +154,18 @@ public sealed partial class RouteEditorViewModel : ObservableObject
     [ObservableProperty]
     public partial string? DomainError { get; set; }
 
+    /// <summary>"/api": this route takes only that part of the domain. Empty for all of it.</summary>
+    [ObservableProperty]
+    public partial string Path { get; set; } = "";
+
+    [ObservableProperty]
+    public partial bool StripPath { get; set; }
+
+    [ObservableProperty]
+    public partial string? PathError { get; set; }
+
+    partial void OnPathChanged(string value) => PathError = null;
+
     [ObservableProperty]
     public partial string? TargetError { get; set; }
 
@@ -196,6 +210,7 @@ public sealed partial class RouteEditorViewModel : ObservableObject
         var errors = _routes.Validate(route);
         DomainError = errors.Domain;
         TargetError = errors.Target;
+        PathError = errors.Path;
         if (!errors.IsValid)
             return;
 
@@ -249,6 +264,8 @@ public sealed partial class RouteEditorViewModel : ObservableObject
         PreserveHost = PreserveHost,
         IgnoreTargetCertErrors = IgnoreTargetCertErrors,
         Notes = Notes ?? "",
+        Path = Path ?? "",
+        StripPath = StripPath,
     };
 
     private static string FormatHost(string host) =>

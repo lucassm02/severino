@@ -15,7 +15,7 @@ public sealed class RouteTransferTests
     [Fact]
     public void Round_trip_keeps_everything_but_the_ids()
     {
-        RouteEntry[] routes = [Route("a.sev", https: true), Route("b.sev", "https://localhost:5001") with { Enabled = false, IgnoreTargetCertErrors = true }];
+        RouteEntry[] routes = [Route("a.sev", https: true), Route("b.sev", "https://localhost:5001") with { Enabled = false, IgnoreTargetCertErrors = true }, Route("a.sev") with { Path = "/api", StripPath = true }];
 
         var result = Import(RouteTransfer.Export(routes));
 

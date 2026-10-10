@@ -134,12 +134,11 @@ public sealed class ProxyServer(ILoggerFactory loggerFactory, Func<string, X509C
     {
         if (certificates is null || serverName is null)
             return null;
-        var route = FindRoute(serverName);
+        // HTTPS is the domain's: any of its routes (a path, or the whole of it) asking for it.
         // A wildcard route gets a leaf for the name actually asked, which the CA covers too.
-        return route is { Https: true } ? certificates(Severino.Contracts.DomainName.IsWildcard(route.Domain) ? RouteRules.Normalize(serverName)! : RouteRules.Normalize(route.Domain)!) : null;
+        return RouteRules.ForHost(_routes, serverName).Any(r => r.Https) ? certificates(RouteRules.Normalize(serverName)!) : null;
     }
 
-    private RouteEntry? FindRoute(string host) => RouteRules.Find(_routes, host);
 
     private async Task<Listener?> StartListenerAsync(int port, bool tls, CancellationToken cancellationToken)
     {
@@ -207,7 +206,7 @@ public sealed class ProxyServer(ILoggerFactory loggerFactory, Func<string, X509C
     private Task RedirectToHttpsAsync(HttpContext context, Func<Task> next)
     {
         var host = context.Request.Host.Host;
-        if (_https is not { } https || FindRoute(host) is not { Https: true, RedirectToHttps: true } || CertificateFor(host) is null)
+        if (_https is not { } https || RouteRules.Find(_routes, host, context.Request.Path.Value) is not { Https: true, RedirectToHttps: true } || CertificateFor(host) is null)
             return next();
 
         var port = https.Port == 443 ? "" : $":{https.Port}";

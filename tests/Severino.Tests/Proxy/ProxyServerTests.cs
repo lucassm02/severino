@@ -132,6 +132,26 @@ public sealed class ProxyServerTests : IAsyncLifetime
     }
 
     [Fact]
+    public async Task A_path_route_takes_its_part_of_the_domain_and_can_strip_it()
+    {
+        var deadPort = TestBackend.FreePort();
+        _proxy.UpdateRoutes(
+        [
+            Route("callfred.sev", $"http://127.0.0.1:{deadPort}"),
+            new RouteEntry { Domain = "callfred.sev", Path = "/api", Target = $"http://127.0.0.1:{_backendPort}", StripPath = true },
+            new RouteEntry { Domain = "callfred.sev", Path = "/raw", Target = $"http://127.0.0.1:{_backendPort}" },
+        ]);
+
+        // /api/echo reaches the backend as /echo.
+        Assert.Equal(HttpStatusCode.OK, (await _client.GetAsync(Url("callfred.sev", "/api/echo"))).StatusCode);
+        // /raw keeps its prefix, so the backend sees /raw/echo, which it does not have.
+        Assert.Equal(HttpStatusCode.NotFound, (await _client.GetAsync(Url("callfred.sev", "/raw/echo"))).StatusCode);
+        // Anything else is the domain's own route, whose target is down; /apix is not /api.
+        Assert.Equal(HttpStatusCode.BadGateway, (await _client.GetAsync(Url("callfred.sev", "/outra"))).StatusCode);
+        Assert.Equal(HttpStatusCode.BadGateway, (await _client.GetAsync(Url("callfred.sev", "/apix/echo"))).StatusCode);
+    }
+
+    [Fact]
     public async Task Disabled_and_looping_routes_are_not_served()
     {
         _proxy.UpdateRoutes(

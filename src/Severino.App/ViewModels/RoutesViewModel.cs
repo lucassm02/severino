@@ -345,7 +345,7 @@ public sealed partial class RoutesViewModel : ObservableObject
     private string Url(RouteItemViewModel item)
     {
         var settings = _config.Current.Settings;
-        return Browser.UrlFor(item.Domain, settings.HttpPort, item.HttpsState == RouteHttpsState.On ? settings.HttpsPort : null);
+        return Browser.UrlFor(item.Domain, settings.HttpPort, item.HttpsState == RouteHttpsState.On ? settings.HttpsPort : null, item.Route.Path);
     }
 
     private void DismissUndo()

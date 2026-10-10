@@ -118,7 +118,7 @@
                                                 Command="{Binding Data.OpenCommand, Source={StaticResource Root}}"
                                                 CommandParameter="{Binding}"
                                                 ToolTip="Abrir no navegador">
-                                                <Run Text="{Binding Domain, Mode=OneWay}" />
+                                                <Run Text="{Binding DisplayName, Mode=OneWay}" />
                                             </Hyperlink>
                                             <InlineUIContainer BaselineAlignment="Center">
                                                 <Border

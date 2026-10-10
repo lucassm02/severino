@@ -142,6 +142,25 @@
 
         <Expander Margin="0,16,0,0" Header="Avançado" IsExpanded="{Binding ShowAdvanced}">
             <StackPanel Margin="0,8,0,0">
+                <ui:TextBlock Style="{StaticResource FieldLabel}" Margin="0,0,0,4" Text="Caminho (opcional)" />
+                <ui:TextBox
+                    PlaceholderText="ex.: /api"
+                    AutomationProperties.Name="Caminho"
+                    Text="{Binding Path, UpdateSourceTrigger=PropertyChanged}" />
+                <ui:TextBlock
+                    Margin="0,4,0,0"
+                    Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                    FontTypography="Caption"
+                    TextWrapping="Wrap"
+                    Text="Esta rota fica só com esse pedaço do domínio, e outra rota pode ficar com o resto. O caminho mais longo vence." />
+                <ui:TextBlock Style="{StaticResource ErrorText}" Text="{Binding PathError}" Visibility="{Binding PathError, Converter={StaticResource NullToCollapsed}}" />
+                <CheckBox Margin="0,4,0,0" Content="Tirar o caminho antes de repassar" IsChecked="{Binding StripPath}" />
+                <ui:TextBlock
+                    Margin="28,0,0,12"
+                    Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                    FontTypography="Caption"
+                    TextWrapping="Wrap"
+                    Text="/api/pedidos chega ao destino como /pedidos." />
                 <CheckBox Content="Preservar o Host original" IsChecked="{Binding PreserveHost}" />
                 <ui:TextBlock
                     Margin="28,0,0,8"

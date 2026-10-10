@@ -79,6 +79,34 @@ public sealed class RouteRulesTests
         Assert.True(RouteRules.Validate(Route("a.sev", "http://127.0.0.1"), [], 8080).IsValid);
     }
 
+    [Theory]
+    [InlineData("", "")]
+    [InlineData("/", "")]
+    [InlineData("api", "/api")]
+    [InlineData("/v1/pedidos/", "/v1/pedidos")]
+    [InlineData("/a b", null)]
+    [InlineData("/api?x=1", null)]
+    [InlineData("//api", null)]
+    public void Paths_are_normalized(string path, string? expected)
+    {
+        Assert.Equal(expected, RouteRules.NormalizePath(path));
+    }
+
+    [Fact]
+    public void One_domain_can_have_a_route_per_path_and_the_longest_path_wins()
+    {
+        var root = Route("callfred.sev");
+        var api = Route("callfred.sev") with { Path = "/api" };
+        var v2 = Route("callfred.sev") with { Path = "/api/v2" };
+
+        Assert.True(RouteRules.Validate(api, [root], 80).IsValid);
+        Assert.Equal("Já existe uma rota para callfred.sev/api.", RouteRules.Validate(Route("callfred.sev") with { Path = "api/" }, [root, api], 80).Domain);
+        Assert.Same(v2, RouteRules.Find([root, api, v2], "callfred.sev", "/api/v2/x"));
+        Assert.Same(api, RouteRules.Find([root, api, v2], "callfred.sev", "/api"));
+        Assert.Same(root, RouteRules.Find([root, api, v2], "callfred.sev", "/apix"));
+        Assert.Same(root, RouteRules.Find([root, api, v2], "callfred.sev"));
+    }
+
     [Fact]
     public void Active_domains_are_enabled_distinct_normalized_and_sorted()
     {

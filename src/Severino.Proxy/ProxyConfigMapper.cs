@@ -28,17 +28,24 @@ public static class ProxyConfigMapper
             var domain = RouteRules.Normalize(route.Domain)!;
             var id = route.Id.ToString("N");
 
+            // "/api" takes "/api" and everything below it; routing precedence puts the longer,
+            // literal path ahead of the domain's catch-all.
+            var path = RouteRules.NormalizePath(route.Path) ?? "";
+            var transforms = new List<IReadOnlyDictionary<string, string>>();
+            // Off by default YARP sends the destination's Host, which keeps Vite and webpack-dev-server
+            // happy; X-Forwarded-Host still carries the original.
+            if (route.PreserveHost)
+                transforms.Add(new Dictionary<string, string> { ["RequestHeaderOriginalHost"] = "true" });
+            if (route.StripPath && path.Length > 0)
+                transforms.Add(new Dictionary<string, string> { ["PathRemovePrefix"] = path });
+
             yarpRoutes.Add(new RouteConfig
             {
                 RouteId = id,
                 ClusterId = id,
-                Match = new RouteMatch { Hosts = [domain], Path = "{**catch-all}" },
+                Match = new RouteMatch { Hosts = [domain], Path = path + "/{**catch-all}" },
                 Metadata = new Dictionary<string, string> { [DomainKey] = domain, [TargetKey] = target.ToString() },
-                // Off by default YARP sends the destination's Host, which keeps Vite and webpack-dev-server
-                // happy; X-Forwarded-Host still carries the original.
-                Transforms = route.PreserveHost
-                    ? [new Dictionary<string, string> { ["RequestHeaderOriginalHost"] = "true" }]
-                    : null,
+                Transforms = transforms.Count > 0 ? transforms : null,
             });
 
             clusters.Add(new ClusterConfig

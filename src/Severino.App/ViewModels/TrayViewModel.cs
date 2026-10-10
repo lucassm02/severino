@@ -103,8 +103,8 @@ public sealed partial class TrayViewModel : ObservableObject
         foreach (var route in routes)
         {
             var https = route.Https && _https.IsActive && _https.Covers(route.Domain);
-            var url = Browser.UrlFor(route.Domain, settings.HttpPort, https ? settings.HttpsPort : null);
-            Routes.Add(new TrayRoute(route.Domain, new RelayCommand(() => Browser.Open(url))));
+            var url = Browser.UrlFor(route.Domain, settings.HttpPort, https ? settings.HttpsPort : null, route.Path);
+            Routes.Add(new TrayRoute(route.Domain + route.Path, new RelayCommand(() => Browser.Open(url))));
         }
         HasNoRoutes = Routes.Count == 0;
     }

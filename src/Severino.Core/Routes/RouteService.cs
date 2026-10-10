@@ -17,9 +17,9 @@ public sealed class RouteService(ConfigService config, Dns.ExternalHosts? extern
     {
         var errors = Validate(route);
         if (!errors.IsValid)
-            throw new ArgumentException(errors.Domain ?? errors.Target, nameof(route));
+            throw new ArgumentException(errors.Domain ?? errors.Path ?? errors.Target, nameof(route));
 
-        var saved = route with { Domain = RouteRules.Normalize(route.Domain)! };
+        var saved = route with { Domain = RouteRules.Normalize(route.Domain)!, Path = RouteRules.NormalizePath(route.Path)! };
         config.Update(c =>
         {
             var routes = c.Routes.ToList();

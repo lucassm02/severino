@@ -4,9 +4,9 @@ using Severino.Core.Configuration;
 
 namespace Severino.Core.Routes;
 
-public sealed record RouteErrors(string? Domain, string? Target)
+public sealed record RouteErrors(string? Domain, string? Target, string? Path = null)
 {
-    public bool IsValid => Domain is null && Target is null;
+    public bool IsValid => Domain is null && Target is null && Path is null;
 }
 
 /// <summary>Validation shared by the route form and the proxy.</summary>
@@ -21,10 +21,13 @@ public static class RouteRules
         IReadOnlySet<string>? dnsNames = null, IReadOnlySet<string>? external = null)
     {
         string? domainError = null;
+        string? pathError = null;
+        if (!TryNormalizePath(route.Path, out var path, out var pathReason))
+            pathError = pathReason;
         if (!TryNormalize(route.Domain, out var domain, out var reason))
             domainError = reason;
-        else if (routes.Any(r => r.Id != route.Id && Normalize(r.Domain) == domain))
-            domainError = "Já existe uma rota para este domínio.";
+        else if (path is not null && routes.Any(r => r.Id != route.Id && Normalize(r.Domain) == domain && NormalizePath(r.Path) == path))
+            domainError = path.Length == 0 ? "Já existe uma rota para este domínio." : $"Já existe uma rota para {domain}{path}.";
         else if (services?.Any(s => s.Names.Contains(domain)) == true)
             domainError = "Já existe uma rota de serviço com este nome.";
         else if (dnsNames?.Contains(domain) == true)
@@ -38,7 +41,7 @@ public static class RouteRules
         else if (IsLoop(target, domain, routes, proxyPort, httpsPort))
             targetError = "O destino aponta para o próprio Severino e criaria um loop.";
 
-        return new RouteErrors(domainError, targetError);
+        return new RouteErrors(domainError, targetError, pathError);
     }
 
     public static bool TryParseTarget(string? value, out Uri target, out string? error)
@@ -104,17 +107,66 @@ public static class RouteRules
             : DomainName.TryNormalize(domain, out normalized, out error);
 
     /// <summary>
-    /// The route for a request's host: the exact domain first, else the most specific wildcard
-    /// above it, so api.callfred.sev beats *.callfred.sev.
+    /// A route's path: empty for the whole domain, else "/api" style, segments of letters, digits
+    /// and <c>-._~</c>, no trailing slash. Null when it cannot be one.
     /// </summary>
-    public static RouteEntry? Find(IEnumerable<RouteEntry> routes, string host)
+    public static string? NormalizePath(string? path) => TryNormalizePath(path, out var normalized, out _) ? normalized : null;
+
+    public static bool TryNormalizePath(string? path, [System.Diagnostics.CodeAnalysis.NotNullWhen(true)] out string? normalized,
+        [System.Diagnostics.CodeAnalysis.NotNullWhen(false)] out string? error)
+    {
+        normalized = null;
+        var value = (path ?? "").Trim().TrimEnd('/');
+        if (value.Length == 0)
+        {
+            normalized = "";
+            error = null;
+            return true;
+        }
+        if (!value.StartsWith('/'))
+            value = "/" + value;
+        var segments = value[1..].Split('/');
+        if (segments.Any(s => s.Length == 0 || !s.All(c => char.IsAsciiLetterOrDigit(c) || c is '-' or '.' or '_' or '~')))
+        {
+            error = "Use um caminho como /api ou /v1/pedidos: letras, números, - . _ e ~.";
+            return false;
+        }
+        normalized = value;
+        error = null;
+        return true;
+    }
+
+    /// <summary>
+    /// The routes for a request's host: those of the exact domain first, else those of the most
+    /// specific wildcard above it, so api.callfred.sev beats *.callfred.sev.
+    /// </summary>
+    public static IReadOnlyList<RouteEntry> ForHost(IEnumerable<RouteEntry> routes, string host)
     {
         if (Normalize(host) is not { } name)
-            return null;
+            return [];
         var enabled = routes.Where(r => r.Enabled).Select(r => (Route: r, Domain: Normalize(r.Domain))).Where(r => r.Domain is not null).ToList();
-        return enabled.FirstOrDefault(r => r.Domain == name).Route
-            ?? enabled.Where(r => DomainName.IsWildcard(r.Domain) && DomainName.MatchesWildcard(r.Domain!, name))
-                .OrderByDescending(r => r.Domain!.Length)
-                .FirstOrDefault().Route;
+        var exact = enabled.Where(r => r.Domain == name).Select(r => r.Route).ToList();
+        if (exact.Count > 0)
+            return exact;
+        var wildcard = enabled.Where(r => DomainName.IsWildcard(r.Domain) && DomainName.MatchesWildcard(r.Domain!, name))
+            .OrderByDescending(r => r.Domain!.Length)
+            .FirstOrDefault().Domain;
+        return wildcard is null ? [] : [.. enabled.Where(r => r.Domain == wildcard).Select(r => r.Route)];
+    }
+
+    /// <summary>
+    /// The route for a request: by host (see <see cref="ForHost"/>), then the longest path that
+    /// <paramref name="path"/> starts with, segment by segment. Without a path, the domain's root route.
+    /// </summary>
+    public static RouteEntry? Find(IEnumerable<RouteEntry> routes, string host, string? path = null)
+    {
+        var candidates = ForHost(routes, host);
+        var requested = path ?? "/";
+        return candidates
+            .Select(r => (Route: r, Path: NormalizePath(r.Path)))
+            .Where(r => r.Path is not null && (r.Path.Length == 0 || requested.Equals(r.Path, StringComparison.OrdinalIgnoreCase)
+                || requested.StartsWith(r.Path + "/", StringComparison.OrdinalIgnoreCase)))
+            .OrderByDescending(r => r.Path!.Length)
+            .FirstOrDefault().Route;
     }
 }

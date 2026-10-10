@@ -25,6 +25,8 @@ public sealed record ExportedRoute
     public bool PreserveHost { get; set; }
     public bool IgnoreTargetCertErrors { get; set; }
     public string Notes { get; set; } = "";
+    public string Path { get; set; } = "";
+    public bool StripPath { get; set; }
 }
 
 public sealed record InvalidImport(string Domain, string Reason);
@@ -51,6 +53,8 @@ public static class RouteTransfer
                 PreserveHost = r.PreserveHost,
                 IgnoreTargetCertErrors = r.IgnoreTargetCertErrors,
                 Notes = r.Notes,
+                Path = r.Path,
+                StripPath = r.StripPath,
             })],
         },
         ConfigJsonContext.Default.RouteFile);
@@ -92,23 +96,26 @@ public static class RouteTransfer
                 PreserveHost = exported.PreserveHost,
                 IgnoreTargetCertErrors = exported.IgnoreTargetCertErrors,
                 Notes = exported.Notes ?? "",
+                Path = exported.Path ?? "",
+                StripPath = exported.StripPath,
             };
 
             var domain = RouteRules.Normalize(route.Domain);
-            if (domain is not null && routes.Any(r => RouteRules.Normalize(r.Domain) == domain))
+            var path = RouteRules.NormalizePath(route.Path);
+            if (domain is not null && routes.Any(r => RouteRules.Normalize(r.Domain) == domain && RouteRules.NormalizePath(r.Path) == path))
             {
-                skipped.Add(domain);
+                skipped.Add(domain + path);
                 continue;
             }
 
             var errors = RouteRules.Validate(route, routes, httpPort, httpsPort, services);
             if (!errors.IsValid)
             {
-                invalid.Add(new(route.Domain.Length > 0 ? route.Domain : "(sem domínio)", errors.Domain ?? errors.Target ?? ""));
+                invalid.Add(new(route.Domain.Length > 0 ? route.Domain : "(sem domínio)", errors.Domain ?? errors.Path ?? errors.Target ?? ""));
                 continue;
             }
 
-            route = route with { Domain = domain! };
+            route = route with { Domain = domain!, Path = path! };
             routes.Add(route);
             added.Add(route);
         }

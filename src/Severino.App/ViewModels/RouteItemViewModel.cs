@@ -36,6 +36,9 @@ public sealed partial class RouteItemViewModel : ObservableObject
 
     public Guid Id => Route.Id;
     public string Domain => Route.Domain;
+
+    /// <summary>The domain, with the path when the route takes only part of it: callfred.sev/api.</summary>
+    public string DisplayName => Route.Domain + Route.Path;
     public string TargetDisplay => Uri.TryCreate(Route.Target, UriKind.Absolute, out var uri)
         ? (uri.Scheme == Uri.UriSchemeHttps ? "https://" : "") + uri.Authority
         : Route.Target;
