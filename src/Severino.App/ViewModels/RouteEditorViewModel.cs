@@ -5,6 +5,7 @@ using Severino.App.Services;
 using Severino.Contracts;
 using Severino.Core.Configuration;
 using Severino.Core.Domains;
+using Severino.Core.Network;
 using Severino.Core.Routes;
 using Severino.Proxy;
 
@@ -66,6 +67,7 @@ public sealed partial class RouteEditorViewModel : ObservableObject
         UpdateHttpsRules();
         IsReady = true;
         ScheduleChecks();
+        _ = RefreshPortsAsync();
     }
 
     public bool IsNew { get; }
@@ -145,6 +147,18 @@ public sealed partial class RouteEditorViewModel : ObservableObject
     public partial string? PortWarning { get; set; }
 
     public ObservableCollection<DomainWarning> DomainWarnings { get; } = [];
+
+    /// <summary>Ports something listens on right now, for the port field's list.</summary>
+    public ObservableCollection<ListeningPort> Ports { get; } = [];
+
+    public async Task RefreshPortsAsync()
+    {
+        // GetExtendedTcpTable plus a command line per process: cheap, but not for the UI thread.
+        var ports = await Task.Run(() => ListeningPorts.List(excludeProcessId: Environment.ProcessId));
+        Ports.Clear();
+        foreach (var port in ports)
+            Ports.Add(port);
+    }
 
     private string? NormalizedDomain => RouteRules.Normalize(Domain);
 

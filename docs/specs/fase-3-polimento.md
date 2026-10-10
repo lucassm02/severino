@@ -104,7 +104,9 @@ São perguntas que mudam o desenho. Vêm antes de tudo, como testes descartávei
 
 - **Porta do destino:** vira um combo editável com as portas escutando em loopback ou em qualquer endereço, como `3000 · node` ou `5000 · dotnet`. A lista se atualiza ao abrir o combo.
   - Ficam de fora as portas do próprio Severino e as do Windows abaixo de 1024, exceto 80 e 443 de outros processos.
-  - Quando a linha de comando do processo for legível, a lista acrescenta uma dica curta, como `5173 · node (vite)`, reconhecendo vite, next, nuxt, astro, webpack e `dotnet watch`. Sem acesso, fica só o nome.
+  - Também ficam de fora os serviços do Windows (`svchost`, `lsass` e afins) e a faixa dinâmica, de 49152 para cima, a menos que o processo seja um runtime de desenvolvimento (node, dotnet, python, java e afins) ou uma ferramenta reconhecida. *Acrescentado na implementação:* sem isso, a lista enchia de portas do Spotify e de serviços de fabricante.
+  - Quando a linha de comando do processo for legível, a lista acrescenta uma dica curta, como `5173 · node (vite)`, reconhecendo vite, next, nuxt, astro, storybook, angular, webpack e `dotnet watch`. Sem acesso, fica só o nome.
+  - Portas repassadas pelo WSL (`wslrelay`) e pelo Docker Desktop aparecem como `WSL` e `Docker`, que dizem onde o servidor roda de fato.
 
 ### Proxy do sistema
 
@@ -200,7 +202,7 @@ Aparece quando `state.firstRunCompleted` é falso, numa janela própria sobre a 
 ## Pacotes e ferramentas novos
 
 - **Inno Setup 6**, só na máquina de build: `winget install JRSoftware.InnoSetup`.
-- **`System.Management`**, para ler a linha de comando dos processos (WMI `Win32_Process`) no combo de portas. A alternativa sem pacote é ler o PEB de cada processo por P/Invoke, que é mais frágil.
+- ~~`System.Management`~~ *Dispensado na implementação:* a linha de comando dos processos vem de `NtQueryInformationProcess` com `ProcessCommandLineInformation`, que devolve uma cópia pronta, sem ler a memória do processo. Fica mais rápido que o WMI e não precisa de pacote.
 
 ## Decisões a confirmar
 

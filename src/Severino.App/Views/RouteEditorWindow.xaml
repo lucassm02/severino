@@ -74,7 +74,24 @@
                 <ui:TextBlock Grid.Column="1" Margin="6,0" VerticalAlignment="Center" Text="://" />
                 <ui:TextBox Grid.Column="2" AutomationProperties.Name="Host do destino" Text="{Binding TargetHost, UpdateSourceTrigger=PropertyChanged}" />
                 <ui:TextBlock Grid.Column="3" Margin="6,0" VerticalAlignment="Center" Text=":" />
-                <ui:TextBox Grid.Column="4" AutomationProperties.Name="Porta do destino" Text="{Binding TargetPort, UpdateSourceTrigger=PropertyChanged}" />
+                <!-- Editable: any number works; the list only saves remembering it. No autocomplete,
+                     which would turn a typed "50" into "5000". -->
+                <ComboBox
+                    Grid.Column="4"
+                    IsEditable="True"
+                    IsTextSearchEnabled="False"
+                    TextSearch.TextPath="PortText"
+                    ItemsSource="{Binding Ports}"
+                    Text="{Binding TargetPort, UpdateSourceTrigger=PropertyChanged}"
+                    DropDownOpened="OnPortsOpening"
+                    ToolTip="Portas com algum programa escutando agora"
+                    AutomationProperties.Name="Porta do destino">
+                    <ComboBox.ItemTemplate>
+                        <DataTemplate>
+                            <TextBlock Text="{Binding Label}" />
+                        </DataTemplate>
+                    </ComboBox.ItemTemplate>
+                </ComboBox>
             </Grid>
             <ui:TextBlock Style="{StaticResource ErrorText}" Text="{Binding TargetError}" Visibility="{Binding TargetError, Converter={StaticResource NullToCollapsed}}" />
             <ui:TextBlock
