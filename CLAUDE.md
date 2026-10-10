@@ -12,7 +12,7 @@ App desktop Windows para apontar domínios para apps locais de dev (`callfred.se
 - Domínio livre, sem lista de sufixos; pode sobrescrever um domínio real. O app só avisa (DNS consultado sem o hosts, HSTS preload, `.local`). Os exemplos usam `.sev`.
 - Proxy escuta só em `127.0.0.1` e `[::1]`. HTTP→HTTPS com 307, nunca 301, nunca HSTS.
 - CA ECDSA P-256 com Name Constraints nos domínios cadastrados (TLD inteiro quando o TLD não existe na internet; nome exato quando existe), chave via DPAPI, instalada em `CurrentUser\Root`. Domínio fora da cobertura exige reemitir a CA.
-- Fora do escopo: expor na rede/internet, Let's Encrypt, load balancing, containers/WSL.
+- Fora do escopo: expor na rede/internet, Let's Encrypt, load balancing, resolução de nomes dentro de containers. Kubernetes, Docker e WSL entram na Fase 4 como fontes de serviços e como chamadores ([spec](docs/specs/fase-4-servicos.md)), sem o Helper deixar de gravar só loopback.
 
 ## Comandos
 

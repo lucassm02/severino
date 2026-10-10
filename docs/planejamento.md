@@ -4,7 +4,9 @@ A ideia é cadastrar `callfred.sev → 127.0.0.1:3000` numa janela e deixar a fe
 
 O domínio é livre. Vale qualquer nome válido, inclusive um que já exista na internet: enquanto a rota estiver ativa, ele passa a apontar para a sua máquina, e o app avisa antes (veja "Domínios" na seção 4). Nos exemplos usamos `.sev`.
 
-Ficam de fora, de propósito: expor serviços na rede ou na internet, Let's Encrypt, balanceamento de carga e resolução de nomes dentro de containers ou WSL. O proxy escuta só em loopback.
+Ficam de fora, de propósito: expor serviços na rede ou na internet, Let's Encrypt, balanceamento de carga e resolução de nomes dentro de containers. O proxy escuta só em loopback.
+
+A primeira versão do plano deixava o WSL inteiro de fora. Em 2026-10-09 isso mudou: a Fase 4 traz os serviços do Kubernetes e os containers do Docker para a máquina pelos nomes que eles têm no cluster ou no Compose, descobertos no Windows ou dentro das distros do WSL, e atende apps rodando no WSL (veja o [spec da Fase 4](specs/fase-4-servicos.md)).
 
 ## 1. Arquitetura
 
@@ -292,7 +294,8 @@ O `Contracts` existe para que app e serviço usem exatamente o mesmo validador. 
 | 1. MVP HTTP | CRUD de rotas, YARP, serviço auxiliar + bloco no hosts, avisos de domínio, status de saúde, páginas de erro, detecção de porta ocupada | `http://callfred.sev` abre seu app e o HMR do Vite funciona |
 | 2. HTTPS | CA com Name Constraints nos domínios cadastrados e reemissão, emissão por SNI, redirecionamento, exportar CA | `https://callfred.sev` abre no Edge e no Chrome sem aviso |
 | 3. Polimento | Assistente de primeira execução, aba de requisições, combo de portas com processo, detector de proxy do sistema, iniciar com Windows, importar e exportar, "Limpar tudo", instalador | Alguém que nunca viu a ferramenta instala e cria uma rota sem ajuda |
-| 4. Extras | Curinga via DNS embutido + regra NRPT para os domínios das rotas (a validar), rotas por caminho (`/api`), importar entradas 127.0.0.1 já existentes no hosts, grupos de rotas, módulo PowerShell opcional | Conforme a necessidade |
+| 4. Serviços | Rotas de serviço com encaminhamento TCP e loopback dedicado; descoberta de services do Kubernetes e containers do Docker, no Windows e no WSL, ou colando a saída dos comandos; nomes no `/etc/hosts` das distros | Um app no Windows ou no WSL chama `pedidos:8080` e chega ao serviço no cluster, pelo gateway, com o nome original |
+| 5. Extras | Curinga via DNS embutido + regra NRPT para os domínios das rotas (a validar), rotas por caminho (`/api`), importar entradas 127.0.0.1 já existentes no hosts, grupos de rotas, módulo PowerShell opcional, `kubectl port-forward` gerenciado, acompanhar mudanças do cluster e do Docker sozinho | Conforme a necessidade |
 
 ## 8. Riscos restantes
 
@@ -303,7 +306,7 @@ O `Contracts` existe para que app e serviço usem exatamente o mesmo validador. 
 | Barra de endereço tratar TLD desconhecido como busca | "Abrir no navegador" sempre usa a URL completa. Na primeira vez, digitar `http://` ou a barra final; depois o histórico resolve |
 | DNS-over-HTTPS no navegador | Os navegadores consultam o hosts antes do DoH; se algo falhar, o diagnóstico sugere testar com `.localhost` |
 | SmartScreen em executável sem assinatura | Aceitável para uso próprio; certificado de assinatura só se for distribuir |
-| Containers e WSL não enxergam `.sev` | Fora do escopo, documentado |
+| Containers não enxergam `.sev` | Fora do escopo, documentado. Apps no WSL passam a enxergar as rotas de serviço na Fase 4 |
 | Porta 53 ocupada no DNS da Fase 4 | Validar antes de implementar o curinga |
 
 ## 9. Testes
