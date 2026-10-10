@@ -21,7 +21,7 @@ public static class DnsRules
         var names = new List<string>();
         foreach (var raw in entry.Names)
         {
-            if (!DomainName.TryNormalize(raw, out var name, out var reason, allowSingleLabel: true))
+            if (!(DomainName.IsWildcard(raw) ? DomainName.TryNormalizeWildcard(raw, out var name, out var reason) : DomainName.TryNormalize(raw, out name, out reason, allowSingleLabel: true)))
                 return (null, $"Nome inválido '{raw}': {reason}");
             if (!names.Contains(name))
                 names.Add(name);

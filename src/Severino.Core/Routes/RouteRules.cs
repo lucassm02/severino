@@ -21,7 +21,7 @@ public static class RouteRules
         IReadOnlySet<string>? dnsNames = null, IReadOnlySet<string>? external = null)
     {
         string? domainError = null;
-        if (!DomainName.TryNormalize(route.Domain, out var domain, out var reason))
+        if (!TryNormalize(route.Domain, out var domain, out var reason))
             domainError = reason;
         else if (routes.Any(r => r.Id != route.Id && Normalize(r.Domain) == domain))
             domainError = "Já existe uma rota para este domínio.";
@@ -94,5 +94,27 @@ public static class RouteRules
             .Order(StringComparer.Ordinal)];
 
     public static string? Normalize(string domain) =>
-        DomainName.TryNormalize(domain, out var normalized, out _) ? normalized : null;
+        TryNormalize(domain, out var normalized, out _) ? normalized : null;
+
+    /// <summary>A domain, or a wildcard like *.callfred.sev that covers every name below it.</summary>
+    public static bool TryNormalize(string? domain, [System.Diagnostics.CodeAnalysis.NotNullWhen(true)] out string? normalized,
+        [System.Diagnostics.CodeAnalysis.NotNullWhen(false)] out string? error) =>
+        DomainName.IsWildcard(domain)
+            ? DomainName.TryNormalizeWildcard(domain, out normalized, out error)
+            : DomainName.TryNormalize(domain, out normalized, out error);
+
+    /// <summary>
+    /// The route for a request's host: the exact domain first, else the most specific wildcard
+    /// above it, so api.callfred.sev beats *.callfred.sev.
+    /// </summary>
+    public static RouteEntry? Find(IEnumerable<RouteEntry> routes, string host)
+    {
+        if (Normalize(host) is not { } name)
+            return null;
+        var enabled = routes.Where(r => r.Enabled).Select(r => (Route: r, Domain: Normalize(r.Domain))).Where(r => r.Domain is not null).ToList();
+        return enabled.FirstOrDefault(r => r.Domain == name).Route
+            ?? enabled.Where(r => DomainName.IsWildcard(r.Domain) && DomainName.MatchesWildcard(r.Domain!, name))
+                .OrderByDescending(r => r.Domain!.Length)
+                .FirstOrDefault().Route;
+    }
 }

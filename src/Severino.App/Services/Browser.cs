@@ -4,8 +4,13 @@ namespace Severino.App.Services;
 
 public static class Browser
 {
-    /// <summary>The address a route is reached at; the port only shows when it is not the scheme's default.</summary>
-    public static string UrlFor(string domain, int httpPort, int? httpsPort = null) => httpsPort switch
+    /// <summary>
+    /// The address a route is reached at; the port only shows when it is not the scheme's default.
+    /// A wildcard opens one example name below it.
+    /// </summary>
+    public static string UrlFor(string domain, int httpPort, int? httpsPort = null) => UrlForHost(domain.StartsWith("*.", StringComparison.Ordinal) ? "exemplo" + domain[1..] : domain, httpPort, httpsPort);
+
+    private static string UrlForHost(string domain, int httpPort, int? httpsPort) => httpsPort switch
     {
         443 => $"https://{domain}/",
         { } port => $"https://{domain}:{port}/",

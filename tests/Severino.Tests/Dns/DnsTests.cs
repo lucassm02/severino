@@ -72,6 +72,18 @@ public sealed class DnsTests : IDisposable
     }
 
     [Fact]
+    public void Wildcards_are_entries_and_routes_too_but_never_a_whole_tld()
+    {
+        Assert.Equal(["*.dev.interno"], _dns.Save(Entry("10.0.0.5", "*.Dev.Interno")).Names);
+        Assert.StartsWith("Nome inválido '*.com'", _dns.Validate(Entry("10.0.0.5", "*.com")).Error);
+
+        _config.Update(c => c with { Routes = [new RouteEntry { Domain = "*.callfred.sev", Target = "http://localhost:3000" }] });
+        Assert.Contains(new HostEntry("*.callfred.sev", "127.0.0.1"), HostsEntries.For(_config.Current));
+        Assert.Contains(new HostEntry("*.dev.interno", "10.0.0.5"), DnsRules.BlockEntries(_config.Current.DnsEntries));
+        Assert.Equal("*.callfred.sev", RouteRules.Find(_config.Current.Routes, "cliente42.callfred.sev")!.Domain);
+    }
+
+    [Fact]
     public void Addresses_that_are_not_hosts_are_refused()
     {
         Assert.Equal("Informe um IPv4 ou IPv6 de um computador, como 10.0.0.8.", _dns.Validate(Entry("0.0.0.0", "x.interno")).Error);

@@ -20,6 +20,8 @@ public static class CaCoverage
             .Where(r => r.Https)
             .Select(r => RouteRules.Normalize(r.Domain))
             .OfType<string>()
+            // A wildcard needs its base: a name constraint on it covers every name below.
+            .Select(d => d.StartsWith("*.", StringComparison.Ordinal) ? d[2..] : d)
             .Distinct(StringComparer.Ordinal)
             .Order(StringComparer.Ordinal)];
 

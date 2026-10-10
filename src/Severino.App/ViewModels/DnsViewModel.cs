@@ -239,11 +239,12 @@ public sealed partial class DnsViewModel : ObservableObject
             HostsSyncState.Failed => $"O hosts não foi atualizado: {status.Detail}",
             _ => null,
         };
-        PendingText = pending.Count switch
+        var pendingNames = pending.Select(p => p.Name).Distinct().ToList();
+        PendingText = pendingNames.Count switch
         {
             0 => null,
-            1 => $"{pending[0].Name} aponta para um IP público e só entra no hosts depois de aprovado. O Windows pede confirmação de administrador.",
-            var n => $"{n} nomes apontam para IPs públicos e só entram no hosts depois de aprovados. O Windows pede confirmação de administrador uma vez.",
+            1 => $"{pendingNames[0]} só vale depois de aprovado, por ser um IP público ou um curinga. O Windows pede confirmação de administrador.",
+            var n => $"{n} nomes só valem depois de aprovados, por serem IPs públicos ou curingas. O Windows pede confirmação de administrador uma vez.",
         };
     }
 

@@ -15,7 +15,11 @@ public enum HostsSyncState
     Failed,
 }
 
-public sealed record HostsSyncStatus(HostsSyncState State, string? Detail = null);
+/// <param name="Pending">Route wildcards whose suffix waits for an administrator's approval.</param>
+public sealed record HostsSyncStatus(HostsSyncState State, string? Detail = null, IReadOnlyList<HostEntry>? Pending = null)
+{
+    public IReadOnlyList<HostEntry> PendingEntries => Pending ?? [];
+}
 
 /// <summary>
 /// Keeps the hosts block equal to the enabled routes. Changes are debounced and retried while
@@ -71,6 +75,9 @@ public sealed class HostsSync : IDisposable
             var status = upToDate
                 ? await PingAsync(cancellationToken)
                 : await SendAsync(entries, cancellationToken);
+            // A ping says nothing about approvals: what the last sync reported still holds.
+            if (upToDate && status.State == HostsSyncState.Synced)
+                status = status with { Pending = Status.Pending };
 
             if (status.State == HostsSyncState.Synced)
             {
@@ -158,7 +165,7 @@ public sealed class HostsSync : IDisposable
             if (!response.Ok)
                 return new(HostsSyncState.Failed, response.Error);
 
-            return new(HostsSyncState.Synced);
+            return new(HostsSyncState.Synced, Pending: response.Pending);
         }
         catch (HelperUnavailableException ex)
         {
@@ -173,7 +180,7 @@ public sealed class HostsSync : IDisposable
 
     private void SetStatus(HostsSyncStatus status)
     {
-        if (status == Status)
+        if (status.State == Status.State && status.Detail == Status.Detail && status.PendingEntries.SequenceEqual(Status.PendingEntries))
             return;
         Status = status;
         StatusChanged?.Invoke(this, status);

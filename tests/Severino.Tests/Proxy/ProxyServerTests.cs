@@ -115,6 +115,23 @@ public sealed class ProxyServerTests : IAsyncLifetime
     }
 
     [Fact]
+    public async Task A_wildcard_route_takes_any_name_below_and_an_exact_route_wins()
+    {
+        var deadPort = TestBackend.FreePort();
+        _proxy.UpdateRoutes(
+        [
+            Route("*.callfred.sev", $"http://127.0.0.1:{deadPort}"),
+            Route("api.callfred.sev", $"http://127.0.0.1:{_backendPort}"),
+        ]);
+
+        Assert.Equal(HttpStatusCode.OK, (await _client.GetAsync(Url("api.callfred.sev", "/echo"))).StatusCode);
+        // The wildcard's target is down: a 502 shows the wildcard route was the one chosen.
+        Assert.Equal(HttpStatusCode.BadGateway, (await _client.GetAsync(Url("cliente42.callfred.sev", "/echo"))).StatusCode);
+        Assert.Equal(HttpStatusCode.BadGateway, (await _client.GetAsync(Url("a.b.callfred.sev", "/echo"))).StatusCode);
+        Assert.Equal(HttpStatusCode.NotFound, (await _client.GetAsync(Url("callfred.sev", "/echo"))).StatusCode);
+    }
+
+    [Fact]
     public async Task Disabled_and_looping_routes_are_not_served()
     {
         _proxy.UpdateRoutes(

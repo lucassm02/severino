@@ -91,6 +91,12 @@
 
         <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" Visibility="{Binding HasAnything, Converter={StaticResource TrueToVisible}}">
             <StackPanel>
+                <ui:Card Margin="0,0,0,8" Padding="16,10" Visibility="{Binding WildcardPendingText, Converter={StaticResource NullToCollapsed}}">
+                    <DockPanel>
+                        <ui:Button DockPanel.Dock="Right" Margin="12,0,0,0" Icon="{ui:SymbolIcon ShieldCheckmark24}" Content="Aprovar" Command="{Binding ApproveWildcardsCommand}" />
+                        <TextBlock VerticalAlignment="Center" TextWrapping="Wrap" Text="{Binding WildcardPendingText}" />
+                    </DockPanel>
+                </ui:Card>
                 <ItemsControl ItemsSource="{Binding Items}">
                     <ItemsControl.ItemTemplate>
                         <DataTemplate DataType="{x:Type vm:RouteItemViewModel}">

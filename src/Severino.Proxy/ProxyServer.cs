@@ -135,14 +135,11 @@ public sealed class ProxyServer(ILoggerFactory loggerFactory, Func<string, X509C
         if (certificates is null || serverName is null)
             return null;
         var route = FindRoute(serverName);
-        return route is { Https: true } ? certificates(RouteRules.Normalize(route.Domain)!) : null;
+        // A wildcard route gets a leaf for the name actually asked, which the CA covers too.
+        return route is { Https: true } ? certificates(Severino.Contracts.DomainName.IsWildcard(route.Domain) ? RouteRules.Normalize(serverName)! : RouteRules.Normalize(route.Domain)!) : null;
     }
 
-    private RouteEntry? FindRoute(string host)
-    {
-        var name = RouteRules.Normalize(host);
-        return name is null ? null : _routes.FirstOrDefault(r => r.Enabled && RouteRules.Normalize(r.Domain) == name);
-    }
+    private RouteEntry? FindRoute(string host) => RouteRules.Find(_routes, host);
 
     private async Task<Listener?> StartListenerAsync(int port, bool tls, CancellationToken cancellationToken)
     {

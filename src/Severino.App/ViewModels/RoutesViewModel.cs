@@ -20,6 +20,7 @@ public sealed partial class RoutesViewModel : ObservableObject
     private readonly ServiceRouteService _services;
     private readonly ServiceDiscovery _discovery;
     private readonly DnsService? _dns;
+    private readonly HostsSync? _hosts;
     private readonly ConfigService _config;
     private readonly HealthMonitor _health;
     private readonly DialogService _dialogs;
@@ -30,12 +31,18 @@ public sealed partial class RoutesViewModel : ObservableObject
     private Func<string?>? _undo;
 
     public RoutesViewModel(RouteService routes, ServiceRouteService services, ServiceDiscovery discovery, ConfigService config, HealthMonitor health, DialogService dialogs, HttpsService https,
-        DnsService? dns = null)
+        DnsService? dns = null, HostsSync? hosts = null)
     {
         _routes = routes;
         _services = services;
         _discovery = discovery;
         _dns = dns;
+        _hosts = hosts;
+        if (hosts is not null)
+        {
+            hosts.StatusChanged += (_, _) => Dispatch(UpdateWildcardPending);
+            UpdateWildcardPending();
+        }
         _config = config;
         _health = health;
         _dialogs = dialogs;
@@ -274,6 +281,31 @@ public sealed partial class RoutesViewModel : ObservableObject
         }
         _dns.Save(draft);
         ShowToast($"{item.Domain} agora é uma entrada DNS, na aba DNS.");
+    }
+
+    /// <summary>"*.callfred.sev espera aprovação…", while a wildcard's suffix is not approved.</summary>
+    [ObservableProperty]
+    public partial string? WildcardPendingText { get; set; }
+
+    private void UpdateWildcardPending()
+    {
+        var names = _hosts?.Status.PendingEntries.Select(e => e.Name).Distinct().ToList() ?? [];
+        WildcardPendingText = names.Count == 0 ? null
+            : $"{string.Join(", ", names)} {(names.Count == 1 ? "só vale" : "só valem")} depois de aprovado: o curinga manda um sufixo inteiro para o Severino responder. O Windows pede confirmação de administrador.";
+    }
+
+    [RelayCommand]
+    private async Task ApproveWildcardsAsync()
+    {
+        if (_hosts is null || _hosts.Status.PendingEntries is not { Count: > 0 } pending)
+            return;
+        if (await HelperApproval.ApproveAsync(pending) is { } error)
+        {
+            ShowToast(error);
+            return;
+        }
+        await _hosts.SyncAsync();
+        ShowToast("Aprovado: o curinga já responde.");
     }
 
     [RelayCommand]

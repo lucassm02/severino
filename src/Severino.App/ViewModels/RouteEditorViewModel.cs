@@ -277,6 +277,9 @@ public sealed partial class RouteEditorViewModel : ObservableObject
             _pendingDomainCheck = Task.CompletedTask;
             return;
         }
+        // A wildcard is checked by its base: that is the name that exists or not on the internet.
+        if (domain.StartsWith("*.", StringComparison.Ordinal))
+            domain = domain[2..];
 
         // With the CA active, the HSTS warning gives way to the locked HTTPS box.
         foreach (var warning in _inspector.CheckLocal(domain).Where(w => !(HttpsAvailable && w.Kind == DomainWarningKind.HstsPreload)))

@@ -69,6 +69,13 @@ public sealed partial class DnsEditorViewModel : ObservableObject
             _ => "IP público: depois de salvar, o Windows pede confirmação de administrador para aprovar este nome neste IP.",
         };
 
+    /// <summary>Said when a name is a wildcard, since it needs an approval too.</summary>
+    public string? WildcardHint => IsOwn && Names.Any(DomainName.IsWildcard)
+        ? "Curinga: vale para todo nome abaixo dele, respondido pelo serviço auxiliar. Depois de salvar, o Windows pede confirmação de administrador."
+        : null;
+
+    partial void OnNamesTextChanged(string value) => OnPropertyChanged(nameof(WildcardHint));
+
     public DnsEntry? Saved { get; private set; }
 
     public event EventHandler<bool>? CloseRequested;
@@ -107,8 +114,9 @@ public sealed partial class DnsEditorViewModel : ObservableObject
         }
         Saved = _dns.Save(normalized);
 
-        // A public address waits for an approval: ask for it right away.
-        if (normalized.Enabled && DnsAddress.TryClassify(normalized.Address, out _, out var scope) && scope == AddressScope.Public)
+        // A public address or a wildcard waits for an approval: ask for it right away.
+        if (normalized.Enabled && DnsAddress.TryClassify(normalized.Address, out _, out var scope)
+            && (scope == AddressScope.Public || normalized.Names.Any(DomainName.IsWildcard)))
         {
             var entries = normalized.Names.Select(n => new HostEntry(n, normalized.Address)).ToList();
             if (await HelperApproval.ApproveAsync(entries) is { } approvalError)

@@ -118,6 +118,19 @@ public sealed class ProxyHttpsTests : IAsyncLifetime
         Assert.Contains("x-forwarded-proto=https", await response.Content.ReadAsStringAsync());
     }
 
+    [Fact]
+    public async Task A_wildcard_route_serves_https_with_a_leaf_for_the_name_asked()
+    {
+        _proxy.UpdateRoutes([Route("*.lojas.sev", https: true)]);
+        X509Certificate2? seen = null;
+        using var client = new HttpClient(Handler(c => seen = c));
+
+        using var response = await client.GetAsync(Https("cliente42.lojas.sev", "/echo"));
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        Assert.Equal("cliente42.lojas.sev", seen!.GetNameInfo(X509NameType.DnsName, forIssuer: false));
+    }
+
     [Theory]
     [InlineData("plain.sev")]     // route without HTTPS
     [InlineData("nothere.sev")]   // no route at all
