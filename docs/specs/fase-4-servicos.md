@@ -23,7 +23,7 @@ Levantado na máquina de desenvolvimento, em 2026-10-09:
   - o contexto atual do `kubectl` é `kubernetes-admin@kubernetes`, com namespace `staging`.
 - **Rede do WSL:** modo NAT, o padrão, com `localhostForwarding=true`. Dentro da distro, `127.0.0.1` é o loopback do WSL, não o do Windows.
 - **PATH:** o `docker` só aparece com um shell de login (`bash -lc`). Um `--exec` direto não carrega o PATH completo.
-- **Servidor de dev:** o da rota `callfred.sev` roda no WSL (porta 24600, repassada pelo `wslrelay`). Então quem chama os serviços do cluster pode estar no WSL, e não só no Windows.
+- **Servidor de dev:** o da rota `callfred.sev` é o container `callfred-orchestrator` (serviço `orchestrator` do Compose `callfred`), no Docker da distro, publicado em 24600 e repassado ao Windows pelo `wslrelay`. Então quem chama os serviços do cluster pode estar no WSL ou num container, e não só no Windows.
 
 ## Critérios de pronto
 
@@ -54,6 +54,22 @@ Levantado na máquina de desenvolvimento, em 2026-10-09:
   - as portas publicadas pelo Docker da distro;
   - o IP de um container na rede `bridge`.
 - **Gateway com encaminhamento TCP.** Contra o cluster de verdade, confirmar que um repasse de bytes sem tocar no HTTP entrega o `Host` original, e que o gateway roteia por ele.
+
+**Resultados (2026-10-09, na máquina de referência):**
+
+- **Loopback dedicado:**
+  - um socket em `127.77.0.2` abre e aceita conexões;
+  - convive com outro programa na mesma porta em `0.0.0.0`, aberto antes ou depois do Severino;
+  - **não** abre quando o outro programa usa `SO_EXCLUSIVEADDRUSE`. Nesse caso a rota de serviço mostra o conflito com o dono da porta, como a porta 80 já faz.
+  
+  Falta conferir a resolução pelo hosts no Edge, no Chrome e no `curl`, o que depende do Helper aceitar `127/8` (passo 2).
+- **Comandos no WSL:** com a distro rodando, `wsl.exe -d Ubuntu-22.04 --exec bash -lc 'true'` leva 0,17 s, e `WSL_UTF8=1` deixa a saída em UTF-8.
+- **`kubectl` sem acesso ao cluster:** a API (`https://192.168.203.100:6443`) não respondeu. Provavelmente fica atrás de VPN ou da rede do escritório. O `kubectl` levou **82 s** para desistir: ele repete a descoberta da API cinco vezes, e o `--request-timeout` não limita isso. A descoberta do Severino precisa de um limite de tempo próprio, que encerra o processo (10 s), e de uma mensagem clara: "o cluster não respondeu; a VPN está conectada?". As rotas já importadas não dependem do `kubectl`, só do gateway.
+- **Docker:** Docker Engine 29 na distro, sem Docker Desktop, com um container: `callfred-orchestrator`, do Compose `callfred`, serviço `orchestrator`, publicando `0.0.0.0:24600 → 4000`. É o destino da rota `callfred.sev` de hoje, que chega ao Windows pelo `wslrelay`. O `docker ps --format json` já traz os rótulos do Compose. O `docker inspect` só é preciso para o IP do container, no caso de chamadores dentro do WSL.
+- **`/etc/hosts` da distro:** é gerado pelo WSL (`generateHosts` ligado, o padrão), então um bloco gravado ali some quando a distro reinicia. O Severino precisa notar o reinício e regravar: ele confere o bloco quando a distro aparece rodando de novo.
+- **Root na distro:** `wsl -u root` funciona sem senha, então o bloco do `/etc/hosts` dispensa qualquer pedido no Windows.
+- **Rede da distro:** modo NAT; o Windows, visto de dentro da distro, é `172.24.16.1`.
+- **Pendentes, por falta de acesso ao cluster:** o alcance do gateway a partir do WSL e o repasse TCP com o `Host` original. Ficam para quando a VPN estiver conectada.
 
 ## Escopo
 
