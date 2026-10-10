@@ -8,5 +8,7 @@
     <Product>Severino</Product>
     <!-- 0.(phase).x until 1.0; scripts/build-installer.ps1 names the setup after it. -->
     <Version>0.3.0</Version>
+    <!-- The UI is Portuguese; without this every library ships a dozen translation folders. -->
+    <SatelliteResourceLanguages>pt-BR;en</SatelliteResourceLanguages>
   </PropertyGroup>
 </Project>

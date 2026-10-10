@@ -54,6 +54,14 @@ São perguntas que mudam o desenho. Vêm antes de tudo, como testes descartávei
 - **Limpeza da CA na desinstalação (passo 8):** confirmado. O compilador do Inno Setup 6.7.3 recusa `runasoriginaluser` em `[UninstallRun]` ("a flag that is not supported in this section"). O `--cleanup` roda então com a conta que aprovou o UAC, que no caso comum é o próprio usuário. Quando o SID gravado na instalação é de outra conta, o desinstalador avisa antes de começar e sugere usar "Limpar tudo" com aquele usuário.
 - **SID no instalador (passo 8):** implementado com `ExecAsOriginalUser` e `whoami /user /fo csv`. A saída vai para um arquivo em `C:\ProgramData`, e não na pasta temporária, porque com outra conta aprovando o UAC o usuário original não escreveria na pasta temporária dela. Falta confirmar na prática, no checklist.
 - **Tamanho (passo 8):** o instalador saiu com 78 MB, e não os ~50 MB estimados. O app e o Helper levam cada um o seu runtime (175 MB e 79 MB publicados), e a compressão sólida não junta tudo.
+- **Instalação e desinstalação (passo 9, 2026-10-09):** testadas na máquina de desenvolvimento, porque o Windows Sandbox não está habilitado nela. A instalação teve um UAC só.
+  - **Serviço:** `Severino.Helper` rodando como LocalSystem, com o caminho entre aspas, a descrição e o reinício automático.
+  - **SID:** o gravado é o do usuário que abriu o instalador.
+  - **Atalho e app:** o atalho ficou no Menu Iniciar, e o app abriu de `Program Files` como o usuário, não como administrador.
+  - **Hosts:** o bloco foi gravado pelo Helper instalado.
+  - **Bandeja:** o menu e o "Pausar" funcionaram.
+  - **Desinstalação:** removeu o serviço, a chave em HKLM, a CA, o bloco do hosts, o atalho e os dados do usuário, quando a pessoa escolheu apagar. Só sobraram três DLLs em `Helper\runtimes`, deixadas pelo Helper de desenvolvimento (publicado dependente de framework). Agora o instalador apaga essa pasta antes de instalar.
+  - **Ainda não verificado:** instalar numa máquina sem .NET, atualizar por cima de uma versão anterior, instalar com uma conta e aprovar o UAC com outra, e os critérios 6 e 11 num navegador de verdade.
 - **Exceções de proxy e Firefox (passo 6):** implementados e cobertos por testes, numa chave de registro de teste e com perfis falsos do Firefox. A confirmação num navegador de verdade fica para o checklist manual no Windows Sandbox. Nesta máquina, ela exigiria ligar um proxy no Windows do usuário, o que derrubaria a navegação dele, e o Firefox não está instalado.
 
 ## Escopo

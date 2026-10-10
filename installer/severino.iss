@@ -45,6 +45,11 @@ Name: "ptbr"; MessagesFile: "compiler:Languages\BrazilianPortuguese.isl"
 [Tasks]
 Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{cm:AdditionalIcons}"; Flags: unchecked
 
+[InstallDelete]
+; A framework-dependent Helper (scripts/dev-helper.ps1, or an older build) leaves this folder,
+; which the self-contained one does not have and the uninstaller would never remove.
+Type: filesandordirs; Name: "{app}\Helper\runtimes"
+
 [Files]
 Source: "{#PublishDir}\app\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
 Source: "{#PublishDir}\helper\*"; DestDir: "{app}\Helper"; Flags: ignoreversion recursesubdirs createallsubdirs
