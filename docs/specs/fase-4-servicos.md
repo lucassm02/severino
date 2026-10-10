@@ -1,6 +1,6 @@
 # Spec: Fase 4, Serviços (Kubernetes, Docker e WSL)
 
-**Status:** rascunho, com as validações iniciais feitas no cluster de referência; aguardando as "Decisões a confirmar" e as três perguntas que restam
+**Status:** aprovado em 2026-10-10, com os padrões das "Decisões a confirmar" e as respostas das "Perguntas em aberto"
 **Base:** pedido de 2026-10-09: "o meu serviço local chama direto o Kubernetes, pelo IP do entry point do gateway, na porta do serviço, mas com o nome correto", estendido para Docker e WSL. É uma fase nova, que diverge do [planejamento](../planejamento.md): ele deixava containers e WSL fora do escopo. A divergência e a mudança do roadmap estão registradas lá. Segue o formato dos specs anteriores.
 **Pré-requisito:** a Fase 3 concluída.
 
@@ -243,7 +243,13 @@ Respondidas pelo cluster de referência e pela conversa de 2026-10-10:
 - **Os contextos:** um só, `kubernetes-admin@kubernetes`.
 - **Containers como chamadores:** fora. Só as portas publicadas no host contam.
 
-Ainda em aberto:
+Respondidas em 2026-10-10, todas com o padrão:
+
+1. **Nomes:** as quatro variantes por service, curto, com namespace, `.svc` e `.svc.cluster.local`.
+2. **Chamadores:** no Windows e no WSL, então as duas partes entram nesta fase.
+3. **Importação:** escolher um por um, com busca e filtro, mais um atalho para marcar o namespace inteiro.
+
+O texto original das perguntas:
 
 1. **Como o código chama os serviços?** Pelo nome curto (`algarbffapi`), com namespace (`algarbffapi.staging`) ou pelo nome completo (`algarbffapi.staging.svc.cluster.local`)? O padrão é gerar os três, mais `.svc`. Se o código usa um só, a importação pode gerar só esse e deixar o hosts mais enxuto.
 2. **Onde roda o app que chama os serviços:** no Windows, no WSL, ou nos dois? Isso decide se a parte do WSL é obrigatória já nesta fase ou se pode vir depois.
