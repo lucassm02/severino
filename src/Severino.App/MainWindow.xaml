@@ -88,6 +88,14 @@
                 Content="{Binding HostsText}"
                 Command="{Binding FixHostsCommand}"
                 Visibility="{Binding HostsHasProblem, Converter={StaticResource TrueToVisible}}" />
+            <!-- Only when the system proxy is in the way: nothing to say otherwise. -->
+            <StackPanel Orientation="Horizontal" Visibility="{Binding SystemProxyText, Converter={StaticResource NullToCollapsed}}">
+                <ui:TextBlock Margin="8,0" VerticalAlignment="Center" Foreground="{DynamicResource TextFillColorSecondaryBrush}" Text="·" />
+                <ui:Button
+                    Style="{StaticResource StatusLink}"
+                    Content="{Binding SystemProxyText}"
+                    Command="{Binding FixSystemProxyCommand}" />
+            </StackPanel>
         </StackPanel>
     </Grid>
 </ui:FluentWindow>

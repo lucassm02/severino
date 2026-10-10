@@ -77,6 +77,7 @@ public partial class App : Application
         themes.Attach(window, config.Current.Settings.Theme);
         var tray = _host.Services.GetRequiredService<TrayService>();
         tray.Create();
+        _host.Services.GetRequiredService<SystemProxy>().Start();
 
         if (loaded.Status == ConfigLoadStatus.Recovered)
             tray.ShowWarning(
@@ -116,14 +117,25 @@ public partial class App : Application
 
     /// <summary>
     /// <c>Severino.exe --cleanup</c>, run by the uninstaller: no window, no proxy, no tray. Removes
-    /// the CA and the autostart entry of the user running it. Exit code 0 when both are gone.
+    /// the CA, the autostart entry and the proxy exceptions of the user running it. Exit code 0
+    /// when the CA is gone.
     /// </summary>
     private static int RunCleanup()
     {
+        var config = new ConfigService(new ConfigStore(ConfigStore.DefaultDirectory));
+        try
+        {
+            config.Load();
+        }
+        catch (UnsupportedConfigVersionException)
+        {
+            // A newer Severino's config: clean what does not depend on it.
+        }
         var ca = new LocalCa(new CaStore(CaStore.DefaultDirectory), new WindowsTrustStore(), TimeProvider.System,
             NullLogger<LocalCa>.Instance);
         ca.Load();
-        return new SystemCleanup(ca, new AutoStart()).Run().CaRemoved ? 0 : 1;
+        using var proxy = new SystemProxy(config, new TldDirectory(config, new WindowsDnsResolver()));
+        return new SystemCleanup(ca, new AutoStart(), proxy).Run().CaRemoved ? 0 : 1;
     }
 
     private async Task StartProxyAsync(ProxyCoordinator coordinator)
@@ -178,6 +190,7 @@ public partial class App : Application
         services.AddSingleton(sp => new Lazy<ShellService>(sp.GetRequiredService<ShellService>));
         services.AddSingleton(_ => new AutoStart());
         services.AddSingleton<SystemCleanup>();
+        services.AddSingleton(sp => new SystemProxy(sp.GetRequiredService<ConfigService>(), sp.GetRequiredService<TldDirectory>()));
         services.AddSingleton<TrayService>();
         services.AddSingleton<DialogService>();
         services.AddSingleton<HttpsService>();

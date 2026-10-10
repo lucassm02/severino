@@ -1,3 +1,4 @@
+using System.IO;
 using System.Windows;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
@@ -17,9 +18,13 @@ public sealed partial class StatusBarViewModel : ObservableObject
     private readonly ProxyCoordinator _coordinator;
     private readonly HttpsService _https;
     private readonly Navigation _navigation;
+    private readonly SystemProxy _systemProxy;
 
-    public StatusBarViewModel(ProxyServer proxy, HostsSync hosts, ProxyCoordinator coordinator, HttpsService https, ConfigService config, Navigation navigation)
+    public StatusBarViewModel(ProxyServer proxy, HostsSync hosts, ProxyCoordinator coordinator, HttpsService https, ConfigService config,
+        Navigation navigation, SystemProxy systemProxy)
     {
+        _systemProxy = systemProxy;
+        systemProxy.Changed += (_, _) => Dispatch(Refresh);
         _proxy = proxy;
         _hosts = hosts;
         _coordinator = coordinator;
@@ -51,6 +56,14 @@ public sealed partial class StatusBarViewModel : ObservableObject
     [ObservableProperty]
     public partial bool HostsHasProblem { get; set; }
 
+    /// <summary>Null when the system proxy is out of the way; then the segment is hidden.</summary>
+    [ObservableProperty]
+    public partial string? SystemProxyText { get; set; }
+
+    /// <summary>A fixed proxy takes route domains. A PAC script only might, so it is shown but not counted.</summary>
+    [ObservableProperty]
+    public partial bool SystemProxyHasProblem { get; set; }
+
     [ObservableProperty]
     public partial bool IsPaused { get; set; }
 
@@ -80,6 +93,42 @@ public sealed partial class StatusBarViewModel : ObservableObject
             await _coordinator.RetryAsync();
         else
             _navigation.ShowSettings();
+    }
+
+    [RelayCommand]
+    private async Task FixSystemProxyAsync()
+    {
+        var settings = _systemProxy.Read();
+        var taken = _systemProxy.Uncovered();
+        if (taken.Count == 0)
+        {
+            await DialogService.ShowInfoAsync("Proxy do sistema",
+                "O Windows usa um script de proxy (PAC), que decide sozinho para onde cada endereço vai. O Severino não consegue saber se ele desvia as suas rotas.\n\n" +
+                "Se uma rota não abrir no navegador, peça para o script ignorar esses domínios, ou teste com a VPN desligada.\n\n" +
+                $"Script: {settings.AutoConfigUrl}");
+            return;
+        }
+
+        if (!await DialogService.ConfirmAsync("Proxy do sistema",
+                $"O Windows está configurado para usar o proxy {settings.Server}. O Edge e o Chrome mandariam {string.Join(", ", taken)} para ele, e não para o Severino.\n\n" +
+                "Adicionar esses domínios às exceções do proxy? Eles entram na mesma lista de Opções da Internet, e o Severino tira só o que adicionou quando você usar \"Limpar tudo\".",
+                "Adicionar exceções"))
+            return;
+
+        try
+        {
+            var added = await _systemProxy.AddExceptionsAsync();
+            Refresh();
+            await DialogService.ShowInfoAsync("Proxy do sistema", added.Count == 0
+                ? "As exceções já estavam lá."
+                : $"Exceções adicionadas: {string.Join(", ", added)}. Recarregue a página no navegador.");
+        }
+        catch (Exception ex) when (ex is UnauthorizedAccessException or System.Security.SecurityException or IOException)
+        {
+            // Company policy can lock the proxy settings.
+            await DialogService.ShowInfoAsync("Proxy do sistema",
+                $"O Windows não deixou alterar as exceções, talvez por uma política da empresa. Peça para incluir {string.Join(", ", taken)} nas exceções do proxy.\n\nDetalhe: {ex.Message}");
+        }
     }
 
     [RelayCommand]
@@ -134,11 +183,21 @@ public sealed partial class StatusBarViewModel : ObservableObject
             _ => ("hosts: sincronizando…", false),
         };
 
-        HasProblem = !IsPaused && (ProxyHasProblem || HttpsHasProblem || HostsHasProblem);
+        var systemProxy = _systemProxy.Read();
+        var taken = _systemProxy.Uncovered().Count;
+        (SystemProxyText, SystemProxyHasProblem) = (taken, systemProxy.HasScript) switch
+        {
+            ( > 0, _) => (taken == 1 ? "proxy do sistema no caminho de 1 domínio" : $"proxy do sistema no caminho de {taken} domínios", true),
+            (_, true) => ("proxy por script ativo", false),
+            _ => ((string?)null, false),
+        };
+
+        HasProblem = !IsPaused && (ProxyHasProblem || HttpsHasProblem || HostsHasProblem || SystemProxyHasProblem);
         Summary = IsPaused ? "pausado"
             : ProxyHasProblem ? ProxyText
             : HttpsHasProblem ? HttpsText
             : HostsHasProblem ? HostsText
+            : SystemProxyHasProblem ? SystemProxyText!
             : "tudo certo";
     }
 

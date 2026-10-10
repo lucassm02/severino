@@ -88,6 +88,15 @@
                         Margin="0,12,0,0"
                         IsOpen="True"
                         IsClosable="False"
+                        Severity="Warning"
+                        Title="Firefox"
+                        Message="{Binding FirefoxHint}"
+                        Visibility="{Binding FirefoxHint, Converter={StaticResource NullToCollapsed}}"
+                        AutomationProperties.LiveSetting="Polite" />
+                    <ui:InfoBar
+                        Margin="0,12,0,0"
+                        IsOpen="True"
+                        IsClosable="False"
                         Severity="Informational"
                         Message="{Binding HttpsMessage}"
                         Visibility="{Binding HttpsMessage, Converter={StaticResource NullToCollapsed}}"
@@ -117,7 +126,7 @@
                         Foreground="{DynamicResource TextFillColorSecondaryBrush}"
                         FontTypography="Caption"
                         TextWrapping="Wrap"
-                        Text="Ao ativar, o Windows pede para confirmar a instalação da CA. Ela só assina os domínios das rotas. O Firefox usa a própria lista de CAs: ligue security.enterprise_roots.enabled em about:config para ele confiar nesta." />
+                        Text="Ao ativar, o Windows pede para confirmar a instalação da CA. Ela só assina os domínios das rotas." />
                 </StackPanel>
             </ui:Card>
             <ui:CardControl Margin="0,0,0,4" Icon="{ui:SymbolIcon PlugConnected24}">
@@ -207,7 +216,7 @@
                 <ui:CardControl.Header>
                     <StackPanel>
                         <ui:TextBlock Text="Limpar tudo" />
-                        <ui:TextBlock Foreground="{DynamicResource TextFillColorSecondaryBrush}" FontTypography="Caption" TextWrapping="Wrap" Text="Tira do Windows o bloco do hosts, a CA local e a inicialização automática, e fecha o app" />
+                        <ui:TextBlock Foreground="{DynamicResource TextFillColorSecondaryBrush}" FontTypography="Caption" TextWrapping="Wrap" Text="Tira do Windows o bloco do hosts, a CA local, a inicialização automática e as exceções de proxy, e fecha o app" />
                     </StackPanel>
                 </ui:CardControl.Header>
                 <ui:Button Content="Limpar tudo…" Command="{Binding CleanAllCommand}" />

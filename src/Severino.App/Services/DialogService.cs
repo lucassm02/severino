@@ -75,7 +75,7 @@ public sealed class DialogService(RouteService routes, DomainInspector inspector
         var deleteData = new CheckBox { Content = "Apagar também as rotas e configurações", Margin = new Thickness(0, 0, 0, 4) };
         var content = new StackPanel { MaxWidth = 460 };
         content.Children.Add(Paragraph(
-            "O Severino tira do Windows tudo o que colocou: o bloco do arquivo hosts, a CA local e a inicialização automática. " +
+            "O Severino tira do Windows tudo o que colocou: o bloco do arquivo hosts, a CA local, a inicialização automática e as exceções de proxy que ele adicionou. " +
             "Depois, o app fecha. O Windows pede confirmação para remover a CA."));
         content.Children.Add(Paragraph("Sem a caixa abaixo, suas rotas ficam guardadas para quando você abrir o Severino de novo."));
         content.Children.Add(deleteData);

@@ -32,6 +32,9 @@ public sealed record AppState
 
     /// <summary>TLD -> exists on the internet, cached for the CA coverage (see TldDirectory).</summary>
     public IReadOnlyDictionary<string, bool> TldExists { get; set; } = new Dictionary<string, bool>();
+
+    /// <summary>Entries Severino added to the Windows proxy bypass list, so cleanup removes these and only these.</summary>
+    public IReadOnlyList<string> ProxyBypassAdded { get; set; } = [];
 }
 
 public sealed record RouteEntry

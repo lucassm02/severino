@@ -5,6 +5,7 @@ using System.Windows;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Severino.App.Services;
+using Severino.Core.Certificates;
 using Severino.Core.Configuration;
 using Severino.Core.Routes;
 using Severino.Proxy.Certificates;
@@ -177,6 +178,10 @@ public sealed partial class SettingsViewModel : ObservableObject
     [ObservableProperty]
     public partial string? NodeCommand { get; set; }
 
+    /// <summary>Firefox profiles that keep their own CA list and would refuse the local CA; null when none.</summary>
+    [ObservableProperty]
+    public partial string? FirefoxHint { get; set; }
+
     /// <summary>Why "Ativar HTTPS" is disabled, when it is because there are no routes.</summary>
     public string? ActivateHint => HasRoutes || HttpsActive ? null : "Crie uma rota primeiro: a CA só vale para os domínios cadastrados.";
 
@@ -275,6 +280,10 @@ public sealed partial class SettingsViewModel : ObservableObject
             LocalCaState.Unreadable => "Não foi possível ler a CA, talvez criada por outro usuário do Windows. Ative de novo ou remova.",
             _ => "Desativado. As rotas abrem só por http://.",
         };
+        var firefox = HttpsActive ? FirefoxTrust.ProfilesIgnoringWindowsRoots() : [];
+        FirefoxHint = firefox.Count == 0 ? null
+            : $"O Firefox ({(firefox.Count == 1 ? "perfil" : "perfis")} {string.Join(", ", firefox)}) usa a própria lista de CAs e vai recusar estes certificados. " +
+              $"Abra about:config, ligue {FirefoxTrust.Preference} e reinicie o Firefox.";
         CoverageText = HttpsActive
             ? "Cobre: " + HttpsService.DescribeNames(status.Names)
             : "";

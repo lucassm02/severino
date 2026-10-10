@@ -7,18 +7,20 @@ namespace Severino.App.Services;
 public sealed record CleanupResult(bool CaRemoved);
 
 /// <summary>
-/// Undoes what Severino changed in Windows for this user: the local CA and the autostart entry.
+/// Undoes what Severino changed in Windows for this user: the local CA, the autostart entry and
+/// the proxy exceptions it added.
 /// Used by "Limpar tudo" and by <c>Severino.exe --cleanup</c>, which the uninstaller runs. The
 /// hosts block is not here: only the Helper can write it, and it clears it on exit or with
 /// <c>Severino.Helper.exe --clear-hosts</c>.
 /// </summary>
-public sealed class SystemCleanup(LocalCa ca, AutoStart autoStart)
+public sealed class SystemCleanup(LocalCa ca, AutoStart autoStart, SystemProxy proxy)
 {
     /// <summary>Removing the CA shows Windows' warning; this blocks until it is answered.</summary>
     public CleanupResult Run()
     {
         var caRemoved = WindowsPrompt.Run(ca.Remove);
         autoStart.Disable();
+        proxy.RemoveAddedExceptions();
         return new(caRemoved);
     }
 

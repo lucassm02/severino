@@ -51,6 +51,7 @@ São perguntas que mudam o desenho. Vêm antes de tudo, como testes descartávei
 
 - **Custo do log (2026-10-09):** 40 mil requisições com 32 conexões, alternando proxy sem e com log. Deu 1295 e 1774 req/s sem log, contra 1414 e 1477 com log. A variação entre rodadas iguais é maior que a diferença entre as duas versões, então o custo fica abaixo do ruído.
 - **As outras quatro** dependem do Inno Setup, de um Windows Sandbox ou de alterar o registro do usuário. Elas são feitas no começo do passo que depende de cada uma: proxy e Firefox no passo 6, instalador no passo 8.
+- **Exceções de proxy e Firefox (passo 6):** implementados e cobertos por testes, numa chave de registro de teste e com perfis falsos do Firefox. A confirmação num navegador de verdade fica para o checklist manual no Windows Sandbox. Nesta máquina, ela exigiria ligar um proxy no Windows do usuário, o que derrubaria a navegação dele, e o Firefox não está instalado.
 
 ## Escopo
 
