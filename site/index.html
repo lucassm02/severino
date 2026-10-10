@@ -57,6 +57,19 @@
     "codeRepository": "https://github.com/lucassm02/severino"
   }
   </script>
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "VideoObject",
+    "name": "O Severino em 30 segundos",
+    "description": "Apresentação do Severino: um nome com HTTPS para cada app de dev, no Windows, no WSL, no Docker e no Kubernetes.",
+    "thumbnailUrl": "https://lucassm02.github.io/severino/assets/severino-intro-capa.jpg",
+    "contentUrl": "https://lucassm02.github.io/severino/assets/severino-intro.mp4",
+    "uploadDate": "2026-10-10",
+    "duration": "PT30S",
+    "inLanguage": "pt-BR"
+  }
+  </script>
 </head>
 <body>
   <a class="skip" href="#conteudo">Pular para o conteúdo</a>
@@ -67,6 +80,7 @@
       <span>Severino</span>
     </a>
     <nav aria-label="Seções">
+      <a href="#video">Vídeo</a>
       <a href="#onde">WSL, Docker e k8s</a>
       <a href="#como-funciona">Como funciona</a>
       <a href="#tres-jeitos">Recursos</a>
@@ -101,6 +115,20 @@
           </ul>
         </div>
       </figure>
+    </section>
+
+    <section class="video" id="video" aria-labelledby="video-titulo">
+      <div class="video-texto">
+        <h2 id="video-titulo">O Severino em 30 segundos</h2>
+        <p>Do localhost:3000 ao meuapp.sev com cadeado, passando pelo WSL, pelo Docker e pelo cluster. Sem som, pode dar play no escritório.</p>
+      </div>
+      <div class="video-moldura">
+        <video controls preload="none" playsinline width="1920" height="1080" poster="assets/severino-intro-capa.jpg"
+               aria-label="Vídeo de apresentação do Severino: portas soltas viram nomes, o quadro da portaria se monta, o navegador abre meuapp.sev com cadeado, e o porteiro atende Windows, WSL, Docker e Kubernetes.">
+          <source src="assets/severino-intro.mp4" type="video/mp4">
+          <a href="assets/severino-intro.mp4">Baixar o vídeo de apresentação (MP4, 7 MB)</a>
+        </video>
+      </div>
     </section>
 
     <section class="onde" id="onde" aria-labelledby="onde-titulo">

@@ -274,6 +274,28 @@ p { margin: 0; }
   .quadro-moldura { max-width: 560px; }
 }
 
+/* ---------- The 30 s video, on the uniform's navy ---------- */
+
+.video {
+  background: var(--farda);
+  color: #e8eef7;
+  padding: clamp(48px, 7vw, 88px) var(--gutter);
+}
+.video > * { max-width: var(--largura); margin-left: auto; margin-right: auto; }
+.video-texto { text-align: center; }
+.video-texto h2 { color: #fff; margin: 0 auto; }
+.video-texto p { margin: 14px auto 0; max-width: 56ch; color: #c5d3e6; font-size: 1.1875rem; }
+.video-moldura { margin-top: clamp(28px, 4vw, 44px); }
+.video-moldura video {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 16 / 9;
+  background: #000;
+  border-radius: 14px;
+  box-shadow: 0 30px 60px -20px rgb(0 0 0 / 0.6), 0 0 0 1px rgb(255 255 255 / 0.08);
+}
+
 /* ---------- Where apps live: four places, one doorman ---------- */
 
 .onde {

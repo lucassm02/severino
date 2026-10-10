@@ -15,7 +15,7 @@ const arg = (name, fallback) => {
 };
 const fps = Number(arg("fps", 60));
 const from = Number(arg("from", 0));
-const out = resolve(arg("out", join(root, "assets/branding/motion/severino-intro.mp4")));
+const out = resolve(arg("out", join(root, "site/assets/severino-intro.mp4")));
 const framesDir = arg("frames"); // also keep PNGs of each frame, for checking
 const page = pathToFileURL(join(root, "assets/branding/motion/intro.html")).href + "?render";
 
