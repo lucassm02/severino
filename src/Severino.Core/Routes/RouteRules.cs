@@ -12,14 +12,19 @@ public sealed record RouteErrors(string? Domain, string? Target)
 /// <summary>Validation shared by the route form and the proxy.</summary>
 public static class RouteRules
 {
-    /// <summary>Checks <paramref name="route"/> against the other routes; ignores the one with the same id.</summary>
-    public static RouteErrors Validate(RouteEntry route, IReadOnlyList<RouteEntry> routes, int proxyPort, int? httpsPort = null)
+    /// <summary>
+    /// Checks <paramref name="route"/> against the other routes; ignores the one with the same id.
+    /// <paramref name="services"/> are the service routes, whose names a web route cannot take.
+    /// </summary>
+    public static RouteErrors Validate(RouteEntry route, IReadOnlyList<RouteEntry> routes, int proxyPort, int? httpsPort = null, IReadOnlyList<ServiceRoute>? services = null)
     {
         string? domainError = null;
         if (!DomainName.TryNormalize(route.Domain, out var domain, out var reason))
             domainError = reason;
         else if (routes.Any(r => r.Id != route.Id && Normalize(r.Domain) == domain))
             domainError = "Já existe uma rota para este domínio.";
+        else if (services?.Any(s => s.Names.Contains(domain)) == true)
+            domainError = "Já existe uma rota de serviço com este nome.";
 
         string? targetError = null;
         if (!TryParseTarget(route.Target, out var target, out var targetReason))

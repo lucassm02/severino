@@ -14,7 +14,7 @@ public sealed class HealthMonitor : IAsyncDisposable
     private readonly CancellationTokenSource _stop = new();
     private readonly ConcurrentDictionary<Guid, bool> _status = new();
     private readonly Lock _gate = new();
-    private IReadOnlyList<RouteEntry> _routes = [];
+    private IReadOnlyList<Probe> _probes = [];
     private Task? _loop;
     private bool _disposed;
 
@@ -28,11 +28,23 @@ public sealed class HealthMonitor : IAsyncDisposable
 
     public void Start() => _loop ??= Task.Run(() => LoopAsync(_stop.Token));
 
-    /// <summary>Replaces the routes to watch and checks them right away.</summary>
-    public void Update(IReadOnlyList<RouteEntry> routes)
+    /// <summary>
+    /// Replaces the routes to watch and checks them right away. A service route is up when its
+    /// first port's destination accepts a connection.
+    /// </summary>
+    public void Update(IReadOnlyList<RouteEntry> routes, IReadOnlyList<ServiceRoute>? services = null)
     {
-        _routes = routes;
-        foreach (var id in _status.Keys.Except(routes.Where(r => r.Enabled).Select(r => r.Id)))
+        var probes = new List<Probe>();
+        foreach (var route in routes.Where(r => r.Enabled))
+        {
+            if (RouteRules.TryParseTarget(route.Target, out var target, out _))
+                probes.Add(new(route.Id, target.IdnHost, target.Port));
+        }
+        foreach (var service in (services ?? []).Where(s => s.Enabled && s.Ports.Count > 0))
+            probes.Add(new(service.Id, service.Ports[0].TargetHost, service.Ports[0].TargetPort));
+
+        _probes = probes;
+        foreach (var id in _status.Keys.Except(probes.Select(p => p.Id)))
             _status.TryRemove(id, out _);
         _ = CheckAllAsync(_stop.Token);
     }
@@ -66,15 +78,12 @@ public sealed class HealthMonitor : IAsyncDisposable
     }
 
     private Task CheckAllAsync(CancellationToken cancellationToken) =>
-        Task.WhenAll(_routes.Where(r => r.Enabled).Select(r => CheckAsync(r, cancellationToken)));
+        Task.WhenAll(_probes.Select(p => CheckAsync(p, cancellationToken)));
 
-    private async Task CheckAsync(RouteEntry route, CancellationToken cancellationToken)
+    private async Task CheckAsync(Probe probe, CancellationToken cancellationToken)
     {
-        if (!RouteRules.TryParseTarget(route.Target, out var target, out _))
-            return;
-
-        var up = await CanConnectAsync(target.IdnHost, target.Port, cancellationToken);
-        if (cancellationToken.IsCancellationRequested || !_routes.Any(r => r.Id == route.Id && r.Enabled))
+        var up = await CanConnectAsync(probe.Host, probe.Port, cancellationToken);
+        if (cancellationToken.IsCancellationRequested || !_probes.Contains(probe))
             return;
 
         // Checks for the same route can overlap (Update plus the timer); only the first to see
@@ -82,12 +91,14 @@ public sealed class HealthMonitor : IAsyncDisposable
         bool changed;
         lock (_gate)
         {
-            changed = IsUp(route.Id) != up;
-            _status[route.Id] = up;
+            changed = IsUp(probe.Id) != up;
+            _status[probe.Id] = up;
         }
         if (changed)
-            Changed?.Invoke(this, new RouteHealth(route.Id, up));
+            Changed?.Invoke(this, new RouteHealth(probe.Id, up));
     }
+
+    private sealed record Probe(Guid Id, string Host, int Port);
 
     /// <summary>True when a TCP connection to <paramref name="host"/>:<paramref name="port"/> opens within a second.</summary>
     public static async Task<bool> CanConnectAsync(string host, int port, CancellationToken cancellationToken)

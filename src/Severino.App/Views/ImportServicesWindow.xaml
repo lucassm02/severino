@@ -1,0 +1,266 @@
+<ui:FluentWindow
+    x:Class="Severino.App.Views.ImportServicesWindow"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
+    xmlns:vm="clr-namespace:Severino.App.ViewModels"
+    mc:Ignorable="d"
+    d:DataContext="{d:DesignInstance Type=vm:ImportServicesViewModel}"
+    Title="Importar serviços"
+    Width="860"
+    Height="680"
+    MinWidth="640"
+    MinHeight="480"
+    ShowInTaskbar="False"
+    WindowStartupLocation="CenterOwner"
+    WindowBackdropType="Mica"
+    Icon="/Assets/severino.ico"
+    ExtendsContentIntoTitleBar="True">
+    <Window.Resources>
+        <Style x:Key="StatusText" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="12" />
+            <Setter Property="TextWrapping" Value="Wrap" />
+            <Setter Property="Foreground" Value="{DynamicResource TextFillColorSecondaryBrush}" />
+        </Style>
+        <Style x:Key="Caution" TargetType="TextBlock" BasedOn="{StaticResource StatusText}">
+            <Setter Property="Foreground" Value="{DynamicResource SystemFillColorCautionBrush}" />
+        </Style>
+    </Window.Resources>
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+        <ui:TitleBar Grid.Row="0" Title="Importar serviços" ShowMaximize="False" ShowMinimize="False" />
+
+        <Grid Grid.Row="1" Margin="24,8,24,24">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="*" />
+                <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
+
+            <!-- Where to look -->
+            <DockPanel Grid.Row="0" LastChildFill="False">
+                <TextBlock DockPanel.Dock="Left" Margin="0,0,8,0" VerticalAlignment="Center" Text="Procurar em" />
+                <ComboBox
+                    DockPanel.Dock="Left"
+                    MinWidth="240"
+                    ItemsSource="{Binding Sources}"
+                    SelectedItem="{Binding SelectedSource}"
+                    DisplayMemberPath="Label"
+                    AutomationProperties.Name="Onde procurar" />
+                <StackPanel
+                    DockPanel.Dock="Left"
+                    Margin="16,0,0,0"
+                    Orientation="Horizontal"
+                    Visibility="{Binding HasNodes, Converter={StaticResource TrueToVisible}}">
+                    <TextBlock Margin="0,0,8,0" VerticalAlignment="Center" Text="Nó das NodePorts" />
+                    <ComboBox MinWidth="150" ItemsSource="{Binding Nodes}" SelectedItem="{Binding SelectedNode}" AutomationProperties.Name="Nó das NodePorts" />
+                </StackPanel>
+                <ui:Button
+                    DockPanel.Dock="Right"
+                    Icon="{ui:SymbolIcon ArrowClockwise24}"
+                    Content="Procurar de novo"
+                    ToolTip="Pergunta de novo ao kubectl e ao docker desta fonte"
+                    Command="{Binding ReloadCommand}"
+                    Visibility="{Binding IsDiscovery, Converter={StaticResource TrueToVisible}}" />
+                <ui:ProgressRing
+                    DockPanel.Dock="Right"
+                    Width="20"
+                    Height="20"
+                    Margin="0,0,12,0"
+                    IsIndeterminate="True"
+                    Visibility="{Binding IsLoading, Converter={StaticResource TrueToVisible}}" />
+            </DockPanel>
+
+            <!-- What each tool answered -->
+            <StackPanel Grid.Row="1" Margin="0,10,0,0" Visibility="{Binding IsDiscovery, Converter={StaticResource TrueToVisible}}">
+                <TextBlock Text="{Binding KubernetesStatus}" Visibility="{Binding KubernetesStatus, Converter={StaticResource NullToCollapsed}}">
+                    <TextBlock.Style>
+                        <Style TargetType="TextBlock" BasedOn="{StaticResource StatusText}">
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding KubernetesFailed}" Value="True">
+                                    <Setter Property="Foreground" Value="{DynamicResource SystemFillColorCautionBrush}" />
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </TextBlock.Style>
+                </TextBlock>
+                <TextBlock Text="{Binding DockerStatus}" Visibility="{Binding DockerStatus, Converter={StaticResource NullToCollapsed}}">
+                    <TextBlock.Style>
+                        <Style TargetType="TextBlock" BasedOn="{StaticResource StatusText}">
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding DockerFailed}" Value="True">
+                                    <Setter Property="Foreground" Value="{DynamicResource SystemFillColorCautionBrush}" />
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </TextBlock.Style>
+                </TextBlock>
+            </StackPanel>
+
+            <!-- Pasted output -->
+            <StackPanel Grid.Row="2" Margin="0,10,0,0" Visibility="{Binding IsPaste, Converter={StaticResource TrueToVisible}}">
+                <TextBlock
+                    Style="{StaticResource StatusText}"
+                    Text="Cole a saída de kubectl get svc -A -o json ou de docker ps --format json." />
+                <ui:TextBox
+                    Height="110"
+                    Margin="0,6,0,0"
+                    AcceptsReturn="True"
+                    TextWrapping="NoWrap"
+                    VerticalScrollBarVisibility="Auto"
+                    HorizontalScrollBarVisibility="Auto"
+                    FontFamily="Cascadia Mono, Consolas"
+                    FontSize="12"
+                    PlaceholderText="{}{ &quot;apiVersion&quot;: &quot;v1&quot;, &quot;items&quot;: [ … ] }"
+                    AutomationProperties.Name="Saída colada"
+                    Text="{Binding PasteText, UpdateSourceTrigger=PropertyChanged}" />
+                <DockPanel Margin="0,8,0,0">
+                    <ui:Button DockPanel.Dock="Right" Margin="8,0,0,0" Content="Ler" Command="{Binding ReadPasteCommand}" />
+                    <ui:TextBox
+                        PlaceholderText="IP de um nó do cluster, para as NodePorts"
+                        AutomationProperties.Name="IP de um nó"
+                        Text="{Binding PasteNode, UpdateSourceTrigger=PropertyChanged}" />
+                </DockPanel>
+                <TextBlock Margin="0,6,0,0" Style="{StaticResource Caution}" Text="{Binding PasteError}" Visibility="{Binding PasteError, Converter={StaticResource NullToCollapsed}}" />
+            </StackPanel>
+
+            <!-- Filters -->
+            <Grid Grid.Row="3" Margin="0,14,0,8" Visibility="{Binding HasCandidates, Converter={StaticResource TrueToVisible}}">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <ui:TextBox
+                    Grid.Column="0"
+                    PlaceholderText="Buscar por nome ou namespace"
+                    Icon="{ui:SymbolIcon Search24}"
+                    AutomationProperties.Name="Buscar serviços"
+                    Text="{Binding Search, UpdateSourceTrigger=PropertyChanged}" />
+                <ComboBox
+                    Grid.Column="1"
+                    MinWidth="200"
+                    Margin="8,0,0,0"
+                    ItemsSource="{Binding Namespaces}"
+                    SelectedItem="{Binding SelectedNamespace}"
+                    AutomationProperties.Name="Namespace" />
+                <ui:Button
+                    Grid.Column="2"
+                    Margin="8,0,0,0"
+                    Content="{Binding SelectNamespaceLabel}"
+                    Command="{Binding SelectNamespaceCommand}"
+                    IsEnabled="{Binding CanSelectNamespace}" />
+            </Grid>
+
+            <!-- Candidates -->
+            <Border
+                Grid.Row="4"
+                BorderThickness="1"
+                CornerRadius="6"
+                BorderBrush="{DynamicResource ControlStrokeColorDefaultBrush}"
+                Visibility="{Binding HasCandidates, Converter={StaticResource TrueToVisible}}">
+                <ListBox
+                    ItemsSource="{Binding Visible}"
+                    Background="Transparent"
+                    BorderThickness="0"
+                    VirtualizingPanel.IsVirtualizing="True"
+                    VirtualizingPanel.ScrollUnit="Pixel"
+                    ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                    AutomationProperties.Name="Serviços encontrados">
+                    <ListBox.ItemContainerStyle>
+                        <Style TargetType="ListBoxItem">
+                            <Setter Property="Focusable" Value="False" />
+                            <Setter Property="Template">
+                                <Setter.Value>
+                                    <ControlTemplate TargetType="ListBoxItem">
+                                        <ContentPresenter />
+                                    </ControlTemplate>
+                                </Setter.Value>
+                            </Setter>
+                        </Style>
+                    </ListBox.ItemContainerStyle>
+                    <ListBox.ItemTemplate>
+                        <DataTemplate DataType="{x:Type vm:CandidateItemViewModel}">
+                            <Border Padding="12,8" BorderThickness="0,0,0,1" BorderBrush="{DynamicResource ControlStrokeColorDefaultBrush}">
+                                <Border.Style>
+                                    <Style TargetType="Border">
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding CanImport}" Value="False">
+                                                <Setter Property="Opacity" Value="0.6" />
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </Border.Style>
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto" />
+                                        <ColumnDefinition Width="*" />
+                                    </Grid.ColumnDefinitions>
+                                    <CheckBox
+                                        Grid.Column="0"
+                                        MinWidth="0"
+                                        Margin="0,0,8,0"
+                                        VerticalAlignment="Top"
+                                        IsChecked="{Binding IsSelected}"
+                                        IsEnabled="{Binding CanImport}"
+                                        AutomationProperties.Name="{Binding Name, StringFormat='Importar {0}'}" />
+                                    <StackPanel Grid.Column="1">
+                                        <TextBlock TextTrimming="CharacterEllipsis">
+                                            <Run FontWeight="SemiBold" Text="{Binding Name, Mode=OneWay}" />
+                                            <Run Foreground="{DynamicResource TextFillColorSecondaryBrush}" Text="{Binding Namespace, Mode=OneWay, StringFormat='  {0}'}" />
+                                            <Run Foreground="{DynamicResource TextFillColorTertiaryBrush}" Text="{Binding KindText, Mode=OneWay, StringFormat='  ·  {0}'}" />
+                                        </TextBlock>
+                                        <TextBlock
+                                            Style="{StaticResource StatusText}"
+                                            FontFamily="Cascadia Mono, Consolas"
+                                            Text="{Binding Detail}" />
+                                        <TextBlock
+                                            FontSize="12"
+                                            Foreground="{DynamicResource TextFillColorTertiaryBrush}"
+                                            TextTrimming="CharacterEllipsis"
+                                            Text="{Binding NamesText}"
+                                            ToolTip="{Binding NamesText}"
+                                            Visibility="{Binding CanImport, Converter={StaticResource TrueToVisible}}" />
+                                        <TextBlock
+                                            Style="{StaticResource Caution}"
+                                            Text="Nenhum pod pronto agora: a rota nasce, mas não vai responder."
+                                            Visibility="{Binding NoReadyPods, Converter={StaticResource TrueToVisible}}" />
+                                        <TextBlock
+                                            Style="{StaticResource StatusText}"
+                                            Foreground="{DynamicResource AccentTextFillColorPrimaryBrush}"
+                                            Text="Já importado: importar de novo atualiza as portas."
+                                            Visibility="{Binding IsUpdate, Converter={StaticResource TrueToVisible}}" />
+                                        <TextBlock Style="{StaticResource Caution}" Text="{Binding Warning}" Visibility="{Binding Warning, Converter={StaticResource NullToCollapsed}}" />
+                                    </StackPanel>
+                                </Grid>
+                            </Border>
+                        </DataTemplate>
+                    </ListBox.ItemTemplate>
+                </ListBox>
+            </Border>
+
+            <DockPanel Grid.Row="5" Margin="0,16,0,0">
+                <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
+                    <ui:Button MinWidth="96" Content="Cancelar" IsCancel="True" Command="{Binding CancelCommand}" />
+                    <ui:Button
+                        MinWidth="120"
+                        Margin="8,0,0,0"
+                        Appearance="Primary"
+                        IsDefault="True"
+                        Content="{Binding ImportLabel}"
+                        Command="{Binding ImportCommand}" />
+                </StackPanel>
+                <TextBlock VerticalAlignment="Center" Style="{StaticResource StatusText}" Text="{Binding ListSummary}" />
+            </DockPanel>
+        </Grid>
+    </Grid>
+</ui:FluentWindow>

@@ -5,7 +5,7 @@ using Severino.Core.Configuration;
 namespace Severino.Core.Routes;
 
 /// <summary>Validation and addressing for service routes.</summary>
-public static class ServiceRules
+public static partial class ServiceRules
 {
     /// <summary>Every service route gets an address here, so services on the same port never mix.</summary>
     public const string AddressPrefix = "127.77.";
@@ -28,6 +28,23 @@ public static class ServiceRules
         }
         throw new InvalidOperationException("Os endereços de 127.77.0.0/16 acabaram.");
     }
+
+    /// <summary>
+    /// One port line as the editor shows it, "80 → 192.168.203.100:32359"; "->", "=" or a space
+    /// work as the arrow too, and an IPv6 destination goes in brackets.
+    /// </summary>
+    public static bool TryParsePort(string line, out ServicePort port)
+    {
+        port = null!;
+        var match = PortLine().Match(line);
+        if (!match.Success || !int.TryParse(match.Groups[1].Value, out var number) || !int.TryParse(match.Groups[3].Value, out var targetPort))
+            return false;
+        port = new ServicePort { Port = number, TargetHost = match.Groups[2].Value.Trim('[', ']'), TargetPort = targetPort };
+        return true;
+    }
+
+    [System.Text.RegularExpressions.GeneratedRegex(@"^\s*(\d{1,5})\s*(?:→|->|=|\s)\s*(\[[0-9A-Fa-f:.]+\]|[^\s:\[\]]+):(\d{1,5})\s*$")]
+    private static partial System.Text.RegularExpressions.Regex PortLine();
 
     public static bool IsServiceAddress(string? address) =>
         IPAddress.TryParse(address, out var ip) && ip.ToString().StartsWith(AddressPrefix, StringComparison.Ordinal);

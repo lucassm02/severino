@@ -11,6 +11,7 @@ using Severino.App.Services;
 using Severino.App.Tray;
 using Severino.App.ViewModels;
 using Severino.Core.Configuration;
+using Severino.Core.Discovery;
 using Severino.Core.Domains;
 using Severino.Core.Helper;
 using Severino.Core.Routes;
@@ -187,6 +188,9 @@ public partial class App : Application
         services.AddSingleton(_ => new ConfigStore(ConfigStore.DefaultDirectory));
         services.AddSingleton<ConfigService>();
         services.AddSingleton<RouteService>();
+        services.AddSingleton<ServiceRouteService>();
+        services.AddSingleton<ICommandRunner>(_ => new CommandRunner());
+        services.AddSingleton<ServiceDiscovery>();
         services.AddSingleton<IHelperClient>(_ => new HelperClient());
         services.AddSingleton<HostsSync>();
         services.AddSingleton<IDnsResolver, WindowsDnsResolver>();

@@ -8,7 +8,7 @@ public sealed class RouteService(ConfigService config)
     public IReadOnlyList<RouteEntry> Routes => config.Current.Routes;
 
     public RouteErrors Validate(RouteEntry route) =>
-        RouteRules.Validate(route, Routes, config.Current.Settings.HttpPort, config.Current.Settings.HttpsPort);
+        RouteRules.Validate(route, Routes, config.Current.Settings.HttpPort, config.Current.Settings.HttpsPort, config.Current.Services);
 
     /// <summary>Adds the route, or replaces the one with the same id. Domain is stored normalized.</summary>
     /// <exception cref="ArgumentException">The route does not pass <see cref="Validate"/>.</exception>
@@ -39,7 +39,7 @@ public sealed class RouteService(ConfigService config)
     public ImportResult Import(string json)
     {
         var settings = config.Current.Settings;
-        var result = RouteTransfer.Import(json, Routes, settings.HttpPort, settings.HttpsPort);
+        var result = RouteTransfer.Import(json, Routes, settings.HttpPort, settings.HttpsPort, config.Current.Services);
         if (result.Added.Count > 0)
             config.Update(c => c with { Routes = [.. c.Routes, .. result.Added] });
         return result;

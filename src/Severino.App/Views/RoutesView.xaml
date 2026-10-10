@@ -53,9 +53,10 @@
             <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
 
-        <Grid Grid.Row="0" Margin="0,0,0,16" Visibility="{Binding HasRoutes, Converter={StaticResource TrueToVisible}}">
+        <Grid Grid.Row="0" Margin="0,0,0,16" Visibility="{Binding HasAnything, Converter={StaticResource TrueToVisible}}">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
                 <ColumnDefinition Width="Auto" />
                 <ColumnDefinition Width="Auto" />
             </Grid.ColumnDefinitions>
@@ -68,12 +69,19 @@
                 Width="220"
                 Margin="0,0,8,0"
                 VerticalAlignment="Center"
-                PlaceholderText="Buscar domínio"
+                PlaceholderText="Buscar domínio ou serviço"
                 Icon="{ui:SymbolIcon Search24}"
                 AutomationProperties.Name="Buscar rotas"
                 Text="{Binding Search, UpdateSourceTrigger=PropertyChanged}" />
             <ui:Button
                 Grid.Column="2"
+                Margin="0,0,8,0"
+                VerticalAlignment="Center"
+                Icon="{ui:SymbolIcon ArrowDownload24}"
+                Content="Importar serviços"
+                Command="{Binding ImportServicesCommand}" />
+            <ui:Button
+                Grid.Column="3"
                 VerticalAlignment="Center"
                 Appearance="Primary"
                 Icon="{ui:SymbolIcon Add24}"
@@ -81,95 +89,217 @@
                 Command="{Binding NewRouteCommand}" />
         </Grid>
 
-        <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" Visibility="{Binding HasRoutes, Converter={StaticResource TrueToVisible}}">
-            <ItemsControl ItemsSource="{Binding Items}">
-                <ItemsControl.ItemTemplate>
-                    <DataTemplate DataType="{x:Type vm:RouteItemViewModel}">
-                        <ui:Card Margin="0,0,0,6" Padding="16,10">
-                            <Grid>
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="24" />
-                                    <ColumnDefinition Width="*" />
-                                    <ColumnDefinition Width="Auto" />
-                                    <ColumnDefinition Width="Auto" />
-                                    <ColumnDefinition Width="Auto" />
-                                </Grid.ColumnDefinitions>
-                                <TextBlock Grid.Column="0" Style="{StaticResource HealthDot}" />
-                                <StackPanel Grid.Column="1" VerticalAlignment="Center">
-                                    <TextBlock FontSize="14" FontWeight="SemiBold" TextTrimming="CharacterEllipsis">
-                                        <Hyperlink
-                                            Foreground="{DynamicResource AccentTextFillColorPrimaryBrush}"
-                                            TextDecorations="{x:Null}"
-                                            Command="{Binding Data.OpenCommand, Source={StaticResource Root}}"
+        <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" Visibility="{Binding HasAnything, Converter={StaticResource TrueToVisible}}">
+            <StackPanel>
+                <ItemsControl ItemsSource="{Binding Items}">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate DataType="{x:Type vm:RouteItemViewModel}">
+                            <ui:Card Margin="0,0,0,6" Padding="16,10">
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="24" />
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                        <ColumnDefinition Width="Auto" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Grid.Column="0" Style="{StaticResource HealthDot}" />
+                                    <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                                        <TextBlock FontSize="14" FontWeight="SemiBold" TextTrimming="CharacterEllipsis">
+                                            <Hyperlink
+                                                Foreground="{DynamicResource AccentTextFillColorPrimaryBrush}"
+                                                TextDecorations="{x:Null}"
+                                                Command="{Binding Data.OpenCommand, Source={StaticResource Root}}"
+                                                CommandParameter="{Binding}"
+                                                ToolTip="Abrir no navegador">
+                                                <Run Text="{Binding Domain, Mode=OneWay}" />
+                                            </Hyperlink>
+                                            <InlineUIContainer BaselineAlignment="Center">
+                                                <Border
+                                                    Margin="8,0,0,0"
+                                                    Padding="6,0,6,1"
+                                                    CornerRadius="4"
+                                                    BorderThickness="1"
+                                                    BorderBrush="{DynamicResource ControlStrokeColorDefaultBrush}"
+                                                    ToolTip="{Binding HttpsBadgeTooltip}"
+                                                    AutomationProperties.Name="{Binding HttpsBadgeTooltip}"
+                                                    Visibility="{Binding HasHttpsBadge, Converter={StaticResource TrueToVisible}}">
+                                                    <TextBlock FontSize="11" FontWeight="Normal" Text="{Binding HttpsBadgeText}">
+                                                        <TextBlock.Style>
+                                                            <Style TargetType="TextBlock">
+                                                                <Setter Property="Foreground" Value="{DynamicResource SystemFillColorSuccessBrush}" />
+                                                                <Style.Triggers>
+                                                                    <DataTrigger Binding="{Binding HttpsState}" Value="Uncovered">
+                                                                        <Setter Property="Foreground" Value="{DynamicResource SystemFillColorCautionBrush}" />
+                                                                    </DataTrigger>
+                                                                </Style.Triggers>
+                                                            </Style>
+                                                        </TextBlock.Style>
+                                                    </TextBlock>
+                                                </Border>
+                                            </InlineUIContainer>
+                                        </TextBlock>
+                                        <ui:TextBlock
+                                            Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                                            FontTypography="Caption"
+                                            TextTrimming="CharacterEllipsis"
+                                            Text="{Binding TargetDisplay, StringFormat='→ {0}'}" />
+                                    </StackPanel>
+                                    <TextBlock
+                                        Grid.Column="2"
+                                        Margin="16,0"
+                                        Style="{StaticResource HealthLabel}"
+                                        Text="{Binding HealthText}" />
+                                    <ui:ToggleSwitch
+                                        Grid.Column="3"
+                                        VerticalAlignment="Center"
+                                        IsChecked="{Binding Enabled}"
+                                        AutomationProperties.Name="{Binding Domain, StringFormat='Ligar {0}'}" />
+                                    <ui:Button
+                                        Grid.Column="4"
+                                        Margin="8,0,0,0"
+                                        Appearance="Transparent"
+                                        Icon="{ui:SymbolIcon MoreHorizontal24}"
+                                        AutomationProperties.Name="{Binding Domain, StringFormat='Mais opções de {0}'}"
+                                        Click="OnMoreClick">
+                                        <ui:Button.ContextMenu>
+                                            <ContextMenu>
+                                                <MenuItem Header="Abrir no navegador" Command="{Binding Data.OpenCommand, Source={StaticResource Root}}" CommandParameter="{Binding}" />
+                                                <MenuItem Header="Copiar URL" Command="{Binding Data.CopyUrlCommand, Source={StaticResource Root}}" CommandParameter="{Binding}" />
+                                                <Separator />
+                                                <MenuItem Header="Editar" Command="{Binding Data.EditCommand, Source={StaticResource Root}}" CommandParameter="{Binding}" />
+                                                <MenuItem Header="Duplicar" Command="{Binding Data.DuplicateCommand, Source={StaticResource Root}}" CommandParameter="{Binding}" />
+                                                <Separator />
+                                                <MenuItem Header="Remover" Command="{Binding Data.RemoveCommand, Source={StaticResource Root}}" CommandParameter="{Binding}" />
+                                            </ContextMenu>
+                                        </ui:Button.ContextMenu>
+                                    </ui:Button>
+                                </Grid>
+                            </ui:Card>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+
+                <!-- Service routes: names forwarded as TCP, grouped by where they came from -->
+                <StackPanel Margin="0,18,0,0" Visibility="{Binding HasServices, Converter={StaticResource TrueToVisible}}">
+                    <DockPanel Margin="0,0,0,8">
+                        <ui:Button
+                            DockPanel.Dock="Right"
+                            Appearance="Transparent"
+                            Icon="{ui:SymbolIcon Add24}"
+                            Content="Novo serviço"
+                            Command="{Binding NewServiceCommand}" />
+                        <StackPanel VerticalAlignment="Center">
+                            <ui:TextBlock FontTypography="BodyStrong" Text="Serviços" />
+                            <ui:TextBlock
+                                Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                                FontTypography="Caption"
+                                Text="Cada nome vai direto ao destino, em qualquer protocolo, com o nome intacto." />
+                        </StackPanel>
+                    </DockPanel>
+                    <ItemsControl ItemsSource="{Binding ServiceGroups}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate DataType="{x:Type vm:ServiceGroupViewModel}">
+                                <StackPanel Margin="0,0,0,10">
+                                    <DockPanel Margin="0,0,0,4">
+                                        <ui:Button
+                                            DockPanel.Dock="Right"
+                                            Appearance="Transparent"
+                                            Icon="{ui:SymbolIcon MoreHorizontal24}"
+                                            AutomationProperties.Name="{Binding Title, StringFormat='Mais opções de {0}'}"
+                                            Click="OnMoreClick">
+                                            <ui:Button.ContextMenu>
+                                                <ContextMenu>
+                                                    <MenuItem Header="Remover todos deste grupo" Command="{Binding Data.RemoveGroupCommand, Source={StaticResource Root}}" CommandParameter="{Binding}" />
+                                                </ContextMenu>
+                                            </ui:Button.ContextMenu>
+                                        </ui:Button>
+                                        <ui:Button
+                                            DockPanel.Dock="Right"
+                                            Appearance="Transparent"
+                                            Icon="{ui:SymbolIcon ArrowClockwise24}"
+                                            Content="Atualizar"
+                                            ToolTip="Procura de novo e corrige destinos e portas; os nomes ficam"
+                                            Command="{Binding Data.RefreshGroupCommand, Source={StaticResource Root}}"
                                             CommandParameter="{Binding}"
-                                            ToolTip="Abrir no navegador">
-                                            <Run Text="{Binding Domain, Mode=OneWay}" />
-                                        </Hyperlink>
-                                        <InlineUIContainer BaselineAlignment="Center">
-                                            <Border
-                                                Margin="8,0,0,0"
-                                                Padding="6,0,6,1"
-                                                CornerRadius="4"
-                                                BorderThickness="1"
-                                                BorderBrush="{DynamicResource ControlStrokeColorDefaultBrush}"
-                                                ToolTip="{Binding HttpsBadgeTooltip}"
-                                                AutomationProperties.Name="{Binding HttpsBadgeTooltip}"
-                                                Visibility="{Binding HasHttpsBadge, Converter={StaticResource TrueToVisible}}">
-                                                <TextBlock FontSize="11" FontWeight="Normal" Text="{Binding HttpsBadgeText}">
-                                                    <TextBlock.Style>
-                                                        <Style TargetType="TextBlock">
-                                                            <Setter Property="Foreground" Value="{DynamicResource SystemFillColorSuccessBrush}" />
-                                                            <Style.Triggers>
-                                                                <DataTrigger Binding="{Binding HttpsState}" Value="Uncovered">
-                                                                    <Setter Property="Foreground" Value="{DynamicResource SystemFillColorCautionBrush}" />
-                                                                </DataTrigger>
-                                                            </Style.Triggers>
-                                                        </Style>
-                                                    </TextBlock.Style>
-                                                </TextBlock>
-                                            </Border>
-                                        </InlineUIContainer>
-                                    </TextBlock>
-                                    <ui:TextBlock
-                                        Foreground="{DynamicResource TextFillColorSecondaryBrush}"
-                                        FontTypography="Caption"
-                                        TextTrimming="CharacterEllipsis"
-                                        Text="{Binding TargetDisplay, StringFormat='→ {0}'}" />
+                                            Visibility="{Binding CanRefresh, Converter={StaticResource TrueToVisible}}" />
+                                        <ui:ProgressRing
+                                            DockPanel.Dock="Right"
+                                            Width="16"
+                                            Height="16"
+                                            Margin="0,0,8,0"
+                                            IsIndeterminate="True"
+                                            Visibility="{Binding IsRefreshing, Converter={StaticResource TrueToVisible}}" />
+                                        <TextBlock
+                                            VerticalAlignment="Center"
+                                            FontSize="12"
+                                            TextTrimming="CharacterEllipsis"
+                                            Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                                            Text="{Binding Title}" />
+                                    </DockPanel>
+                                    <ItemsControl ItemsSource="{Binding Items}">
+                                        <ItemsControl.ItemTemplate>
+                                            <DataTemplate DataType="{x:Type vm:ServiceItemViewModel}">
+                                                <ui:Card Margin="0,0,0,6" Padding="16,10">
+                                                    <Grid>
+                                                        <Grid.ColumnDefinitions>
+                                                            <ColumnDefinition Width="24" />
+                                                            <ColumnDefinition Width="*" />
+                                                            <ColumnDefinition Width="Auto" />
+                                                            <ColumnDefinition Width="Auto" />
+                                                            <ColumnDefinition Width="Auto" />
+                                                        </Grid.ColumnDefinitions>
+                                                        <TextBlock Grid.Column="0" Style="{StaticResource HealthDot}" />
+                                                        <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                                                            <TextBlock FontSize="14" TextTrimming="CharacterEllipsis" ToolTip="{Binding AllNames}">
+                                                                <Run FontWeight="SemiBold" Text="{Binding Name, Mode=OneWay}" />
+                                                                <Run FontSize="12" Foreground="{DynamicResource TextFillColorSecondaryBrush}" Text="{Binding MoreNames, Mode=OneWay, StringFormat='  {0}'}" />
+                                                                <Run FontSize="12" Foreground="{DynamicResource TextFillColorTertiaryBrush}" Text="{Binding Namespace, Mode=OneWay, StringFormat='  ·  {0}'}" />
+                                                            </TextBlock>
+                                                            <ui:TextBlock
+                                                                Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                                                                FontTypography="Caption"
+                                                                FontFamily="Cascadia Mono, Consolas"
+                                                                TextTrimming="CharacterEllipsis"
+                                                                Text="{Binding Detail}" />
+                                                        </StackPanel>
+                                                        <TextBlock
+                                                            Grid.Column="2"
+                                                            Margin="16,0"
+                                                            Style="{StaticResource HealthLabel}"
+                                                            Text="{Binding HealthText}" />
+                                                        <ui:ToggleSwitch
+                                                            Grid.Column="3"
+                                                            VerticalAlignment="Center"
+                                                            IsChecked="{Binding Enabled}"
+                                                            AutomationProperties.Name="{Binding Name, StringFormat='Ligar {0}'}" />
+                                                        <ui:Button
+                                                            Grid.Column="4"
+                                                            Margin="8,0,0,0"
+                                                            Appearance="Transparent"
+                                                            Icon="{ui:SymbolIcon MoreHorizontal24}"
+                                                            AutomationProperties.Name="{Binding Name, StringFormat='Mais opções de {0}'}"
+                                                            Click="OnMoreClick">
+                                                            <ui:Button.ContextMenu>
+                                                                <ContextMenu>
+                                                                    <MenuItem Header="Copiar nome" Command="{Binding Data.CopyServiceNameCommand, Source={StaticResource Root}}" CommandParameter="{Binding}" />
+                                                                    <MenuItem Header="Editar" Command="{Binding Data.EditServiceCommand, Source={StaticResource Root}}" CommandParameter="{Binding}" />
+                                                                    <Separator />
+                                                                    <MenuItem Header="Remover" Command="{Binding Data.RemoveServiceCommand, Source={StaticResource Root}}" CommandParameter="{Binding}" />
+                                                                </ContextMenu>
+                                                            </ui:Button.ContextMenu>
+                                                        </ui:Button>
+                                                    </Grid>
+                                                </ui:Card>
+                                            </DataTemplate>
+                                        </ItemsControl.ItemTemplate>
+                                    </ItemsControl>
                                 </StackPanel>
-                                <TextBlock
-                                    Grid.Column="2"
-                                    Margin="16,0"
-                                    Style="{StaticResource HealthLabel}"
-                                    Text="{Binding HealthText}" />
-                                <ui:ToggleSwitch
-                                    Grid.Column="3"
-                                    VerticalAlignment="Center"
-                                    IsChecked="{Binding Enabled}"
-                                    AutomationProperties.Name="{Binding Domain, StringFormat='Ligar {0}'}" />
-                                <ui:Button
-                                    Grid.Column="4"
-                                    Margin="8,0,0,0"
-                                    Appearance="Transparent"
-                                    Icon="{ui:SymbolIcon MoreHorizontal24}"
-                                    AutomationProperties.Name="{Binding Domain, StringFormat='Mais opções de {0}'}"
-                                    Click="OnMoreClick">
-                                    <ui:Button.ContextMenu>
-                                        <ContextMenu>
-                                            <MenuItem Header="Abrir no navegador" Command="{Binding Data.OpenCommand, Source={StaticResource Root}}" CommandParameter="{Binding}" />
-                                            <MenuItem Header="Copiar URL" Command="{Binding Data.CopyUrlCommand, Source={StaticResource Root}}" CommandParameter="{Binding}" />
-                                            <Separator />
-                                            <MenuItem Header="Editar" Command="{Binding Data.EditCommand, Source={StaticResource Root}}" CommandParameter="{Binding}" />
-                                            <MenuItem Header="Duplicar" Command="{Binding Data.DuplicateCommand, Source={StaticResource Root}}" CommandParameter="{Binding}" />
-                                            <Separator />
-                                            <MenuItem Header="Remover" Command="{Binding Data.RemoveCommand, Source={StaticResource Root}}" CommandParameter="{Binding}" />
-                                        </ContextMenu>
-                                    </ui:Button.ContextMenu>
-                                </ui:Button>
-                            </Grid>
-                        </ui:Card>
-                    </DataTemplate>
-                </ItemsControl.ItemTemplate>
-            </ItemsControl>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </StackPanel>
+            </StackPanel>
         </ScrollViewer>
 
         <StackPanel
@@ -195,13 +325,18 @@
                 TextWrapping="Wrap"
                 Foreground="{DynamicResource TextFillColorSecondaryBrush}"
                 Text="Diga a ele qual domínio leva a qual servidor, como callfred.sev para localhost:3000, e ele cuida do resto." />
-            <ui:Button
-                Margin="0,20,0,0"
-                HorizontalAlignment="Center"
-                Appearance="Primary"
-                Icon="{ui:SymbolIcon Add24}"
-                Content="Criar primeira rota"
-                Command="{Binding NewRouteCommand}" />
+            <StackPanel Margin="0,20,0,0" HorizontalAlignment="Center" Orientation="Horizontal">
+                <ui:Button
+                    Appearance="Primary"
+                    Icon="{ui:SymbolIcon Add24}"
+                    Content="Criar primeira rota"
+                    Command="{Binding NewRouteCommand}" />
+                <ui:Button
+                    Margin="8,0,0,0"
+                    Icon="{ui:SymbolIcon ArrowDownload24}"
+                    Content="Importar serviços"
+                    Command="{Binding ImportServicesCommand}" />
+            </StackPanel>
         </StackPanel>
 
         <StackPanel Grid.Row="2">

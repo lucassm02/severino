@@ -5,6 +5,7 @@ using Microsoft.Win32;
 using Severino.App.ViewModels;
 using Severino.App.Views;
 using Severino.Core.Configuration;
+using Severino.Core.Discovery;
 using Severino.Core.Domains;
 using Severino.Core.Routes;
 using FluentMessageBox = Wpf.Ui.Controls.MessageBox;
@@ -12,8 +13,24 @@ using FluentResult = Wpf.Ui.Controls.MessageBoxResult;
 
 namespace Severino.App.Services;
 
-public sealed class DialogService(RouteService routes, DomainInspector inspector, HttpsService https, Navigation navigation)
+public sealed class DialogService(RouteService routes, ServiceRouteService services, ServiceDiscovery discovery, DomainInspector inspector, HttpsService https, Navigation navigation)
 {
+    /// <summary>The "Importar serviços" window; returns what was imported, or null when cancelled.</summary>
+    public IReadOnlyList<PlannedService>? ImportServices()
+    {
+        var viewModel = new ImportServicesViewModel(discovery, services);
+        var window = new ImportServicesWindow(viewModel) { Owner = Application.Current.MainWindow };
+        return window.ShowDialog() == true ? viewModel.Result : null;
+    }
+
+    /// <summary>The service form; returns the saved route, or null when cancelled.</summary>
+    public ServiceRoute? EditService(ServiceRoute? existing)
+    {
+        var viewModel = new ServiceEditorViewModel(services, existing);
+        var window = new ServiceEditorWindow(viewModel) { Owner = Application.Current.MainWindow };
+        return window.ShowDialog() == true ? viewModel.Saved : null;
+    }
+
     /// <summary>Opens the route form; returns the saved route, or null when cancelled.</summary>
     public RouteEntry? EditRoute(RouteEntry? existing, bool isCopy = false)
     {

@@ -60,7 +60,7 @@ public static class RouteTransfer
     /// route form. Existing routes are never replaced.
     /// </summary>
     /// <exception cref="InvalidRouteFileException">Not a Severino routes file, or one from a newer version.</exception>
-    public static ImportResult Import(string json, IReadOnlyList<RouteEntry> existing, int httpPort, int? httpsPort)
+    public static ImportResult Import(string json, IReadOnlyList<RouteEntry> existing, int httpPort, int? httpsPort, IReadOnlyList<ServiceRoute>? services = null)
     {
         RouteFile? file;
         try
@@ -101,7 +101,7 @@ public static class RouteTransfer
                 continue;
             }
 
-            var errors = RouteRules.Validate(route, routes, httpPort, httpsPort);
+            var errors = RouteRules.Validate(route, routes, httpPort, httpsPort, services);
             if (!errors.IsValid)
             {
                 invalid.Add(new(route.Domain.Length > 0 ? route.Domain : "(sem domínio)", errors.Domain ?? errors.Target ?? ""));

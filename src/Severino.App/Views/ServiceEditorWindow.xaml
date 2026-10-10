@@ -1,0 +1,80 @@
+<ui:FluentWindow
+    x:Class="Severino.App.Views.ServiceEditorWindow"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
+    xmlns:vm="clr-namespace:Severino.App.ViewModels"
+    mc:Ignorable="d"
+    d:DataContext="{d:DesignInstance Type=vm:ServiceEditorViewModel}"
+    Title="{Binding Title}"
+    Width="540"
+    SizeToContent="Height"
+    ResizeMode="NoResize"
+    ShowInTaskbar="False"
+    WindowStartupLocation="CenterOwner"
+    WindowBackdropType="Mica"
+    Icon="/Assets/severino.ico"
+    ExtendsContentIntoTitleBar="True">
+
+    <StackPanel>
+        <ui:TitleBar Title="{Binding Title}" ShowMaximize="False" ShowMinimize="False" />
+
+        <StackPanel Margin="24,8,24,24">
+            <TextBlock
+                Margin="0,0,0,12"
+                FontSize="12"
+                TextWrapping="Wrap"
+                Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                Text="{Binding OriginText}"
+                Visibility="{Binding OriginText, Converter={StaticResource NullToCollapsed}}" />
+
+            <TextBlock Margin="0,0,0,4" Text="Nomes, um por linha" />
+            <ui:TextBox
+                x:Name="Names"
+                Height="96"
+                AcceptsReturn="True"
+                VerticalScrollBarVisibility="Auto"
+                PlaceholderText="pedidos&#x0a;pedidos.loja"
+                AutomationProperties.Name="Nomes"
+                Text="{Binding NamesText, UpdateSourceTrigger=PropertyChanged}" />
+
+            <TextBlock Margin="0,12,0,4" Text="Portas: a que o app chama → onde o serviço responde" />
+            <ui:TextBox
+                Height="80"
+                AcceptsReturn="True"
+                VerticalScrollBarVisibility="Auto"
+                FontFamily="Cascadia Mono, Consolas"
+                PlaceholderText="80 → 192.168.0.10:30080"
+                AutomationProperties.Name="Portas"
+                Text="{Binding PortsText, UpdateSourceTrigger=PropertyChanged}" />
+            <TextBlock
+                Margin="0,4,0,0"
+                FontSize="12"
+                TextWrapping="Wrap"
+                Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                Text="{Binding Address, StringFormat='Os nomes apontam para {0}, onde o Severino escuta essas portas.'}" />
+
+            <TextBlock Margin="0,12,0,4" Text="Notas" />
+            <ui:TextBox AutomationProperties.Name="Notas" Text="{Binding Notes, UpdateSourceTrigger=PropertyChanged}" />
+
+            <TextBlock
+                Margin="0,12,0,0"
+                TextWrapping="Wrap"
+                Foreground="{DynamicResource SystemFillColorCautionBrush}"
+                Text="{Binding Error}"
+                Visibility="{Binding Error, Converter={StaticResource NullToCollapsed}}" />
+
+            <StackPanel Margin="0,24,0,0" HorizontalAlignment="Right" Orientation="Horizontal">
+                <ui:Button MinWidth="96" Content="Cancelar" IsCancel="True" Command="{Binding CancelCommand}" />
+                <ui:Button
+                    MinWidth="96"
+                    Margin="8,0,0,0"
+                    Appearance="Primary"
+                    Content="{Binding SaveLabel}"
+                    Command="{Binding SaveCommand}" />
+            </StackPanel>
+        </StackPanel>
+    </StackPanel>
+</ui:FluentWindow>

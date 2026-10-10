@@ -17,7 +17,7 @@ public sealed class ProxyCoordinator(ConfigService config, ProxyServer proxy, He
     {
         var current = config.Current;
         ca.Load();
-        health.Update(current.Routes);
+        health.Update(current.Routes, current.Services);
         health.Start();
         hosts.Start();
         config.Changed += OnConfigChanged;
@@ -99,7 +99,7 @@ public sealed class ProxyCoordinator(ConfigService config, ProxyServer proxy, He
 
     private void OnConfigChanged(object? sender, SeverinoConfig updated)
     {
-        health.Update(updated.Routes);
+        health.Update(updated.Routes, updated.Services);
         if (IsPaused)
             return; // ResumeAsync starts from the config of that moment.
 

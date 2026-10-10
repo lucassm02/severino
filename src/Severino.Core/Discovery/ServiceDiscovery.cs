@@ -30,12 +30,24 @@ public sealed class ServiceDiscovery(ICommandRunner runner)
         return [CommandSource.Windows, .. distros.Select(CommandSource.Wsl)];
     }
 
+    /// <summary>Installed distros that are not running: offered apart, since asking them starts them.</summary>
+    public async Task<IReadOnlyList<CommandSource>> StoppedSourcesAsync(CancellationToken cancellationToken)
+    {
+        var all = await runner.RunAsync(CommandSource.Windows, "wsl.exe", ["--list", "--quiet"], cancellationToken);
+        var running = await runner.RunAsync(CommandSource.Windows, "wsl.exe", ["--list", "--running", "--quiet"], cancellationToken);
+        if (!all.Succeeded)
+            return [];
+        var up = running.Succeeded ? ParseDistros(running.Output) : [];
+        return [.. ParseDistros(all.Output).Except(up, StringComparer.OrdinalIgnoreCase).Select(CommandSource.Wsl)];
+    }
+
     public static IReadOnlyList<string> ParseDistros(string output) =>
         // Old wsl.exe versions pad with NULs even in UTF-8 mode.
         [.. output.Replace("\0", "").Split('\n', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
             .Where(d => d.Length > 0 && !d.StartsWith("docker-desktop", StringComparison.OrdinalIgnoreCase))];
 
-    public async Task<KubernetesResult> KubernetesAsync(CommandSource source, CancellationToken cancellationToken)
+    /// <param name="node">The node to use for NodePorts when it is one of the cluster's; else the API server's.</param>
+    public async Task<KubernetesResult> KubernetesAsync(CommandSource source, CancellationToken cancellationToken, string? node = null)
     {
         var context = await RunAsync(source, "kubectl", ["config", "current-context"], cancellationToken);
         if (context.Error is { } error)
@@ -56,9 +68,11 @@ public sealed class ServiceDiscovery(ICommandRunner runner)
         {
             var nodeList = (await nodes).Error is null ? KubernetesDiscovery.NodeAddresses((await nodes).Output) : [];
             var apiHost = KubernetesDiscovery.ServerHost((await server).Output);
-            var node = nodeList.Contains(apiHost) ? apiHost : nodeList.FirstOrDefault();
+            var chosen = node is not null && nodeList.Contains(node) ? node
+                : nodeList.Contains(apiHost) ? apiHost
+                : nodeList.FirstOrDefault();
             var ready = (await slices).Error is null ? KubernetesDiscovery.ReadyServices((await slices).Output) : null;
-            return new(contextName, nodeList, node, KubernetesDiscovery.Services((await services).Output, node, ready));
+            return new(contextName, nodeList, chosen, KubernetesDiscovery.Services((await services).Output, chosen, ready));
         }
         catch (JsonException ex)
         {
