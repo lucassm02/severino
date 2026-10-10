@@ -1,0 +1,180 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Severino: domínios para seus apps locais no Windows</title>
+  <meta name="description" content="O Severino dá um nome para cada app que roda na sua máquina, como callfred.sev, e cuida do arquivo hosts, do proxy e do HTTPS. Também traz serviços do Kubernetes e do Docker pelo nome, no Windows e no WSL.">
+  <meta property="og:title" content="Severino: chega de localhost:3000">
+  <meta property="og:description" content="Um nome para cada app local, com HTTPS de verdade e sem editar o hosts à mão.">
+  <meta property="og:image" content="assets/severino-rosto-480.png">
+  <meta name="theme-color" content="#011D41">
+  <link rel="icon" type="image/png" href="assets/favicon-64.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wdth,wght@12..96,75..100,400..800&family=Source+Sans+3:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <a class="skip" href="#conteudo">Pular para o conteúdo</a>
+
+  <header class="topo">
+    <a class="marca" href="./" aria-label="Severino, início">
+      <img src="assets/severino-rosto-96.png" width="40" height="40" alt="">
+      <span>Severino</span>
+    </a>
+    <nav aria-label="Seções">
+      <a href="#como-funciona">Como funciona</a>
+      <a href="#servicos">Kubernetes e Docker</a>
+      <a href="#seguranca">O que ele mexe</a>
+      <a href="https://github.com/lucassm02/severino">GitHub</a>
+    </nav>
+    <a class="botao botao-pequeno" href="#baixar">Baixar</a>
+  </header>
+
+  <main id="conteudo">
+    <section class="abertura">
+      <div class="abertura-texto">
+        <h1>Chega de localhost:<wbr>3000.</h1>
+        <p class="abertura-lead">O Severino dá um nome para cada app que roda na sua máquina, como <strong>callfred.sev</strong>, e cuida do resto: o arquivo hosts, o proxy e um HTTPS que o navegador aceita. Você não edita nada à mão.</p>
+        <div class="acoes">
+          <a class="botao" href="https://github.com/lucassm02/severino/releases/latest" data-download>Baixar para Windows</a>
+          <a class="link-forte" href="https://github.com/lucassm02/severino">Ver o código no GitHub</a>
+        </div>
+        <p class="nota" data-release-note>Para Windows 10 e 11, 64 bits.</p>
+      </div>
+
+      <figure class="quadro-moldura">
+        <img class="quadro-porteiro" src="assets/severino-rosto-480.png" width="240" height="240" alt="Severino, o porteiro, de quepe azul e bigode.">
+        <div class="quadro" role="img" aria-label="Quadro da portaria: callfred.sev na porta 3000, api.callfred.sev na 8080, admin.callfred.sev na 5173, pedidos.loja na 80 e postgres.database na 5432.">
+          <p class="quadro-titulo" aria-hidden="true">Portaria</p>
+          <ul aria-hidden="true">
+            <li><span class="nome">callfred.sev</span><span class="pontos"></span><span class="porta">3000</span></li>
+            <li><span class="nome">api.callfred.sev</span><span class="pontos"></span><span class="porta">8080</span></li>
+            <li><span class="nome">admin.callfred.sev</span><span class="pontos"></span><span class="porta">5173</span></li>
+            <li><span class="nome">pedidos.loja</span><span class="pontos"></span><span class="porta">80</span></li>
+            <li><span class="nome">postgres.database</span><span class="pontos"></span><span class="porta">5432</span></li>
+          </ul>
+        </div>
+      </figure>
+    </section>
+
+    <section class="como" id="como-funciona" aria-labelledby="como-titulo">
+      <h2 id="como-titulo">Como funciona</h2>
+      <p class="secao-lead">Três passos, e o primeiro é o único que é seu.</p>
+      <ol class="passos">
+        <li>
+          <h3>Diga o nome e a porta</h3>
+          <p>Numa janela, sem terminal: o domínio que você quer e onde o app está rodando.</p>
+          <div class="mock-form" aria-hidden="true">
+            <span class="mock-rotulo">Domínio</span>
+            <span class="mock-campo">callfred.sev</span>
+            <span class="mock-rotulo">Destino</span>
+            <span class="mock-campo">http://localhost:3000</span>
+          </div>
+        </li>
+        <li>
+          <h3>O Severino arruma a portaria</h3>
+          <p>Ele grava o nome no arquivo hosts, num bloco só dele, e passa a atender nas portas 80 e 443.</p>
+          <pre class="mock-arquivo" aria-label="Trecho do arquivo hosts"><code><span class="comentario"># &gt;&gt;&gt; Severino managed block (do not edit)</span>
+127.0.0.1   callfred.sev
+::1         callfred.sev
+<span class="comentario"># &lt;&lt;&lt; Severino</span></code></pre>
+        </li>
+        <li>
+          <h3>Abra no navegador</h3>
+          <p>Com cadeado e tudo. O hot reload do Vite e os WebSockets continuam funcionando.</p>
+          <div class="mock-barra" aria-hidden="true">
+            <svg viewBox="0 0 16 16" width="14" height="14"><path d="M4.5 7V5a3.5 3.5 0 0 1 7 0v2h.5A1 1 0 0 1 13 8v6a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V8a1 1 0 0 1 1-1zm1.5 0h4V5a2 2 0 0 0-4 0z" fill="currentColor"/></svg>
+            <span>https://callfred.sev</span>
+          </div>
+        </li>
+      </ol>
+    </section>
+
+    <section class="janela" aria-labelledby="janela-titulo">
+      <div class="janela-texto">
+        <h2 id="janela-titulo">Todas as rotas numa janela só</h2>
+        <p>Cada rota mostra se o app do outro lado está respondendo. Um clique liga ou desliga; o botão de pausa, na bandeja, devolve os domínios à internet na hora.</p>
+      </div>
+      <img class="captura captura-grande" src="assets/app-rotas.png" width="1960" height="1400" loading="lazy"
+           alt="A janela do Severino com as rotas callfred.sev, api.callfred.sev e admin.callfred.sev respondendo com HTTPS, docs.sev desligada, e os serviços pedidos, postgres e redis vindos do Kubernetes.">
+      <div class="janela-par">
+        <div class="janela-texto">
+          <h3>Cada requisição, com status e tempo</h3>
+          <p>A aba Requisições mostra o que passou pelo Severino, inclusive os WebSockets e as conexões dos serviços. Fica só na memória: nada vai para o disco.</p>
+        </div>
+        <img class="captura" src="assets/app-requisicoes.png" width="1960" height="1400" loading="lazy"
+             alt="A aba Requisições, com chamadas GET e POST para api.callfred.sev, um WebSocket aberto e uma conexão TCP para postgres.database.">
+      </div>
+    </section>
+
+    <section class="servicos" id="servicos" aria-labelledby="servicos-titulo">
+      <div class="servicos-texto">
+        <h2 id="servicos-titulo">O cluster pelo nome de dentro do cluster</h2>
+        <p class="secao-lead">Seu app chama <strong>postgres.database:5432</strong> como faria dentro do Kubernetes, e chega lá. Sem mudar uma linha de configuração.</p>
+        <ul class="fatos">
+          <li><strong>Importa sozinho.</strong> O Severino pergunta ao kubectl e ao docker que você já tem, no Windows ou dentro do WSL, e lista os services e containers. Você marca quais quer.</li>
+          <li><strong>Os quatro nomes.</strong> pedidos, pedidos.loja, pedidos.loja.svc e pedidos.loja.svc.cluster.local levam ao mesmo lugar: a NodePort do service, com o nome original na requisição.</li>
+          <li><strong>Qualquer protocolo.</strong> HTTP, gRPC, Postgres, Redis: cada serviço ganha um endereço próprio e o tráfego passa byte a byte.</li>
+          <li><strong>Docker pelo nome do Compose.</strong> orchestrator:4000 chega à porta publicada do container, seja qual for.</li>
+          <li><strong>Apps no WSL também.</strong> As distros que você escolher recebem os mesmos nomes, e o que roda nelas chama os serviços do mesmo jeito.</li>
+        </ul>
+      </div>
+      <div class="servicos-visual">
+        <img class="captura" src="assets/app-importar.png" width="1720" height="1280" loading="lazy"
+             alt="A janela Importar serviços, procurando no WSL Ubuntu-22.04: sete services do Kubernetes e um container do Docker, com o namespace loja marcado.">
+        <pre class="terminal" aria-label="Exemplo no terminal do WSL"><code><span class="prompt">~$</span> curl http://pedidos.loja/saude
+{"status":"ok"}
+<span class="prompt">~$</span> psql -h postgres.database -U app
+psql (16.4)
+app=&gt;</code></pre>
+      </div>
+    </section>
+
+    <section class="seguranca" id="seguranca" aria-labelledby="seguranca-titulo">
+      <h2 id="seguranca-titulo">O que o Severino mexe na sua máquina</h2>
+      <p class="secao-lead">Uma ferramenta que pede administrador precisa dizer exatamente o que faz com ele.</p>
+      <dl class="lista-seguranca">
+        <div>
+          <dt>Arquivo hosts</dt>
+          <dd>Só um bloco marcado, sempre com endereços de loopback. Pausar ou fechar o app esvazia o bloco.</dd>
+        </div>
+        <div>
+          <dt>Serviço auxiliar</dt>
+          <dd>É a única parte que roda como administrador, e só grava esse bloco e limpa o cache de DNS. O app em si roda como você.</dd>
+        </div>
+        <div>
+          <dt>Proxy</dt>
+          <dd>Escuta só em 127.0.0.1 e ::1. Nada fica exposto na rede.</dd>
+        </div>
+        <div>
+          <dt>HTTPS</dt>
+          <dd>Uma autoridade certificadora só sua, que só consegue assinar os domínios das suas rotas. A chave fica protegida pelo Windows, na sua conta.</dd>
+        </div>
+        <div>
+          <dt>Ir embora</dt>
+          <dd>"Limpar tudo", nas configurações, e o desinstalador tiram o que o Severino colocou: o bloco do hosts, a autoridade certificadora, a inicialização automática e os nomes nas distros do WSL.</dd>
+        </div>
+      </dl>
+    </section>
+
+    <section class="baixar" id="baixar" aria-labelledby="baixar-titulo">
+      <img src="assets/severino-rosto-480.png" width="200" height="200" alt="" loading="lazy">
+      <div>
+        <h2 id="baixar-titulo">O porteiro está pronto para começar</h2>
+        <p>Um instalador para Windows 10 e 11, 64 bits, com tudo incluído. Ao abrir, um assistente confere a porta 80, o serviço auxiliar e o proxy do sistema antes da primeira rota.</p>
+        <a class="botao" href="https://github.com/lucassm02/severino/releases/latest" data-download>Baixar para Windows</a>
+        <p class="nota" data-release-note-download>Todas as versões ficam nas <a href="https://github.com/lucassm02/severino/releases">releases do GitHub</a>.</p>
+        <p class="nota">O instalador ainda não tem assinatura digital. Se o Windows SmartScreen avisar, clique em "Mais informações" e depois em "Executar assim mesmo".</p>
+      </div>
+    </section>
+  </main>
+
+  <footer class="rodape">
+    <p>Severino é feito para quem desenvolve no Windows. <a href="https://github.com/lucassm02/severino">Código, issues e versões no GitHub</a>.</p>
+  </footer>
+
+  <script src="site.js" defer></script>
+</body>
+</html>

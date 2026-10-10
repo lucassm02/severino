@@ -1,0 +1,68 @@
+# Makes a new version: picks the next number from the last v* tag, runs the tests, builds the
+# installer and publishes a GitHub release with it attached. Started by hand in Actions › Release.
+name: Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      bump:
+        description: "Parte da versão que sobe (major.minor.patch)"
+        type: choice
+        options: [patch, minor, major]
+        default: minor
+
+permissions:
+  contents: write
+
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+jobs:
+  release:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # the tags decide the next version
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+
+      - name: Próxima versão
+        id: version
+        shell: pwsh
+        run: |
+          $last = git tag --list 'v*' --sort=-v:refname | Select-Object -First 1
+          # Before the first release, the version in Directory.Build.props is the starting point.
+          $current = if ($last) { [version]$last.TrimStart('v') } else { [version](dotnet msbuild src/Severino.App/Severino.App.csproj -getProperty:Version).Trim() }
+          $next = switch ('${{ inputs.bump }}') {
+            'major' { "$($current.Major + 1).0.0" }
+            'minor' { "$($current.Major).$($current.Minor + 1).0" }
+            default { "$($current.Major).$($current.Minor).$($current.Build + 1)" }
+          }
+          if (git tag --list "v$next") { throw "A tag v$next já existe." }
+          "version=$next" >> $env:GITHUB_OUTPUT
+          Write-Host "Última: $(if ($last) { $last } else { 'nenhuma' }) -> v$next"
+
+      - name: Testes
+        run: dotnet test -c Release
+
+      - name: Inno Setup
+        run: choco install innosetup --no-progress -y
+
+      - name: Instalador
+        shell: pwsh
+        run: ./scripts/build-installer.ps1 -Version ${{ steps.version.outputs.version }}
+
+      - name: Release
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $version = '${{ steps.version.outputs.version }}'
+          gh release create "v$version" "artifacts/installer/Severino-Setup-$version.exe" `
+            --target $env:GITHUB_SHA `
+            --title "Severino $version" `
+            --generate-notes
