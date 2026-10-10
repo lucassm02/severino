@@ -25,6 +25,7 @@
     </a>
     <nav aria-label="Seções">
       <a href="#como-funciona">Como funciona</a>
+      <a href="#dns">DNS</a>
       <a href="#servicos">Kubernetes e Docker</a>
       <a href="#seguranca">O que ele mexe</a>
       <a href="https://github.com/lucassm02/severino">GitHub</a>
@@ -46,12 +47,12 @@
 
       <figure class="quadro-moldura">
         <img class="quadro-porteiro" src="assets/severino-rosto-480.png" width="240" height="240" alt="Severino, o porteiro, de quepe azul e bigode.">
-        <div class="quadro" role="img" aria-label="Quadro da portaria: callfred.sev na porta 3000, api.callfred.sev na 8080, admin.callfred.sev na 5173, pedidos.loja na 80 e postgres.database na 5432.">
+        <div class="quadro" role="img" aria-label="Quadro da portaria: callfred.sev na porta 3000, callfred.sev/api na 8080, qualquer nome abaixo de lojas.sev na 5173, pedidos.loja na 80 e postgres.database na 5432.">
           <p class="quadro-titulo" aria-hidden="true">Portaria</p>
           <ul aria-hidden="true">
             <li><span class="nome">callfred.sev</span><span class="pontos"></span><span class="porta">3000</span></li>
-            <li><span class="nome">api.callfred.sev</span><span class="pontos"></span><span class="porta">8080</span></li>
-            <li><span class="nome">admin.callfred.sev</span><span class="pontos"></span><span class="porta">5173</span></li>
+            <li><span class="nome">callfred.sev/api</span><span class="pontos"></span><span class="porta">8080</span></li>
+            <li><span class="nome">*.lojas.sev</span><span class="pontos"></span><span class="porta">5173</span></li>
             <li><span class="nome">pedidos.loja</span><span class="pontos"></span><span class="porta">80</span></li>
             <li><span class="nome">postgres.database</span><span class="pontos"></span><span class="porta">5432</span></li>
           </ul>
@@ -95,10 +96,10 @@
     <section class="janela" aria-labelledby="janela-titulo">
       <div class="janela-texto">
         <h2 id="janela-titulo">Todas as rotas numa janela só</h2>
-        <p>Cada rota mostra se o app do outro lado está respondendo. Um clique liga ou desliga; o botão de pausa, na bandeja, devolve os domínios à internet na hora.</p>
+        <p>Cada rota mostra se o app do outro lado está respondendo. Um clique liga ou desliga uma rota, e uma chave liga ou desliga um grupo inteiro; o botão de pausa, na bandeja, devolve os domínios à internet na hora.</p>
       </div>
       <img class="captura captura-grande" src="assets/app-rotas.png" width="1960" height="1400" loading="lazy"
-           alt="A janela do Severino com as rotas callfred.sev, api.callfred.sev e admin.callfred.sev respondendo com HTTPS, docs.sev desligada, e os serviços pedidos, postgres e redis vindos do Kubernetes.">
+           alt="A janela do Severino com o grupo callfred: callfred.sev, callfred.sev/api, o curinga *.callfred.sev e admin.callfred.sev, todos respondendo com HTTPS; docs.sev desligada; e os serviços pedidos e postgres vindos do Kubernetes.">
       <div class="janela-par">
         <div class="janela-texto">
           <h3>Cada requisição, com status e tempo</h3>
@@ -107,6 +108,46 @@
         <img class="captura" src="assets/app-requisicoes.png" width="1960" height="1400" loading="lazy"
              alt="A aba Requisições, com chamadas GET e POST para api.callfred.sev, um WebSocket aberto e uma conexão TCP para postgres.database.">
       </div>
+    </section>
+
+    <section class="mais" aria-labelledby="mais-titulo">
+      <h2 id="mais-titulo">Para quando um nome por app não basta</h2>
+      <ul class="mais-lista">
+        <li>
+          <h3>Curinga</h3>
+          <p><strong>*.lojas.sev</strong> atende cliente42.lojas.sev, a.b.lojas.sev e qualquer outro nome abaixo, cada um com o seu certificado HTTPS. Um nome exato, como api.lojas.sev, continua tendo a sua própria rota.</p>
+        </li>
+        <li>
+          <h3>Um domínio, vários apps</h3>
+          <p><strong>callfred.sev/api</strong> vai para a API e o resto de callfred.sev vai para o front. O caminho mais longo vence, e dá para tirar o /api antes de repassar.</p>
+        </li>
+        <li>
+          <h3>Grupos</h3>
+          <p>As rotas de um projeto ficam juntas, e uma chave liga ou desliga todas de uma vez.</p>
+        </li>
+        <li>
+          <h3>Pelo terminal</h3>
+          <p>Um módulo PowerShell fala com o app aberto, com as mesmas regras das telas.</p>
+          <pre class="terminal" aria-label="Exemplo no PowerShell"><code><span class="prompt">PS&gt;</span> New-SeverinoRoute callfred.sev http://localhost:3000 -Https -Group callfred
+<span class="prompt">PS&gt;</span> Set-SeverinoDns sql.interno 10.0.0.8
+<span class="prompt">PS&gt;</span> Disable-SeverinoRoute -Group callfred</code></pre>
+        </li>
+      </ul>
+    </section>
+
+    <section class="dns" id="dns" aria-labelledby="dns-titulo">
+      <div class="dns-texto">
+        <h2 id="dns-titulo">O hosts inteiro, sem abrir o Bloco de Notas como administrador</h2>
+        <p class="secao-lead">A aba DNS guarda nomes que vão direto a um IP, como <strong>sql.interno</strong> para 10.0.0.8, e mostra tudo o que já estava no seu hosts.</p>
+        <ul class="fatos">
+          <li><strong>Valem com o app fechado.</strong> Como uma linha escrita à mão, e também no WSL.</li>
+          <li><strong>O que não é dele fica marcado.</strong> As linhas que outra pessoa ou outro programa escreveu aparecem como "fora do Severino". Editar uma delas pede confirmação, mostra como vai ficar e deixa um comentário no hosts dizendo o que mudou.</li>
+          <li><strong>Um nome serve de destino.</strong> Rotas e serviços podem apontar para gateway.k8s em vez do IP: mudar o IP num lugar só atualiza todos.</li>
+          <li><strong>Rede privada direto, o resto com confirmação.</strong> IPs da rede interna entram na hora; IP público e curinga pedem a confirmação de administrador do Windows.</li>
+        </ul>
+      </div>
+      <img class="captura" src="assets/app-dns.png" width="1960" height="1400" loading="lazy"
+           alt="A aba DNS: entradas do Severino como gateway.k8s, destino de 3 serviços, e staging.exemplo.com.br aguardando aprovação; abaixo, as linhas do hosts que não são do Severino, marcadas.">
     </section>
 
     <section class="servicos" id="servicos" aria-labelledby="servicos-titulo">
@@ -118,6 +159,9 @@
           <li><strong>Os quatro nomes.</strong> pedidos, pedidos.loja, pedidos.loja.svc e pedidos.loja.svc.cluster.local levam ao mesmo lugar: a NodePort do service, com o nome original na requisição.</li>
           <li><strong>Qualquer protocolo.</strong> HTTP, gRPC, Postgres, Redis: cada serviço ganha um endereço próprio e o tráfego passa byte a byte.</li>
           <li><strong>Docker pelo nome do Compose.</strong> orchestrator:4000 chega à porta publicada do container, seja qual for.</li>
+          <li><strong>Só ClusterIP também.</strong> Para o que não tem acesso de fora, o Severino mantém um kubectl port-forward rodando e o reinicia se a VPN cair.</li>
+          <li><strong>Acompanha sozinho.</strong> Recriou o container em outra porta? A rota se corrige em segundos, sem clique.</li>
+          <li><strong>O nome público pelo caminho curto.</strong> Os hosts dos Ingress viram rotas direto para o gateway interno, sem dar a volta pela internet.</li>
           <li><strong>Apps no WSL também.</strong> As distros que você escolher recebem os mesmos nomes, e o que roda nelas chama os serviços do mesmo jeito.</li>
         </ul>
       </div>
@@ -138,11 +182,11 @@ app=&gt;</code></pre>
       <dl class="lista-seguranca">
         <div>
           <dt>Arquivo hosts</dt>
-          <dd>Só um bloco marcado, sempre com endereços de loopback. Pausar ou fechar o app esvazia o bloco.</dd>
+          <dd>Dois blocos marcados: o das rotas, sempre com endereços de loopback, que pausar ou fechar o app esvazia; e o das entradas DNS, que fica. Linhas de fora só mudam quando você pede, com um comentário acima.</dd>
         </div>
         <div>
           <dt>Serviço auxiliar</dt>
-          <dd>É a única parte que roda como administrador, e só grava esse bloco e limpa o cache de DNS. O app em si roda como você.</dd>
+          <dd>É a única parte que roda como administrador. Grava os blocos do hosts, responde os nomes curinga num DNS só dele em 127.53.0.1 e cria as regras do Windows que mandam esses sufixos para lá. IP público e sufixo curinga novos só entram depois da sua confirmação no aviso do Windows. O app em si roda como você.</dd>
         </div>
         <div>
           <dt>Proxy</dt>
@@ -154,7 +198,7 @@ app=&gt;</code></pre>
         </div>
         <div>
           <dt>Ir embora</dt>
-          <dd>"Limpar tudo", nas configurações, e o desinstalador tiram o que o Severino colocou: o bloco do hosts, a autoridade certificadora, a inicialização automática e os nomes nas distros do WSL.</dd>
+          <dd>"Limpar tudo", nas configurações, e o desinstalador tiram o que o Severino colocou: os blocos do hosts, as regras de DNS, a autoridade certificadora, a inicialização automática e os nomes nas distros do WSL.</dd>
         </div>
       </dl>
     </section>

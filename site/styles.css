@@ -385,6 +385,48 @@ p { margin: 0; }
   .janela-par { grid-template-columns: minmax(0, 1fr); }
 }
 
+/* ---------- More than one name per app ---------- */
+
+.mais {
+  max-width: var(--largura);
+  margin: 0 auto;
+  padding: clamp(56px, 8vw, 104px) var(--gutter) clamp(40px, 6vw, 72px);
+}
+
+.mais-lista {
+  list-style: none;
+  margin: 40px 0 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 40px clamp(28px, 5vw, 64px);
+}
+.mais-lista li { border-top: 3px solid var(--farda); padding-top: 18px; }
+.mais-lista p { margin-top: 10px; color: var(--texto-suave); }
+.mais-lista strong { color: var(--farda); font-weight: 600; }
+.mais-lista .terminal { margin-top: 16px; font-size: 0.8rem; }
+
+@media (max-width: 860px) {
+  .mais-lista { grid-template-columns: minmax(0, 1fr); }
+}
+
+/* ---------- DNS: a band of its own, so the light sections do not run together ---------- */
+
+.dns {
+  background: #e2e8f1;
+  padding: clamp(56px, 8vw, 104px) max(var(--gutter), calc((100% - var(--largura)) / 2 + var(--gutter)));
+  display: grid;
+  grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+  gap: clamp(32px, 5vw, 64px);
+  align-items: center;
+}
+.dns .secao-lead strong { color: var(--farda); }
+.dns .captura { box-shadow: 0 24px 48px -24px rgb(1 29 65 / 0.45), 0 0 0 1px var(--linha); }
+
+@media (max-width: 900px) {
+  .dns { grid-template-columns: minmax(0, 1fr); }
+}
+
 /* ---------- Services ---------- */
 
 .servicos {
