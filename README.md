@@ -65,7 +65,7 @@ O site fica em `site/`. Para ver local: `python -m http.server 8765 --directory 
 
 - Commits no padrão [Conventional Commits](https://www.conventionalcommits.org/), em inglês.
 - Versões de pacotes em `Directory.Packages.props`; `Directory.Build.props` trata avisos como erros.
-- Toda mudança relevante entra em `[Unreleased]` no [CHANGELOG](CHANGELOG.md). Antes de rodar o workflow **Release** (Actions), troque `[Unreleased]` pelo número da versão.
+- Toda mudança relevante entra em `[Unreleased]` no [CHANGELOG](CHANGELOG.md). Para lançar, mova o que estiver em `[Unreleased]` para uma seção `[x.y.z] - data` com o número que o workflow **Release** (Actions) vai gerar, e rode o workflow: as notas da release saem dessa seção.
 
 ## Licença
 

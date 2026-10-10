@@ -6,7 +6,9 @@ O formato segue o [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/), e
 
 ## [Unreleased]
 
-Ainda não há versão publicada. Tudo abaixo entra na primeira.
+## [0.4.0] - 2026-10-10
+
+Primeira versão publicada.
 
 ### Adicionado
 
@@ -33,4 +35,5 @@ Ainda não há versão publicada. Tudo abaixo entra na primeira.
 - Instalador para Windows 10 e 11, 64 bits.
 - Site em <https://lucassm02.github.io/severino/>, com imagens para redes sociais.
 
-[Unreleased]: https://github.com/lucassm02/severino/commits/main
+[Unreleased]: https://github.com/lucassm02/severino/compare/v0.4.0...HEAD
+[0.4.0]: https://github.com/lucassm02/severino/releases/tag/v0.4.0
