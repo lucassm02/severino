@@ -1,6 +1,6 @@
 # Spec: Fase 4, Serviços (Kubernetes, Docker e WSL)
 
-**Status:** rascunho, aguardando as "Decisões a confirmar" e as respostas das "Perguntas em aberto"
+**Status:** rascunho, com as validações iniciais feitas no cluster de referência; aguardando as "Decisões a confirmar" e as três perguntas que restam
 **Base:** pedido de 2026-10-09: "o meu serviço local chama direto o Kubernetes, pelo IP do entry point do gateway, na porta do serviço, mas com o nome correto", estendido para Docker e WSL. É uma fase nova, que diverge do [planejamento](../planejamento.md): ele deixava containers e WSL fora do escopo. A divergência e a mudança do roadmap estão registradas lá. Segue o formato dos specs anteriores.
 **Pré-requisito:** a Fase 3 concluída.
 
@@ -8,8 +8,9 @@
 
 Um app rodando na máquina, no Windows ou numa distro do WSL, chama um serviço pelo mesmo nome e porta que usaria dentro do cluster ou da rede do Compose, e chega ao destino certo, sem mudar a configuração do app:
 
-- `http://pedidos:8080` ou `http://pedidos.staging.svc.cluster.local:8080` chegam ao gateway do cluster, na porta do serviço, com o nome original na requisição;
-- `db:5432`, o nome do serviço no Compose, chega à porta publicada do container.
+- `http://algarbffapi` ou `http://algarbffapi.staging.svc.cluster.local` chegam ao service do cluster, pelo IP do gateway na NodePort dele (`192.168.203.100:32359`), com o nome original na requisição;
+- `postgres.database:5432` chega à NodePort do Postgres (`192.168.203.100:30711`);
+- `orchestrator:4000`, o nome do serviço no Compose, chega à porta publicada do container (`24600`).
 
 Os serviços e containers são descobertos pelo próprio Severino, rodando `kubectl` e `docker` no Windows ou dentro das distros do WSL. Quando a descoberta automática não servir, dá para colar a saída dos comandos.
 
@@ -23,17 +24,17 @@ Levantado na máquina de desenvolvimento, em 2026-10-09:
   - o contexto atual do `kubectl` é `kubernetes-admin@kubernetes`, com namespace `staging`.
 - **Rede do WSL:** modo NAT, o padrão, com `localhostForwarding=true`. Dentro da distro, `127.0.0.1` é o loopback do WSL, não o do Windows.
 - **PATH:** o `docker` só aparece com um shell de login (`bash -lc`). Um `--exec` direto não carrega o PATH completo.
-- **Servidor de dev:** o da rota `callfred.sev` é o container `callfred-orchestrator` (serviço `orchestrator` do Compose `callfred`), no Docker da distro, publicado em 24600 e repassado ao Windows pelo `wslrelay`. Então quem chama os serviços do cluster pode estar no WSL ou num container, e não só no Windows.
+- **Servidor de dev:** o da rota `callfred.sev` é o container `callfred-orchestrator` (serviço `orchestrator` do Compose `callfred`), no Docker da distro, publicado em 24600 e repassado ao Windows pelo `wslrelay`. Quem chama os serviços do cluster pode estar no Windows ou no WSL; containers ficam de fora, decidido em 2026-10-10.
 
 ## Critérios de pronto
 
 1. **Descoberta no WSL.** Com a distro rodando, "Importar serviços" lista os services do contexto atual do `kubectl` da distro e os containers do Docker da distro, sem nenhum comando digitado.
 2. **Descoberta no Windows.** Com `kubectl` ou `docker` no Windows, eles aparecem como outra fonte. O Docker Desktop, que é o mesmo engine visto do Windows e das distros, aparece uma vez só.
 3. **Colar.** Colar a saída de `kubectl get svc -A -o json` ou de `docker ps --format json` produz a mesma lista da descoberta automática.
-4. **Kubernetes pelo gateway.** No Windows, depois de importar `pedidos` (namespace `staging`, porta 8080) com o gateway informado:
-   - `curl http://pedidos:8080/health` e `curl http://pedidos.staging.svc.cluster.local:8080/health` respondem como dentro do cluster;
-   - o gateway recebe o nome usado na chamada, sem troca.
-5. **Docker pelo nome do Compose.** Com o serviço `db` do Compose publicando 5432 na porta 15432, `psql -h db -p 5432` no Windows conecta.
+4. **Kubernetes pela NodePort.** No Windows, com a VPN, depois de importar `algaractivationmicroservice` e `postgres` do cluster de referência:
+   - `curl http://algaractivationmicroservice/` e `curl http://algaractivationmicroservice.staging.svc.cluster.local/` recebem a mesma resposta que a NodePort `192.168.203.100:32366`;
+   - `psql -h postgres.database -p 5432` conecta.
+5. **Docker pelo nome do Compose.** `curl http://orchestrator:4000/` no Windows recebe a resposta do `callfred-orchestrator`, publicado em 24600.
 6. **Chamadores no WSL.** Os mesmos comandos dos critérios 4 e 5, rodados dentro da distro, funcionam.
 7. **Atualizar.** Depois de recriar um container com outra porta publicada, "Atualizar" corrige a rota sem recadastrar nada.
 8. **Remover.** Remover as rotas de serviço tira os nomes do hosts do Windows e do bloco na distro, e libera as portas.
@@ -69,7 +70,24 @@ Levantado na máquina de desenvolvimento, em 2026-10-09:
 - **`/etc/hosts` da distro:** é gerado pelo WSL (`generateHosts` ligado, o padrão), então um bloco gravado ali some quando a distro reinicia. O Severino precisa notar o reinício e regravar: ele confere o bloco quando a distro aparece rodando de novo.
 - **Root na distro:** `wsl -u root` funciona sem senha, então o bloco do `/etc/hosts` dispensa qualquer pedido no Windows.
 - **Rede da distro:** modo NAT; o Windows, visto de dentro da distro, é `172.24.16.1`.
-- **Pendentes, por falta de acesso ao cluster:** o alcance do gateway a partir do WSL e o repasse TCP com o `Host` original. Ficam para quando a VPN estiver conectada.
+- **Cluster, com a VPN (2026-10-10):**
+  - a descoberta respondeu em 0,5 s;
+  - um contexto só, kubeadm, com quatro nós: o master em `192.168.203.100` e os workers em `.197` a `.199`;
+  - 119 services, sendo 110 **NodePort** e 9 ClusterIP;
+  - quase todos (103) são HTTP na porta 80. Os outros são TCP puro: Postgres 5432, Redis 6379 (dois) e Memcached 11211;
+  - o controlador `ingress-nginx` escuta em `192.168.203.100`, portas 80 e 443, por `externalIPs`;
+  - 83 Ingress, todos nginx e sem TLS, quase todos no mesmo host, `staging.pagtel.com.br`, separados por caminho. O nome de cada service não aparece no Ingress. Pela internet, esse host é um CNAME para o F5 Distributed Cloud (`ves.io`).
+- **Alcance:** do Windows e do WSL, pela VPN:
+  - a NodePort de um service com pods prontos responde em menos de 0,6 s, com HTTP;
+  - a NodePort do Postgres responde, com TCP puro;
+  - um service sem pods (`algarbffapi`) não conecta pela NodePort e dá `503` pelo Ingress. Só 75 dos 105 services do `staging` tinham pods prontos.
+- **Modo NodePort:** é o "IP do gateway na porta do serviço" do pedido. Qualquer nó atende qualquer NodePort, então o repasse TCP não depende do `Host`. Isso dispensou a validação de roteamento por `Host` que estava pendente.
+- **Tradução no WSL:** validada na distro, com as regras criadas e apagadas no mesmo teste.
+  - O `iptables` é o 1.8.7, com backend `nf_tables`.
+  - Com `route_localnet=1`, uma cadeia `nat` ligada a `OUTPUT` com `DNAT` e um `MASQUERADE` em `POSTROUTING` para origem `127/8` fora do `lo`:
+    - `127.77.0.2:80` chegou à NodePort do cluster (resposta do app em 30 ms);
+    - `127.77.0.3:4000` chegou à porta publicada 24600 do container (`200` em 5 ms).
+  - Sem o `MASQUERADE`, o pacote sairia com origem `127.0.0.1`, que nenhum destino aceita.
 
 ## Escopo
 
@@ -106,17 +124,25 @@ A rota web atual não muda.
 
 **Kubernetes:**
 
-- **Comandos:** `kubectl config get-contexts -o name` lista os contextos, e `kubectl get svc -A -o json --context <ctx>` lista os services.
-- **Ingress (opcional):** `kubectl get ingress -A -o json` acrescenta os hosts dos Ingress. Eles viram rotas web apontando para o gateway, porque já são nomes HTTP de verdade.
-- **Destino, por contexto, escolhido na importação:**
-  - **Gateway**, o seu caso: o IP ou nome do entry point, informado uma vez por contexto. O destino é `gateway:porta-do-serviço`.
+- **Comandos:**
+  - `kubectl config get-contexts -o name` lista os contextos;
+  - `kubectl get svc -A -o json --context <ctx>` lista os services;
+  - `kubectl get endpointslices -A -o json` diz quais têm pods prontos;
+  - `kubectl get nodes -o json` dá os IPs dos nós.
+  
+  Cada comando tem 10 s para responder, ou o processo é encerrado (ver "Resultados").
+- **Destino, por service, conforme o tipo:**
+  - **NodePort**, o caso do cluster de referência: o IP de um nó e o `nodePort` da porta. O nó padrão é o que hospeda a API do contexto, e dá para escolher outro uma vez por contexto, porque qualquer nó responde por qualquer NodePort.
+    - `algarbffapi:80` vira `192.168.203.100:32359`;
+    - `postgres.database:5432` vira `192.168.203.100:30711`.
   - **LoadBalancer:** o IP em `status.loadBalancer.ingress`, na porta do serviço.
-  - **NodePort:** o IP de um nó e o `nodePort`.
-  - Services só `ClusterIP` aparecem como "sem acesso de fora", com a dica do modo Gateway.
+  - **Só ClusterIP:** aparece como "sem acesso de fora", com a dica do `port-forward` da Fase 5.
+- **Pods prontos:** a lista mostra quais services não têm nenhum pod pronto agora. No cluster de referência, eram 30 dos 105 do `staging`. Importar continua permitido, mas a rota nasce avisando.
+- **Nome público pelo gateway interno (Ingress, opcional):** os hosts dos Ingress, como `staging.pagtel.com.br`, podem virar **rotas web** comuns apontando para o IP do controlador de Ingress (`192.168.203.100`, por `externalIPs`). Assim o nome público, que pela internet passa pelo F5 Distributed Cloud, vai direto ao gateway pela VPN. É o mesmo tipo de rota que o Severino já tem; o aviso de "domínio existe na internet" continua valendo.
 
 **Docker:**
 
-- **Comandos:** `docker ps --format json` e `docker inspect` dos containers rodando, para as portas e os rótulos do Compose (`com.docker.compose.service`, `com.docker.compose.project`).
+- **Comando:** `docker ps --format json`, que já traz as portas publicadas e os rótulos do Compose (`com.docker.compose.service`, `com.docker.compose.project`). O DNS interno do Docker não entra: só as portas publicadas no host contam, como decidido em 2026-10-10.
 - **Só portas publicadas.** O destino é a porta publicada:
   - com o Docker no Windows ou no Docker Desktop, `127.0.0.1:<porta publicada>`;
   - com o Docker numa distro, a mesma porta, que chega ao Windows pelo `localhostForwarding`.
@@ -128,7 +154,8 @@ A rota web atual não muda.
 **Tela "Importar serviços":**
 
 - escolhe a fonte;
-- lista os services e containers com caixas de seleção, mostrando os nomes que serão criados, as portas e o destino;
+- lista os services e containers com caixas de seleção, mostrando os nomes que serão criados, as portas, o destino e se há pods prontos;
+- com uma busca e um filtro por namespace, porque um cluster como o de referência tem mais de cem services;
 - avisa conflitos com rotas existentes;
 - cria as rotas agrupadas pela origem.
 
@@ -136,19 +163,28 @@ A rota web atual não muda.
 
 ### Chamadores no WSL
 
-Um app dentro da distro não enxerga o loopback do Windows no modo NAT, então o hosts do Windows não serve para ele. Para as distros escolhidas, o Severino mantém um bloco gerenciado no `/etc/hosts` da distro, escrito como root pelo `wsl -u root`, sem pedir administrador no Windows. Cada nome aponta para o endereço que funciona de dentro da distro:
+Um app dentro da distro não enxerga o loopback do Windows no modo NAT, então o hosts do Windows não serve para ele. E apontar o nome direto para o destino também não basta, porque a porta muda: o app chama `algarbffapi:80`, e o destino é `192.168.203.100:32359`.
 
-- **Kubernetes pelo gateway:** o IP do gateway, que a distro alcança direto. A porta do serviço é a mesma do gateway, então não é preciso proxy.
-- **Docker da própria distro:** o IP do container na rede do Docker, na porta do container. Também dispensa proxy.
-- **Docker do Windows ou Desktop, e LoadBalancer ou NodePort com porta diferente:** sem caminho direto. Ficam de fora desta fase, avisados na tela, ou dependem do modo de rede espelhado (ver "Decisões a confirmar").
+A distro faz a mesma tradução que o Severino faz no Windows, com o próprio kernel. Para as distros escolhidas, o Severino escreve como root, pelo `wsl -u root`, sem pedir administrador no Windows:
 
-O bloco usa os mesmos marcadores do hosts do Windows e é regravado quando a distro reinicia, se a validação mostrar que o WSL o apaga.
+1. **Um bloco no `/etc/hosts`** da distro, com os mesmos nomes apontando para o mesmo endereço `127.77.x.y` da rota.
+2. **Regras de `iptables`** numa cadeia própria (`SEVERINO`, na tabela `nat`, ligada a `OUTPUT`), uma por porta: `127.77.x.y:80` → `192.168.203.100:32359`. Para isso, o Severino:
+   - liga o `net.ipv4.conf.all.route_localnet`, que deixa o kernel mandar para fora um pacote destinado a `127/8`;
+   - acrescenta um `MASQUERADE` em `POSTROUTING` para origem `127/8` saindo por outra interface que não o `lo`, senão o destino recebe um pacote com origem `127.0.0.1` e o descarta.
+
+Assim nada roda dentro da distro, não há processo para cair, e vale para qualquer protocolo:
+
+- **Kubernetes:** qualquer destino que a distro alcance, o que inclui o cluster de referência pela VPN.
+- **Docker da própria distro:** `127.0.0.1:<porta publicada>`.
+- **Docker do Windows ou Desktop:** fica de fora, avisado na tela, porque a porta publicada fica no loopback do Windows, que a distro não vê no modo NAT.
+
+O WSL regenera o `/etc/hosts` e as regras somem quando a distro reinicia. O Severino confere o bloco e a cadeia sempre que vê a distro rodando de novo, e regrava o que faltar. Remover as rotas, "Limpar tudo" e o `--cleanup` apagam o bloco e a cadeia.
 
 ## Fora do escopo
 
 - **Fase 5:** `kubectl port-forward` gerenciado pelo Severino, para services só `ClusterIP` e sem gateway.
 - **Fase 5:** acompanhar mudanças sozinho (watch do `kubectl`, eventos do Docker). Nesta fase, atualizar é um clique.
-- **Fase 5:** containers chamando o host pelos nomes do Severino.
+- **Sem planos (decidido em 2026-10-10):** containers chamando os serviços pelos nomes do Severino, pelo DNS interno do Docker ou por `extra_hosts`. Só as portas publicadas no host contam.
 - **Sem planos:** Podman, Rancher Desktop com `nerdctl` e clusters que exijam VPN aberta pelo próprio Severino.
 
 ## Testes
@@ -189,21 +225,26 @@ Nenhum. O `kubectl` e o `docker` rodam como processos, e as saídas são lidas c
 
 ## Decisões a confirmar
 
-1. **Encaminhamento TCP puro, com um endereço de loopback por rota de serviço.** *Padrão: sim.* A alternativa, só HTTP pelo YARP, roteando por nome, não serviria a bancos e filas, e exigiria reescrever o `Host`.
+1. **Encaminhamento TCP puro, com um endereço de loopback por rota de serviço.** *Padrão: sim.* No cluster de referência há Postgres, Redis e Memcached além do HTTP, e o modo NodePort não depende do `Host`. Rotear só HTTP pelo YARP não serviria.
 2. **O Helper aceita qualquer endereço em `127.0.0.0/8`.** *Padrão: sim.* Continua só loopback; muda o protocolo do pipe para a versão 2.
-3. **Nomes de uma parte só em rotas de serviço.** *Padrão: sim.* No Windows, um nome como `db` no hosts também vence nomes de máquinas da rede local; o formulário avisa quando o nome responde na rede.
-4. **Kubernetes: Gateway, LoadBalancer e NodePort nesta fase; `port-forward` na próxima.** *Padrão: sim.*
-5. **Docker: só portas publicadas.** *Padrão: sim.* Containers sem porta publicada não são alcançáveis do Windows sem mais infraestrutura.
+3. **Nomes de uma parte só em rotas de serviço.** *Padrão: sim.* No Windows, um nome como `redis` no hosts também vence nomes de máquinas da rede local; o formulário avisa quando o nome responde na rede.
+4. **Kubernetes: NodePort e LoadBalancer nesta fase; `port-forward` na próxima.** *Padrão: sim.* O nó padrão é o da API do contexto (`192.168.203.100`).
+5. **Hosts dos Ingress podem virar rotas web para o gateway interno.** *Padrão: sim, opcional na importação.* Leva `staging.pagtel.com.br` direto ao `ingress-nginx` pela VPN, sem passar pelo F5.
 6. **Distros paradas não são iniciadas sem pedir.** *Padrão: sim.*
-7. **Chamadores no WSL pelo `/etc/hosts` da distro, apontando direto para o destino.** *Padrão: sim.* A alternativa é exigir o modo de rede espelhado do WSL (`networkingMode=mirrored`), que compartilha o loopback com o Windows. É mais simples para o Severino, mas muda a rede da distro inteira e exige Windows 11 22H2 ou mais novo.
+7. **Chamadores no WSL por `/etc/hosts` mais regras de `iptables` na distro.** *Padrão: sim.* Validado no cluster de referência e com o Docker da distro. A alternativa é exigir o modo de rede espelhado do WSL (`networkingMode=mirrored`), que compartilha o loopback com o Windows, mas muda a rede da distro inteira e exige Windows 11 22H2 ou mais novo. O custo do padrão: o Severino liga o `route_localnet` da distro, que deixa pacotes destinados a `127/8` saírem dela. Ele só faz isso enquanto houver rotas de serviço para aquela distro.
 8. **Atualizar é manual.** *Padrão: sim.* Acompanhar sozinho fica para a Fase 5.
 
 ## Perguntas em aberto
 
-Estas não têm padrão, porque dependem do seu ambiente:
+Respondidas pelo cluster de referência e pela conversa de 2026-10-10:
 
-1. **Que gateway é?** Ingress NGINX, Istio, Envoy Gateway, Traefik, ou outro? Ele roteia pelo `Host`, pela porta, ou pelos dois? O IP do entry point é fixo?
-2. **Que protocolos os serviços usam?** Só HTTP e gRPC, ou também TCP puro (banco, fila, cache)?
-3. **Como o código chama os serviços?** Pelo nome curto (`pedidos`), com namespace (`pedidos.staging`) ou pelo nome completo (`.svc.cluster.local`)?
-4. **Um cluster só, ou vários contextos?** Hoje a distro tem um contexto, `kubernetes-admin@kubernetes`.
-5. **Onde roda o app que chama os serviços:** no Windows, no WSL, ou num container? O servidor da `callfred.sev` é o container `callfred-orchestrator`. Se é ele quem chama o cluster, nem o hosts do Windows nem o da distro valem: containers resolvem nomes pelo DNS do Docker e pelo próprio `/etc/hosts`. O caminho seria o Severino gerar entradas `extra_hosts` para o Compose, hoje na Fase 5, que subiria para esta fase.
+- **O gateway:** `ingress-nginx` em `192.168.203.100`, roteando por caminho num host só. O "IP do gateway na porta do serviço" é a NodePort, no IP do master.
+- **Os protocolos:** HTTP na grande maioria, mais Postgres, Redis e Memcached em TCP puro.
+- **Os contextos:** um só, `kubernetes-admin@kubernetes`.
+- **Containers como chamadores:** fora. Só as portas publicadas no host contam.
+
+Ainda em aberto:
+
+1. **Como o código chama os serviços?** Pelo nome curto (`algarbffapi`), com namespace (`algarbffapi.staging`) ou pelo nome completo (`algarbffapi.staging.svc.cluster.local`)? O padrão é gerar os três, mais `.svc`. Se o código usa um só, a importação pode gerar só esse e deixar o hosts mais enxuto.
+2. **Onde roda o app que chama os serviços:** no Windows, no WSL, ou nos dois? Isso decide se a parte do WSL é obrigatória já nesta fase ou se pode vir depois.
+3. **Importar tudo ou escolher?** Com 119 services, importar todos encheria o hosts de nomes que você não usa. O padrão é você marcar quais quer, com busca e filtro por namespace. Prefere um "importar o namespace inteiro"?
