@@ -4,6 +4,7 @@ using System.Windows.Threading;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 using Serilog;
 using Serilog.Events;
 using Severino.App.Services;
@@ -29,6 +30,12 @@ public partial class App : Application
     {
         base.OnStartup(e);
         DispatcherUnhandledException += OnDispatcherUnhandledException;
+
+        if (e.Args.Contains(CleanupArgument))
+        {
+            Shutdown(RunCleanup());
+            return;
+        }
 
         _singleInstance = SingleInstance.TryAcquire();
         if (_singleInstance is null)
@@ -58,6 +65,12 @@ public partial class App : Application
             return;
         }
 
+        // "Iniciar com o Windows" lives in the Run key; the config only mirrors it.
+        var autoStart = _host.Services.GetRequiredService<AutoStart>();
+        autoStart.Repair();
+        if (config.Current.Settings.StartWithWindows != autoStart.IsEnabled)
+            config.Update(c => c with { Settings = c.Settings with { StartWithWindows = autoStart.IsEnabled } });
+
         var themes = _host.Services.GetRequiredService<ThemeService>();
         themes.Apply(config.Current.Settings.Theme);
         var window = _host.Services.GetRequiredService<MainWindow>();
@@ -73,7 +86,8 @@ public partial class App : Application
         var shell = _host.Services.GetRequiredService<ShellService>();
         _singleInstance.ActivationRequested += () => Dispatcher.BeginInvoke(shell.ShowMainWindow);
 
-        if (!config.Current.Settings.StartMinimized)
+        // Started by Windows at logon: straight to the tray, whatever "Iniciar minimizado" says.
+        if (!config.Current.Settings.StartMinimized && !e.Args.Contains(AutoStart.Argument))
             shell.ShowMainWindow();
 
         _ = StartProxyAsync(_host.Services.GetRequiredService<ProxyCoordinator>());
@@ -87,11 +101,29 @@ public partial class App : Application
         if (coordinator is { IsStopped: false })
             Task.Run(coordinator.StopAsync).Wait(TimeSpan.FromSeconds(5));
 
+        var deleteData = _host?.Services.GetService<ShellService>()?.DeleteDataOnExit == true;
         _host?.Services.GetService<TrayService>()?.Dispose();
         _host?.StopAsync(TimeSpan.FromSeconds(5)).GetAwaiter().GetResult();
         _host?.Dispose();
+        // After the host, so the log file is closed.
+        if (deleteData)
+            SystemCleanup.DeleteData(ConfigStore.DefaultDirectory);
         _singleInstance?.Dispose();
         base.OnExit(e);
+    }
+
+    private const string CleanupArgument = "--cleanup";
+
+    /// <summary>
+    /// <c>Severino.exe --cleanup</c>, run by the uninstaller: no window, no proxy, no tray. Removes
+    /// the CA and the autostart entry of the user running it. Exit code 0 when both are gone.
+    /// </summary>
+    private static int RunCleanup()
+    {
+        var ca = new LocalCa(new CaStore(CaStore.DefaultDirectory), new WindowsTrustStore(), TimeProvider.System,
+            NullLogger<LocalCa>.Instance);
+        ca.Load();
+        return new SystemCleanup(ca, new AutoStart()).Run().CaRemoved ? 0 : 1;
     }
 
     private async Task StartProxyAsync(ProxyCoordinator coordinator)
@@ -142,6 +174,10 @@ public partial class App : Application
 
         services.AddSingleton<ThemeService>();
         services.AddSingleton<ShellService>();
+        // For view models the window depends on, which cannot take ShellService directly.
+        services.AddSingleton(sp => new Lazy<ShellService>(sp.GetRequiredService<ShellService>));
+        services.AddSingleton(_ => new AutoStart());
+        services.AddSingleton<SystemCleanup>();
         services.AddSingleton<TrayService>();
         services.AddSingleton<DialogService>();
         services.AddSingleton<HttpsService>();

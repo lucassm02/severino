@@ -6,6 +6,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Severino.App.Services;
 using Severino.Core.Configuration;
+using Severino.Core.Routes;
 using Severino.Proxy.Certificates;
 
 namespace Severino.App.ViewModels;
@@ -21,15 +22,25 @@ public sealed partial class SettingsViewModel : ObservableObject
     private readonly ConfigService _config;
     private readonly ThemeService _themes;
     private readonly HttpsService _https;
+    private readonly RouteService _routes;
+    private readonly AutoStart _autoStart;
+    private readonly SystemCleanup _cleanup;
+    private readonly Lazy<ShellService> _shell;
 
-    public SettingsViewModel(ConfigService config, ThemeService themes, HttpsService https)
+    public SettingsViewModel(ConfigService config, ThemeService themes, HttpsService https, RouteService routes,
+        AutoStart autoStart, SystemCleanup cleanup, Lazy<ShellService> shell)
     {
         _config = config;
         _themes = themes;
         _https = https;
+        _routes = routes;
+        _autoStart = autoStart;
+        _cleanup = cleanup;
+        _shell = shell;
 
         var settings = config.Current.Settings;
         Theme = settings.Theme;
+        StartWithWindows = autoStart.IsEnabled;
         StartMinimized = settings.StartMinimized;
         HttpPort = settings.HttpPort.ToString();
         HttpsPort = settings.HttpsPort.ToString();
@@ -66,6 +77,21 @@ public sealed partial class SettingsViewModel : ObservableObject
 
     partial void OnStartMinimizedChanged(bool value) =>
         _config.Update(c => c with { Settings = c.Settings with { StartMinimized = value } });
+
+    /// <summary>The Run key is the truth; the config mirrors it for exports and support.</summary>
+    [ObservableProperty]
+    public partial bool StartWithWindows { get; set; }
+
+    partial void OnStartWithWindowsChanged(bool value)
+    {
+        if (value == _autoStart.IsEnabled)
+            return; // the constructor reading the current state
+        if (value)
+            _autoStart.Enable();
+        else
+            _autoStart.Disable();
+        _config.Update(c => c with { Settings = c.Settings with { StartWithWindows = value } });
+    }
 
     [ObservableProperty]
     public partial string HttpPort { get; set; }
@@ -262,6 +288,93 @@ public sealed partial class SettingsViewModel : ObservableObject
     }
 
     private static void Dispatch(Action action) => Application.Current?.Dispatcher.BeginInvoke(action);
+
+    [RelayCommand]
+    private async Task ExportRoutesAsync()
+    {
+        var path = DialogService.PickSavePath("severino-rotas.json", "Rotas do Severino (*.json)|*.json");
+        if (path is null)
+            return;
+        try
+        {
+            File.WriteAllText(path, _routes.Export());
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+        {
+            await DialogService.ShowInfoAsync("Exportar rotas", $"Não deu para gravar o arquivo: {ex.Message}");
+        }
+    }
+
+    [RelayCommand]
+    private async Task ImportRoutesAsync()
+    {
+        var path = DialogService.PickOpenPath("Rotas do Severino (*.json)|*.json|Todos os arquivos (*.*)|*.*");
+        if (path is null)
+            return;
+
+        ImportResult result;
+        try
+        {
+            result = _routes.Import(File.ReadAllText(path));
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or InvalidRouteFileException)
+        {
+            await DialogService.ShowInfoAsync("Importar rotas", $"Não deu para importar: {ex.Message}");
+            return;
+        }
+
+        await DialogService.ShowInfoAsync("Importar rotas", DescribeImport(result));
+        await OfferReissueAsync(result.Added);
+    }
+
+    /// <summary>The summary after an import: what came in, what was already here, what was refused.</summary>
+    public static string DescribeImport(ImportResult result)
+    {
+        var lines = new List<string>
+        {
+            result.Added.Count switch
+            {
+                0 => "Nenhuma rota nova.",
+                1 => "1 rota importada.",
+                var n => $"{n} rotas importadas.",
+            },
+        };
+        if (result.Skipped.Count > 0)
+            lines.Add($"Já existiam, e ficaram como estavam: {string.Join(", ", result.Skipped)}.");
+        if (result.Invalid.Count > 0)
+            lines.Add("Não importadas:\n" + string.Join("\n", result.Invalid.Select(i => $"• {i.Domain}: {i.Reason}")));
+        return string.Join("\n\n", lines);
+    }
+
+    // Like saving a route in the form: imported HTTPS routes outside the CA need a new one.
+    private async Task OfferReissueAsync(IReadOnlyList<RouteEntry> added)
+    {
+        var uncovered = added.Where(r => r.Https && _https.IsActive && !_https.Covers(r.Domain)).Select(r => r.Domain).ToList();
+        if (uncovered.Count == 0)
+            return;
+        var lead = $"A CA atual não cobre {string.Join(", ", uncovered)}. Para essas rotas terem HTTPS, o Severino cria uma CA nova para todas as rotas com HTTPS.";
+        await RunAsync(async () => HttpsMessage = Describe(
+            await _https.ReissueAsync(prompt => DialogService.ConfirmTrustAsync("Reemitir a CA", prompt, lead)),
+            done: "CA reemitida para incluir as rotas importadas."));
+    }
+
+    [RelayCommand]
+    private async Task CleanAllAsync()
+    {
+        var (confirmed, deleteData) = await DialogService.ConfirmCleanupAsync();
+        if (!confirmed)
+            return;
+
+        var result = _cleanup.Run();
+        if (!result.CaRemoved)
+            await DialogService.ShowInfoAsync("Limpar tudo",
+                "A CA ficou na lista de confiáveis do Windows porque o pedido foi recusado. As chaves dela foram apagadas, então ela não assina mais nada.");
+
+        var shell = _shell.Value;
+        shell.DeleteDataOnExit = deleteData;
+        // Exiting clears the hosts block, like any exit.
+        await shell.ExitAsync();
+    }
 
     [RelayCommand]
     private void OpenConfigFolder()

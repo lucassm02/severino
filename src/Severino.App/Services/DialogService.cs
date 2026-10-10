@@ -55,6 +55,45 @@ public sealed class DialogService(RouteService routes, DomainInspector inspector
         return ShowAsync(title, content, "Continuar");
     }
 
+    /// <summary>An information box in the app's own style.</summary>
+    public static async Task ShowInfoAsync(string title, string message)
+    {
+        var box = new FluentMessageBox
+        {
+            Title = title,
+            Content = Paragraph(message),
+            CloseButtonText = "OK",
+            Owner = Application.Current.MainWindow,
+            WindowStartupLocation = WindowStartupLocation.CenterOwner,
+        };
+        await box.ShowDialogAsync();
+    }
+
+    /// <summary>"Limpar tudo": confirmed, and whether to delete the routes and settings too.</summary>
+    public static async Task<(bool Confirmed, bool DeleteData)> ConfirmCleanupAsync()
+    {
+        var deleteData = new CheckBox { Content = "Apagar também as rotas e configurações", Margin = new Thickness(0, 0, 0, 4) };
+        var content = new StackPanel { MaxWidth = 460 };
+        content.Children.Add(Paragraph(
+            "O Severino tira do Windows tudo o que colocou: o bloco do arquivo hosts, a CA local e a inicialização automática. " +
+            "Depois, o app fecha. O Windows pede confirmação para remover a CA."));
+        content.Children.Add(Paragraph("Sem a caixa abaixo, suas rotas ficam guardadas para quando você abrir o Severino de novo."));
+        content.Children.Add(deleteData);
+        var confirmed = await ShowAsync("Limpar tudo", content, "Limpar e fechar");
+        return (confirmed, deleteData.IsChecked == true);
+    }
+
+    /// <summary>Asks for a file to open; null when cancelled.</summary>
+    public static string? PickOpenPath(string filter)
+    {
+        var dialog = new OpenFileDialog
+        {
+            Filter = filter,
+            InitialDirectory = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile),
+        };
+        return dialog.ShowDialog(Application.Current.MainWindow) == true ? dialog.FileName : null;
+    }
+
     /// <summary>Asks where to save a file; null when cancelled.</summary>
     public static string? PickSavePath(string fileName, string filter)
     {

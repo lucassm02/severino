@@ -29,6 +29,9 @@ public sealed class ShellService
         };
     }
 
+    /// <summary>Set by "Limpar tudo" with "apagar também": the app folder goes once everything is closed.</summary>
+    public bool DeleteDataOnExit { get; set; }
+
     public void ShowMainWindow()
     {
         if (_exiting)

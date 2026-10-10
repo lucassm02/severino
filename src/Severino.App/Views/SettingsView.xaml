@@ -162,14 +162,23 @@
             </ui:CardControl>
 
             <ui:TextBlock Margin="0,16,0,8" FontTypography="BodyStrong" Text="Inicialização" />
+            <ui:CardControl Margin="0,0,0,4" Icon="{ui:SymbolIcon Power24}">
+                <ui:CardControl.Header>
+                    <StackPanel>
+                        <ui:TextBlock Text="Iniciar com o Windows" />
+                        <ui:TextBlock Foreground="{DynamicResource TextFillColorSecondaryBrush}" FontTypography="Caption" Text="Abre na bandeja quando você entra no Windows" />
+                    </StackPanel>
+                </ui:CardControl.Header>
+                <ui:ToggleSwitch IsChecked="{Binding StartWithWindows}" AutomationProperties.Name="Iniciar com o Windows" />
+            </ui:CardControl>
             <ui:CardControl Margin="0,0,0,4" Icon="{ui:SymbolIcon ArrowMinimize24}">
                 <ui:CardControl.Header>
                     <StackPanel>
                         <ui:TextBlock Text="Iniciar minimizado" />
-                        <ui:TextBlock Foreground="{DynamicResource TextFillColorSecondaryBrush}" FontTypography="Caption" Text="Abre direto na bandeja, sem mostrar a janela" />
+                        <ui:TextBlock Foreground="{DynamicResource TextFillColorSecondaryBrush}" FontTypography="Caption" Text="Ao abrir pelo atalho, vai direto para a bandeja, sem mostrar a janela" />
                     </StackPanel>
                 </ui:CardControl.Header>
-                <ui:ToggleSwitch IsChecked="{Binding StartMinimized}" />
+                <ui:ToggleSwitch IsChecked="{Binding StartMinimized}" AutomationProperties.Name="Iniciar minimizado" />
             </ui:CardControl>
 
             <ui:TextBlock Margin="0,16,0,8" FontTypography="BodyStrong" Text="Manutenção" />
@@ -181,6 +190,27 @@
                     </StackPanel>
                 </ui:CardControl.Header>
                 <ui:Button Content="Abrir pasta" Command="{Binding OpenConfigFolderCommand}" />
+            </ui:CardControl>
+            <ui:CardControl Margin="0,0,0,4" Icon="{ui:SymbolIcon ArrowSwap24}">
+                <ui:CardControl.Header>
+                    <StackPanel>
+                        <ui:TextBlock Text="Rotas" />
+                        <ui:TextBlock Foreground="{DynamicResource TextFillColorSecondaryBrush}" FontTypography="Caption" TextWrapping="Wrap" Text="Leve suas rotas para outra máquina num arquivo JSON. Importar só acrescenta: rotas que já existem ficam como estão." />
+                    </StackPanel>
+                </ui:CardControl.Header>
+                <StackPanel Orientation="Horizontal">
+                    <ui:Button Content="Exportar" Command="{Binding ExportRoutesCommand}" />
+                    <ui:Button Margin="8,0,0,0" Content="Importar" Command="{Binding ImportRoutesCommand}" />
+                </StackPanel>
+            </ui:CardControl>
+            <ui:CardControl Margin="0,0,0,4" Icon="{ui:SymbolIcon Broom24}">
+                <ui:CardControl.Header>
+                    <StackPanel>
+                        <ui:TextBlock Text="Limpar tudo" />
+                        <ui:TextBlock Foreground="{DynamicResource TextFillColorSecondaryBrush}" FontTypography="Caption" TextWrapping="Wrap" Text="Tira do Windows o bloco do hosts, a CA local e a inicialização automática, e fecha o app" />
+                    </StackPanel>
+                </ui:CardControl.Header>
+                <ui:Button Content="Limpar tudo…" Command="{Binding CleanAllCommand}" />
             </ui:CardControl>
 
             <ui:TextBlock Margin="0,16,0,8" FontTypography="BodyStrong" Text="Sobre" />

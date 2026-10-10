@@ -10,4 +10,5 @@ namespace Severino.Core.Configuration;
     ReadCommentHandling = JsonCommentHandling.Skip,
     AllowTrailingCommas = true)]
 [JsonSerializable(typeof(SeverinoConfig))]
+[JsonSerializable(typeof(Routes.RouteFile))]
 internal sealed partial class ConfigJsonContext : JsonSerializerContext;
