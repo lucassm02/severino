@@ -18,10 +18,15 @@ public static class DomainName
     /// Returns the lowercase ASCII (punycode) form of <paramref name="input"/>, or a reason in
     /// Portuguese for the user when it is not an acceptable name.
     /// </summary>
+    /// <param name="allowSingleLabel">
+    /// For service routes, whose names come from a cluster or a Compose file ("redis",
+    /// "algarbffapi"). Web routes keep at least two labels.
+    /// </param>
     public static bool TryNormalize(
         string? input,
         [NotNullWhen(true)] out string? normalized,
-        [NotNullWhen(false)] out string? error)
+        [NotNullWhen(false)] out string? error,
+        bool allowSingleLabel = false)
     {
         normalized = null;
         var name = (input ?? "").Trim(' ').TrimEnd('.');
@@ -48,7 +53,7 @@ public static class DomainName
             return Fail($"O domínio passa de {MaxLength} caracteres.", out error);
 
         var labels = ascii.Split('.');
-        if (labels.Length < 2)
+        if (labels.Length < 2 && !allowSingleLabel)
             return Fail("Use pelo menos duas partes, como callfred.sev.", out error);
 
         foreach (var label in labels)

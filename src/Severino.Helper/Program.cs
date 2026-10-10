@@ -4,7 +4,7 @@ using Severino.Helper;
 // Used by uninstall (elevated): drop the block without going through the pipe.
 if (args.Contains("--clear-hosts"))
 {
-    new HostsFile(HostsFile.SystemPath).Write([]);
+    new HostsFile(HostsFile.SystemPath).Write(Array.Empty<Severino.Contracts.HostEntry>());
     return;
 }
 

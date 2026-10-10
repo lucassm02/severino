@@ -28,12 +28,12 @@ public sealed class HelperRequestHandler(IHostsWriter hosts, ILogger<HelperReque
                 return HelperResponse.Success(HelperVersion);
 
             case HelperProtocol.SyncCommand:
-                if (!HelperProtocol.TryNormalizeDomains(request.Domains, out var domains, out var error))
+                if (!HelperProtocol.TryNormalizeEntries(request.Entries, out var entries, out var error))
                     return Fail(error);
                 try
                 {
-                    var changed = hosts.Write(domains);
-                    logger.LogInformation("Sync with {Count} domains ({Result})", domains.Count, changed ? "written" : "unchanged");
+                    var changed = hosts.Write(entries);
+                    logger.LogInformation("Sync with {Count} entries ({Result})", entries.Count, changed ? "written" : "unchanged");
                     return HelperResponse.Success(HelperVersion);
                 }
                 catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)

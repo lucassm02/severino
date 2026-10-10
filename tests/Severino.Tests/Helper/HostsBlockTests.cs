@@ -1,3 +1,4 @@
+using Severino.Contracts;
 using Severino.Helper;
 
 namespace Severino.Tests.Helper;
@@ -52,13 +53,13 @@ public sealed class HostsBlockTests
     {
         var file = "antes\r\n" + Block("old.sev") + "depois\r\n";
 
-        Assert.Equal("antes\r\ndepois\r\n", HostsBlock.Merge(file, []));
+        Assert.Equal("antes\r\ndepois\r\n", HostsBlock.Merge(file, Array.Empty<HostEntry>()));
     }
 
     [Fact]
     public void Empty_list_on_file_without_block_changes_nothing()
     {
-        Assert.Equal(Original, HostsBlock.Merge(Original, []));
+        Assert.Equal(Original, HostsBlock.Merge(Original, Array.Empty<HostEntry>()));
     }
 
     [Fact]
@@ -110,5 +111,25 @@ public sealed class HostsBlockTests
         var file = "# comentário com acentuação\r\n";
 
         Assert.StartsWith(file, HostsBlock.Merge(file, ["a.sev"]));
+    }
+
+    [Fact]
+    public void Service_entries_get_their_own_address_with_the_column_kept()
+    {
+        var merged = HostsBlock.Merge("", new HostEntry[]
+        {
+            new("a.sev", "127.0.0.1"),
+            new("a.sev", "::1"),
+            new("algarbffapi", "127.77.0.2"),
+            new("algarbffapi.staging.svc.cluster.local", "127.77.0.2"),
+        });
+
+        Assert.Equal(
+            "# >>> Severino managed block (do not edit)\r\n" +
+            "127.0.0.1  a.sev\r\n" +
+            "::1        a.sev\r\n" +
+            "127.77.0.2  algarbffapi\r\n" +
+            "127.77.0.2  algarbffapi.staging.svc.cluster.local\r\n" +
+            "# <<< Severino\r\n", merged);
     }
 }

@@ -1,4 +1,5 @@
 using System.Text;
+using Severino.Contracts;
 
 namespace Severino.Helper;
 
@@ -14,17 +15,21 @@ public static class HostsBlock
     private const string StartPrefix = "# >>> Severino";
     private const string Newline = "\r\n";
 
+    /// <summary>Web route domains, each on 127.0.0.1 and ::1, sorted.</summary>
+    public static string Merge(string current, IReadOnlyCollection<string> domains) =>
+        Merge(current, [.. HostEntry.ForDomains(domains.Order(StringComparer.Ordinal))]);
+
     /// <summary>
-    /// Returns <paramref name="current"/> with its Severino block replaced by one mapping
-    /// <paramref name="domains"/> to 127.0.0.1 and ::1. Without domains the block is removed.
+    /// Returns <paramref name="current"/> with its Severino block replaced by one with
+    /// <paramref name="entries"/>, in the given order. Without entries the block is removed.
     /// The new block takes the place of the old one, or goes at the end of the file.
     /// A block with no end marker runs to the end of the file. Idempotent.
     /// </summary>
-    /// <param name="domains">Already validated and normalized names.</param>
-    public static string Merge(string current, IReadOnlyCollection<string> domains)
+    /// <param name="entries">Already validated, normalized and sorted (see HelperProtocol.TryNormalizeEntries).</param>
+    public static string Merge(string current, IReadOnlyCollection<HostEntry> entries)
     {
         var (rest, insertAt) = RemoveBlocks(current);
-        if (domains.Count == 0)
+        if (entries.Count == 0)
             return rest;
 
         if (insertAt < 0)
@@ -34,7 +39,7 @@ public static class HostsBlock
             insertAt = rest.Length;
         }
 
-        return rest.Insert(insertAt, Render(domains));
+        return rest.Insert(insertAt, Render(entries));
     }
 
     private static (string Remainder, int InsertAt) RemoveBlocks(string text)
@@ -71,15 +76,13 @@ public static class HostsBlock
         return (rest.ToString(), insertAt);
     }
 
-    private static string Render(IEnumerable<string> domains)
+    private static string Render(IEnumerable<HostEntry> entries)
     {
         var block = new StringBuilder();
         block.Append(StartMarker).Append(Newline);
-        foreach (var domain in domains.Order(StringComparer.Ordinal))
-        {
-            block.Append("127.0.0.1  ").Append(domain).Append(Newline);
-            block.Append("::1        ").Append(domain).Append(Newline);
-        }
+        // The address column is padded as it always was, so existing blocks come out byte for byte.
+        foreach (var entry in entries)
+            block.Append(entry.Address.PadRight(Math.Max(11, entry.Address.Length + 2))).Append(entry.Name).Append(Newline);
         block.Append(EndMarker).Append(Newline);
         return block.ToString();
     }

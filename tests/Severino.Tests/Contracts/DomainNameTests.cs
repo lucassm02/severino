@@ -63,4 +63,18 @@ public sealed class DomainNameTests
         Assert.True(DomainName.IsValid(atLimit));
         Assert.False(DomainName.IsValid("x" + atLimit));
     }
+
+    [Fact]
+    public void One_label_names_only_when_asked()
+    {
+        Assert.False(DomainName.TryNormalize("Redis", out _, out var error));
+        Assert.Contains("duas partes", error);
+
+        Assert.True(DomainName.TryNormalize("Redis", out var name, out _, allowSingleLabel: true));
+        Assert.Equal("redis", name);
+        // Still not a way around the other rules.
+        Assert.False(DomainName.TryNormalize("localhost", out _, out _, allowSingleLabel: true));
+        Assert.False(DomainName.TryNormalize("8080", out _, out _, allowSingleLabel: true));
+        Assert.False(DomainName.TryNormalize("-redis", out _, out _, allowSingleLabel: true));
+    }
 }

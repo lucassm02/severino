@@ -41,7 +41,7 @@ public sealed class PipeEndToEndTests : IAsyncLifetime
 
         Assert.True((await client.SendAsync(HelperRequest.Ping(), CancellationToken.None)).Ok);
         Assert.True((await client.SendAsync(HelperRequest.Sync(["b.sev", "a.sev"]), CancellationToken.None)).Ok);
-        Assert.True((await client.SendAsync(HelperRequest.Sync([]), CancellationToken.None)).Ok);
+        Assert.True((await client.SendAsync(HelperRequest.Sync(Array.Empty<HostEntry>()), CancellationToken.None)).Ok);
 
         Assert.Equal([["a.sev", "b.sev"], []], _hosts.Writes);
     }
@@ -104,9 +104,9 @@ public sealed class PipeEndToEndTests : IAsyncLifetime
             get { lock (_gate) return [.. _writes]; }
         }
 
-        public bool Write(IReadOnlyList<string> domains)
+        public bool Write(IReadOnlyList<HostEntry> entries)
         {
-            lock (_gate) _writes.Add([.. domains]);
+            lock (_gate) _writes.Add([.. entries.Select(e => e.Name).Distinct()]);
             return true;
         }
     }

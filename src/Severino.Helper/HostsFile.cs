@@ -1,13 +1,14 @@
 using System.Runtime.InteropServices;
 using System.Security.AccessControl;
 using System.Text;
+using Severino.Contracts;
 
 namespace Severino.Helper;
 
 public interface IHostsWriter
 {
-    /// <summary>Writes the block for <paramref name="domains"/>; returns false when the file already had it.</summary>
-    bool Write(IReadOnlyList<string> domains);
+    /// <summary>Writes the block for <paramref name="entries"/>; returns false when the file already had it.</summary>
+    bool Write(IReadOnlyList<HostEntry> entries);
 }
 
 /// <summary>Applies <see cref="HostsBlock"/> to a hosts file on disk.</summary>
@@ -20,14 +21,17 @@ public sealed partial class HostsFile(string path, Action? flushDns = null) : IH
 
     public string BackupPath => Path.Combine(Path.GetDirectoryName(path)!, "hosts.severino.bak");
 
-    public bool Write(IReadOnlyList<string> domains)
+    /// <summary>Web route domains, each on 127.0.0.1 and ::1.</summary>
+    public bool Write(IReadOnlyList<string> domains) => Write([.. HostEntry.ForDomains(domains)]);
+
+    public bool Write(IReadOnlyList<HostEntry> entries)
     {
         lock (_gate)
         {
             // Latin-1 maps every byte to one char and back, so lines outside the block survive
             // whatever encoding the file uses.
             var current = File.Exists(path) ? Encoding.Latin1.GetString(File.ReadAllBytes(path)) : "";
-            var merged = HostsBlock.Merge(current, domains);
+            var merged = HostsBlock.Merge(current, entries);
             if (merged == current)
                 return false;
 
