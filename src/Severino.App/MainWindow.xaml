@@ -43,6 +43,9 @@
             <TabItem Header="Rotas">
                 <views:RoutesView DataContext="{Binding Routes}" />
             </TabItem>
+            <TabItem Header="DNS">
+                <views:DnsView DataContext="{Binding Dns}" />
+            </TabItem>
             <TabItem Header="Requisições">
                 <views:RequestsView DataContext="{Binding Requests}" />
             </TabItem>

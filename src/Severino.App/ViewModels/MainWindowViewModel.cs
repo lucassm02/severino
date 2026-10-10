@@ -5,11 +5,12 @@ namespace Severino.App.ViewModels;
 
 public sealed partial class MainWindowViewModel : ObservableObject
 {
-    public const int SettingsTab = 2;
+    public const int SettingsTab = 3;
 
-    public MainWindowViewModel(RoutesViewModel routes, RequestsViewModel requests, SettingsViewModel settings, StatusBarViewModel status, Navigation navigation)
+    public MainWindowViewModel(RoutesViewModel routes, DnsViewModel dns, RequestsViewModel requests, SettingsViewModel settings, StatusBarViewModel status, Navigation navigation)
     {
         Routes = routes;
+        Dns = dns;
         Requests = requests;
         Settings = settings;
         Status = status;
@@ -17,6 +18,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
     }
 
     public RoutesViewModel Routes { get; }
+    public DnsViewModel Dns { get; }
     public RequestsViewModel Requests { get; }
     public SettingsViewModel Settings { get; }
     public StatusBarViewModel Status { get; }

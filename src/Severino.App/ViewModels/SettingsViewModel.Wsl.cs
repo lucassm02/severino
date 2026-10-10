@@ -11,6 +11,7 @@ public sealed partial class SettingsViewModel
 {
     private readonly WslCallers _wsl;
     private readonly ServiceDiscovery _discovery;
+    private readonly Severino.Core.Dns.DnsSync? _dnsSync;
 
     /// <summary>Installed distros, chosen or not.</summary>
     public ObservableCollection<WslDistroItem> WslDistros { get; } = [];

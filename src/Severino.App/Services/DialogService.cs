@@ -5,7 +5,9 @@ using Microsoft.Win32;
 using Severino.App.ViewModels;
 using Severino.App.Views;
 using Severino.Core.Configuration;
+using Severino.Contracts;
 using Severino.Core.Discovery;
+using Severino.Core.Dns;
 using Severino.Core.Domains;
 using Severino.Core.Routes;
 using FluentMessageBox = Wpf.Ui.Controls.MessageBox;
@@ -13,8 +15,50 @@ using FluentResult = Wpf.Ui.Controls.MessageBoxResult;
 
 namespace Severino.App.Services;
 
-public sealed class DialogService(RouteService routes, ServiceRouteService services, ServiceDiscovery discovery, ConfigService config, DomainInspector inspector, HttpsService https, Navigation navigation)
+public sealed class DialogService(RouteService routes, ServiceRouteService services, ServiceDiscovery discovery, ConfigService config, DomainInspector inspector, HttpsService https, Navigation navigation,
+    DnsService? dns = null, DnsSync? dnsSync = null)
 {
+    /// <summary>The DNS form for an entry of Severino's; returns it saved, or null when cancelled.</summary>
+    public Task<DnsEntry?> EditDnsAsync(DnsEntry? existing)
+    {
+        var viewModel = new DnsEditorViewModel(dns!, dnsSync!, existing);
+        var window = new DnsEditorWindow(viewModel) { Owner = Application.Current.MainWindow };
+        return Task.FromResult(window.ShowDialog() == true ? viewModel.Saved : null);
+    }
+
+    /// <summary>The DNS form for a hosts line from outside Severino; true when the line was changed.</summary>
+    public Task<bool> EditOutsideLineAsync(HostsLine line)
+    {
+        var viewModel = new DnsEditorViewModel(dns!, dnsSync!, null, line);
+        var window = new DnsEditorWindow(viewModel) { Owner = Application.Current.MainWindow };
+        return Task.FromResult(window.ShowDialog() == true);
+    }
+
+    /// <summary>
+    /// Before Severino changes a hosts line that is not its own: says so, and shows the line as it
+    /// is and as it will be, comment included.
+    /// </summary>
+    public static Task<bool> ConfirmOutsideChangeAsync(string title, string before, string after, string confirmText)
+    {
+        var content = new StackPanel { MaxWidth = 560 };
+        content.Children.Add(Paragraph(
+            "Esta linha não foi criada pelo Severino. Ele vai alterar o hosts mesmo assim, porque você pediu, e deixar um comentário acima dela."));
+        content.Children.Add(new TextBlock { Text = "Como está:", FontWeight = FontWeights.SemiBold });
+        content.Children.Add(Code(before.Trim()));
+        content.Children.Add(new TextBlock { Text = "Como vai ficar:", FontWeight = FontWeights.SemiBold });
+        content.Children.Add(Code(after.Trim()));
+        return ShowAsync(title, content, confirmText);
+    }
+
+    private static TextBlock Code(string text) => new()
+    {
+        Text = text,
+        FontFamily = new FontFamily("Cascadia Mono, Consolas"),
+        FontSize = 12,
+        TextWrapping = TextWrapping.Wrap,
+        Margin = new Thickness(0, 4, 0, 12),
+    };
+
     /// <summary>The "Importar serviços" window; returns what was imported, or null when cancelled.</summary>
     public IReadOnlyList<PlannedService>? ImportServices()
     {
@@ -96,7 +140,7 @@ public sealed class DialogService(RouteService routes, ServiceRouteService servi
         var deleteData = new CheckBox { Content = "Apagar também as rotas e configurações", Margin = new Thickness(0, 0, 0, 4) };
         var content = new StackPanel { MaxWidth = 460 };
         content.Children.Add(Paragraph(
-            "O Severino tira do Windows tudo o que colocou: o bloco do arquivo hosts, a CA local, a inicialização automática, as exceções de proxy que ele adicionou e os nomes nas distros do WSL que estão rodando. " +
+            "O Severino tira do Windows tudo o que colocou: os blocos do arquivo hosts (rotas e DNS), a CA local, a inicialização automática, as exceções de proxy que ele adicionou e os nomes nas distros do WSL que estão rodando. Linhas do hosts que não são dele ficam como estão. " +
             "Depois, o app fecha. O Windows pede confirmação para remover a CA."));
         content.Children.Add(Paragraph("Sem a caixa abaixo, suas rotas ficam guardadas para quando você abrir o Severino de novo."));
         content.Children.Add(deleteData);

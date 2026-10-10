@@ -73,6 +73,26 @@ public sealed class DnsSync : IDisposable
         }
     }
 
+    /// <summary>
+    /// "Limpar tudo": takes the DNS block out and stops following the entries, which stay in the
+    /// config for the next start. Best effort, the Helper may be gone.
+    /// </summary>
+    public async Task ClearAsync(CancellationToken cancellationToken)
+    {
+        _config.Changed -= OnConfigChanged;
+        _timer.Change(Timeout.InfiniteTimeSpan, Timeout.InfiniteTimeSpan);
+        await _gate.WaitAsync(cancellationToken);
+        try
+        {
+            SetStatus(await SendAsync([], cancellationToken));
+            _synced = null;
+        }
+        finally
+        {
+            _gate.Release();
+        }
+    }
+
     public void Dispose()
     {
         _config.Changed -= OnConfigChanged;

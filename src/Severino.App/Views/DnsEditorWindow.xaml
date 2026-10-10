@@ -1,0 +1,102 @@
+<ui:FluentWindow
+    x:Class="Severino.App.Views.DnsEditorWindow"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
+    xmlns:vm="clr-namespace:Severino.App.ViewModels"
+    mc:Ignorable="d"
+    d:DataContext="{d:DesignInstance Type=vm:DnsEditorViewModel}"
+    Title="{Binding Title}"
+    Width="560"
+    SizeToContent="Height"
+    ResizeMode="NoResize"
+    ShowInTaskbar="False"
+    WindowStartupLocation="CenterOwner"
+    WindowBackdropType="Mica"
+    Icon="/Assets/severino.ico"
+    ExtendsContentIntoTitleBar="True">
+
+    <StackPanel>
+        <ui:TitleBar Title="{Binding Title}" ShowMaximize="False" ShowMinimize="False" />
+
+        <StackPanel Margin="24,8,24,24">
+            <!-- A line from outside: the warning stays here the whole time. -->
+            <Border
+                Margin="0,0,0,16"
+                Padding="14,12"
+                CornerRadius="6"
+                BorderThickness="1"
+                BorderBrush="{DynamicResource SystemFillColorCautionBrush}"
+                Background="{DynamicResource SystemFillColorCautionBackgroundBrush}"
+                Visibility="{Binding IsOutside, Converter={StaticResource TrueToVisible}}">
+                <DockPanel>
+                    <ui:SymbolIcon DockPanel.Dock="Left" Margin="0,2,10,0" VerticalAlignment="Top" Symbol="Warning24" Foreground="{DynamicResource SystemFillColorCautionBrush}" />
+                    <StackPanel>
+                        <TextBlock FontWeight="SemiBold" TextWrapping="Wrap" Text="Você está mexendo numa linha que já existia no hosts." />
+                        <TextBlock Margin="0,4,0,0" TextWrapping="Wrap" Text="{Binding OutsideWarning}" />
+                        <TextBlock
+                            Margin="0,8,0,0"
+                            FontFamily="Cascadia Mono, Consolas"
+                            FontSize="12"
+                            TextWrapping="Wrap"
+                            Text="{Binding LineText}" />
+                        <TextBlock
+                            Margin="0,2,0,0"
+                            FontSize="12"
+                            TextWrapping="Wrap"
+                            Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                            Text="{Binding OriginText}"
+                            Visibility="{Binding OriginText, Converter={StaticResource NullToCollapsed}}" />
+                    </StackPanel>
+                </DockPanel>
+            </Border>
+
+            <TextBlock Margin="0,0,0,4" Text="Nomes, um por linha" />
+            <ui:TextBox
+                x:Name="Names"
+                Height="88"
+                AcceptsReturn="True"
+                VerticalScrollBarVisibility="Auto"
+                PlaceholderText="sql.interno&#x0a;sql"
+                AutomationProperties.Name="Nomes"
+                Text="{Binding NamesText, UpdateSourceTrigger=PropertyChanged}" />
+
+            <TextBlock Margin="0,12,0,4" Text="Endereço IP" />
+            <ui:TextBox
+                PlaceholderText="10.0.0.8"
+                AutomationProperties.Name="Endereço IP"
+                Text="{Binding Address, UpdateSourceTrigger=PropertyChanged}" />
+            <TextBlock
+                Margin="0,4,0,0"
+                FontSize="12"
+                TextWrapping="Wrap"
+                Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                Text="{Binding ScopeHint}"
+                Visibility="{Binding ScopeHint, Converter={StaticResource NullToCollapsed}}" />
+
+            <StackPanel Visibility="{Binding IsOwn, Converter={StaticResource TrueToVisible}}">
+                <TextBlock Margin="0,12,0,4" Text="Notas" />
+                <ui:TextBox AutomationProperties.Name="Notas" Text="{Binding Notes, UpdateSourceTrigger=PropertyChanged}" />
+            </StackPanel>
+
+            <TextBlock
+                Margin="0,12,0,0"
+                TextWrapping="Wrap"
+                Foreground="{DynamicResource SystemFillColorCautionBrush}"
+                Text="{Binding Error}"
+                Visibility="{Binding Error, Converter={StaticResource NullToCollapsed}}" />
+
+            <StackPanel Margin="0,24,0,0" HorizontalAlignment="Right" Orientation="Horizontal">
+                <ui:Button MinWidth="96" Content="Cancelar" IsCancel="True" Command="{Binding CancelCommand}" />
+                <ui:Button
+                    MinWidth="96"
+                    Margin="8,0,0,0"
+                    Appearance="Primary"
+                    Content="{Binding SaveLabel}"
+                    Command="{Binding SaveCommand}" />
+            </StackPanel>
+        </StackPanel>
+    </StackPanel>
+</ui:FluentWindow>

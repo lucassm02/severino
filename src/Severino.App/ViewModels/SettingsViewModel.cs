@@ -32,10 +32,11 @@ public sealed partial class SettingsViewModel : ObservableObject
 
     public SettingsViewModel(ConfigService config, ThemeService themes, HttpsService https, RouteService routes,
         AutoStart autoStart, SystemCleanup cleanup, Lazy<ShellService> shell, Func<FirstRunViewModel> firstRun,
-        WslCallers wsl, ServiceDiscovery discovery)
+        WslCallers wsl, ServiceDiscovery discovery, Severino.Core.Dns.DnsSync? dnsSync = null)
     {
         _wsl = wsl;
         _discovery = discovery;
+        _dnsSync = dnsSync;
         _firstRun = firstRun;
         _config = config;
         _themes = themes;
@@ -385,6 +386,19 @@ public sealed partial class SettingsViewModel : ObservableObject
         if (!result.CaRemoved)
             await DialogService.ShowInfoAsync("Limpar tudo",
                 "A CA ficou na lista de confiáveis do Windows porque o pedido foi recusado. As chaves dela foram apagadas, então ela não assina mais nada.");
+
+        // The DNS block outlives an exit, so it goes now; lines outside Severino stay as they are.
+        if (_dnsSync is not null)
+        {
+            using var timeout = new CancellationTokenSource(TimeSpan.FromSeconds(3));
+            try
+            {
+                await _dnsSync.ClearAsync(timeout.Token);
+            }
+            catch (OperationCanceledException)
+            {
+            }
+        }
 
         var shell = _shell.Value;
         shell.DeleteDataOnExit = deleteData;

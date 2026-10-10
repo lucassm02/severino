@@ -12,6 +12,7 @@ using Severino.App.Tray;
 using Severino.App.ViewModels;
 using Severino.Core.Configuration;
 using Severino.Core.Discovery;
+using Severino.Core.Dns;
 using Severino.Core.Domains;
 using Severino.Core.Helper;
 using Severino.Core.Routes;
@@ -96,6 +97,9 @@ public partial class App : Application
             OfferFirstRun(config);
         }
 
+        // The DNS block does not follow the proxy: it stays when the app pauses or closes.
+        _host.Services.GetRequiredService<ExternalHosts>().Start();
+        _host.Services.GetRequiredService<DnsSync>().Start();
         _ = StartProxyAsync(_host.Services.GetRequiredService<ProxyCoordinator>());
     }
 
@@ -195,6 +199,9 @@ public partial class App : Application
         services.AddSingleton<ServiceRouteService>();
         services.AddSingleton<ICommandRunner>(_ => new CommandRunner());
         services.AddSingleton<ServiceDiscovery>();
+        services.AddSingleton(_ => new ExternalHosts());
+        services.AddSingleton<DnsSync>();
+        services.AddSingleton<DnsService>();
         services.AddSingleton<IWslShell>(_ => new WslShell());
         services.AddSingleton<WslCallers>();
         services.AddSingleton<IHelperClient>(_ => new HelperClient());
@@ -230,6 +237,7 @@ public partial class App : Application
         services.AddSingleton<MainWindow>();
         services.AddSingleton<MainWindowViewModel>();
         services.AddSingleton<RoutesViewModel>();
+        services.AddSingleton<DnsViewModel>();
         services.AddSingleton<RequestsViewModel>();
         services.AddSingleton<SettingsViewModel>();
         services.AddTransient<FirstRunViewModel>();
