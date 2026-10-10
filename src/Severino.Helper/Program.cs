@@ -1,3 +1,4 @@
+using Microsoft.Extensions.Logging.Abstractions;
 using Serilog;
 using Severino.Contracts;
 using Severino.Helper;
@@ -9,7 +10,10 @@ if (args.Contains("--clear-hosts"))
     var hosts = new HostsFile(HostsFile.SystemPath);
     hosts.Write(Array.Empty<HostEntry>());
     hosts.WriteDns(Array.Empty<HostEntry>());
-    new DnsApprovals().Clear();
+    var approvals = new DnsApprovals();
+    // Before the approvals go: the NRPT rules and the saved wildcards.
+    new Wildcards(new WildcardTable(), new PowerShellNrptRules(NullLogger<PowerShellNrptRules>.Instance), approvals, NullLogger<Wildcards>.Instance).Clear();
+    approvals.Clear();
     return 0;
 }
 
@@ -32,9 +36,18 @@ builder.Services.AddSerilog(log => log
 
 builder.Services.AddSingleton<IHostsWriter>(new HostsFile(HostsFile.SystemPath));
 builder.Services.AddSingleton<IDnsApprovals>(new DnsApprovals());
+builder.Services.AddSingleton<WildcardTable>();
+builder.Services.AddSingleton<INrptRules, PowerShellNrptRules>();
+builder.Services.AddSingleton(sp => new Wildcards(
+    sp.GetRequiredService<WildcardTable>(), sp.GetRequiredService<INrptRules>(), sp.GetRequiredService<IDnsApprovals>(), sp.GetRequiredService<ILogger<Wildcards>>()));
 builder.Services.AddSingleton(sp => new HelperRequestHandler(
-    sp.GetRequiredService<IHostsWriter>(), sp.GetRequiredService<IDnsApprovals>(), sp.GetRequiredService<ILogger<HelperRequestHandler>>()));
+    sp.GetRequiredService<IHostsWriter>(), sp.GetRequiredService<IDnsApprovals>(), sp.GetRequiredService<ILogger<HelperRequestHandler>>(),
+    wildcards: sp.GetRequiredService<Wildcards>()));
+builder.Services.AddHostedService(sp => new WildcardDnsServer(sp.GetRequiredService<WildcardTable>(), sp.GetRequiredService<ILogger<WildcardDnsServer>>()));
 builder.Services.AddHostedService<PipeServer>();
 
-builder.Build().Run();
+var app = builder.Build();
+// The DNS-entry wildcards of the last run answer again before the app comes back.
+app.Services.GetRequiredService<Wildcards>().Load();
+app.Run();
 return 0;

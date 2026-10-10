@@ -28,8 +28,10 @@ public static class ApproveDns
         if (!HelperProtocol.TryNormalizeDnsEntries(request.Entries, out var entries, out _))
             return 3;
 
-        var publicOnes = entries.Where(e => DnsAddress.TryClassify(e.Address, out _, out var scope) && scope == AddressScope.Public).ToList();
-        (store ?? new DnsApprovals()).Approve(publicOnes);
+        // Public addresses, and the suffix of each wildcard: its NRPT rule sends a whole suffix to Severino.
+        var publicOnes = entries.Where(e => DnsAddress.TryClassify(e.Address, out _, out var scope) && scope == AddressScope.Public);
+        var suffixes = entries.Where(e => DomainName.IsWildcard(e.Name)).Select(e => new HostEntry(e.Name, WildcardDnsAddress.Server));
+        (store ?? new DnsApprovals()).Approve([.. publicOnes.Concat(suffixes).Distinct()]);
         return 0;
     }
 }

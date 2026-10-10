@@ -73,7 +73,7 @@ public static class HelperProtocol
         var result = new SortedSet<HostEntry>(EntryOrder.Instance);
         foreach (var entry in entries)
         {
-            if (!DomainName.TryNormalize(entry?.Name, out var name, out var reason, allowSingleLabel: true))
+            if (!TryNormalizeName(entry?.Name, out var name, out var reason))
             {
                 error = $"Domínio inválido '{entry?.Name}': {reason}";
                 return false;
@@ -117,7 +117,7 @@ public static class HelperProtocol
         var result = new SortedSet<HostEntry>(EntryOrder.Instance);
         foreach (var entry in entries)
         {
-            if (!DomainName.TryNormalize(entry?.Name, out var name, out var reason, allowSingleLabel: true))
+            if (!TryNormalizeName(entry?.Name, out var name, out var reason))
             {
                 error = $"Domínio inválido '{entry?.Name}': {reason}";
                 return false;
@@ -140,6 +140,15 @@ public static class HelperProtocol
         error = null;
         return true;
     }
+
+    /// <summary>
+    /// A host name (one label allowed) or a wildcard like *.callfred.sev, which the Helper answers
+    /// with its DNS server instead of writing it in the hosts.
+    /// </summary>
+    private static bool TryNormalizeName(string? input, [NotNullWhen(true)] out string? name, [NotNullWhen(false)] out string? reason) =>
+        DomainName.IsWildcard(input)
+            ? DomainName.TryNormalizeWildcard(input, out name, out reason)
+            : DomainName.TryNormalize(input, out name, out reason, allowSingleLabel: true);
 
     /// <summary>By name, then address: "127.0.0.1" sorts before "::1", as the block always had it.</summary>
     private sealed class EntryOrder : IComparer<HostEntry>

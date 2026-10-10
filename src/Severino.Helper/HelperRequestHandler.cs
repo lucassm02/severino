@@ -5,7 +5,8 @@ using Severino.Contracts;
 namespace Severino.Helper;
 
 /// <summary>Turns one pipe message into one response. Trusts nothing in the message.</summary>
-public sealed class HelperRequestHandler(IHostsWriter hosts, IDnsApprovals approvals, ILogger<HelperRequestHandler> logger, Func<DateTime>? now = null)
+public sealed class HelperRequestHandler(IHostsWriter hosts, IDnsApprovals approvals, ILogger<HelperRequestHandler> logger, Func<DateTime>? now = null,
+    Wildcards? wildcards = null)
 {
     public static string HelperVersion { get; } =
         typeof(HelperRequestHandler).Assembly.GetName().Version?.ToString(3) ?? "0.0.0";
@@ -33,16 +34,23 @@ public sealed class HelperRequestHandler(IHostsWriter hosts, IDnsApprovals appro
             {
                 if (!HelperProtocol.TryNormalizeEntries(request.Entries, out var entries, out var error))
                     return Fail(error);
-                return Write(() => hosts.Write(entries), "Sync", entries.Count);
+                // Wildcards go to the DNS server; the hosts has no such thing.
+                var routeWildcards = entries.Where(e => DomainName.IsWildcard(e.Name)).ToList();
+                var plain = entries.Except(routeWildcards).ToList();
+                var pending = wildcards?.SetRoutes(routeWildcards) ?? [];
+                return Write(() => hosts.Write(plain), "Sync", plain.Count, pending);
             }
 
             case HelperProtocol.SyncDnsCommand:
             {
                 if (!HelperProtocol.TryNormalizeDnsEntries(request.Entries, out var entries, out var error))
                     return Fail(error);
+                var dnsWildcards = entries.Where(e => DomainName.IsWildcard(e.Name)).ToList();
+                var plain = entries.Except(dnsWildcards).ToList();
                 // Public addresses wait for an administrator's approval; the rest goes in now.
-                var pending = entries.Where(e => !IsAllowed(e)).ToList();
-                var allowed = entries.Where(IsAllowed).ToList();
+                var pending = plain.Where(e => !IsAllowed(e)).ToList();
+                var allowed = plain.Where(IsAllowed).ToList();
+                pending.AddRange(wildcards?.SetDns(dnsWildcards) ?? []);
                 return Write(() => hosts.WriteDns(allowed), "DNS sync", allowed.Count, pending);
             }
 
@@ -64,6 +72,8 @@ public sealed class HelperRequestHandler(IHostsWriter hosts, IDnsApprovals appro
             return Fail("Informe a linha a alterar.");
         if (!HelperProtocol.TryNormalizeDnsEntries(request.Entries ?? [], out var entries, out var error))
             return Fail(error);
+        if (entries.Any(e => DomainName.IsWildcard(e.Name)))
+            return Fail("O hosts não aceita curinga; crie uma entrada DNS do Severino para isso.");
 
         string? replacement = null;
         if (entries.Count > 0)
