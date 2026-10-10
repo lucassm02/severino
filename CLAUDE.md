@@ -32,6 +32,6 @@ dotnet run --project src/Severino.App
 
 ## Estado
 
-Fases 0 a 3 concluídas e verificadas (specs em [docs/specs/](docs/specs/); roteiros manuais em [docs/testes/](docs/testes/)). Em desenvolvimento: Fase 4, Serviços: Kubernetes, Docker e WSL ([spec](docs/specs/fase-4-servicos.md)), falta o checklist manual; e Fase 5, site e publicação ([spec](docs/specs/fase-5-site.md)): o site fica em `site/` (prévia com `python -m http.server 8765 --directory site`), e as releases saem do workflow Release. Em desenvolvimento, o Helper se instala com `scripts/dev-helper.ps1 install` num terminal elevado; o instalador sai de `scripts/build-installer.ps1`.
+Fases 0 a 3 concluídas e verificadas (specs em [docs/specs/](docs/specs/); roteiros manuais em [docs/testes/](docs/testes/)). Em desenvolvimento: Fase 4, Serviços: Kubernetes, Docker e WSL ([spec](docs/specs/fase-4-servicos.md)), falta o checklist manual; Fase 6, DNS e extras ([spec](docs/specs/fase-6-dns-e-extras.md)), implementada, falta o checklist; e Fase 5, site e publicação ([spec](docs/specs/fase-5-site.md)): o site fica em `site/` (prévia com `python -m http.server 8765 --directory site`), e as releases saem do workflow Release. Em desenvolvimento, o Helper se instala com `scripts/dev-helper.ps1 install` num terminal elevado; o instalador sai de `scripts/build-installer.ps1`.
 
 Ao chamar algo que abre um aviso do próprio Windows (instalar ou remover CA), use `WindowsPrompt.Run`: o aviso nasce sem janela dona e cairia atrás do app.
