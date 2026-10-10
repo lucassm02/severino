@@ -20,6 +20,7 @@ Consultas só de leitura, em 2026-10-10:
 - **O WSL já enxerga o hosts do Windows.** A distro usa o túnel de DNS do WSL (`nameserver 10.255.255.254`, WSL 3.0.1). Um nome do hosts do Windows resolveu para o mesmo IP dentro da distro, sem estar no `/etc/hosts` dela. Entradas DNS com IP de rede, portanto, valem no WSL sem trabalho extra. As de loopback não, como já se sabia (por isso o `iptables` da Fase 4).
 - **A porta 53 está ocupada** pelo serviço ICS, Compartilhamento de Conexão com a Internet (`svchost`, UDP `0.0.0.0:53`). Afeta o curinga, que precisa de um DNS em `127.0.0.1:53`.
 - **Nenhuma regra NRPT ativa**, com a VPN desligada.
+- **Mesmo assim, um DNS próprio cabe no loopback:** como usuário comum, um socket UDP e um TCP abrem em `127.0.0.1:53`, inclusive com uso exclusivo, ao lado do ICS em `0.0.0.0:53`. Um endereço dedicado, `127.53.0.1:53`, também abre e evita conflito com outro DNS local. Falta validar a NRPT com a VPN ligada, no passo do curinga.
 
 ## Critérios de pronto
 
