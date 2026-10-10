@@ -99,7 +99,8 @@ public sealed class ProxyServerTests : IAsyncLifetime
 
         Assert.Equal(HttpStatusCode.BadGateway, response.StatusCode);
         var html = await response.Content.ReadAsStringAsync();
-        Assert.Contains($"fora.sev</strong> → <code>127.0.0.1:{closedPort}</code> não respondeu. Seu servidor está rodando?", html);
+        Assert.Contains($"fora.sev</strong> → <code>127.0.0.1:{closedPort}</code> não respondeu.", html);
+        Assert.Contains("Seu servidor está rodando?", html);
     }
 
     [Fact]
@@ -122,8 +123,21 @@ public sealed class ProxyServerTests : IAsyncLifetime
             Route("loop.sev", $"http://127.0.0.1:{_proxyPort}"),
         ]);
 
-        Assert.Equal(HttpStatusCode.NotFound, (await _client.GetAsync(Url("callfred.sev"))).StatusCode);
+        var disabled = await _client.GetAsync(Url("callfred.sev"));
+        Assert.Equal(HttpStatusCode.NotFound, disabled.StatusCode);
+        Assert.Contains("Rota desligada", await disabled.Content.ReadAsStringAsync());
         Assert.Equal(HttpStatusCode.NotFound, (await _client.GetAsync(Url("loop.sev"))).StatusCode);
+    }
+
+    [Fact]
+    public async Task Error_pages_are_self_contained_with_the_mascot_inline()
+    {
+        var html = await (await _client.GetAsync(Url("nada.sev"))).Content.ReadAsStringAsync();
+
+        Assert.Contains("Rota não encontrada", html);
+        Assert.Contains("src=\"data:image/png;base64,iVBORw0KGgo", html);
+        // Nothing loaded from elsewhere; the route links are plain anchors.
+        Assert.DoesNotMatch("src=\"(https?:)?//|<link[^>]+href=\"(https?:)?//", html);
     }
 
     [Fact]

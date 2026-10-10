@@ -6,7 +6,8 @@
 //
 //   dotnet run scripts/build-icons.cs [preview.png]
 //
-// Writes src/Severino.App/Assets/severino.ico (16 to 256 px) and severino-512.png. With an
+// Writes src/Severino.App/Assets/severino.ico (16 to 256 px) and severino-512.png, and
+// src/Severino.Proxy/Assets/severino-192.png for the proxy's error pages. With an
 // argument, also writes a sheet showing the small sizes enlarged, on light and dark.
 
 using System.Drawing;
@@ -29,6 +30,13 @@ WriteIco(Path.Combine(assets, "severino.ico"), frames);
 using (var large = Resize(square, 512))
     large.Save(Path.Combine(assets, "severino-512.png"), ImageFormat.Png);
 Console.WriteLine($"wrote {assets}\\severino.ico and severino-512.png");
+
+// The proxy's error pages inline this one, shown at 96 px: 192 keeps it sharp at 200% scaling.
+var proxyAssets = Path.Combine(root, "src", "Severino.Proxy", "Assets");
+Directory.CreateDirectory(proxyAssets);
+using (var face = Resize(square, 192))
+    face.Save(Path.Combine(proxyAssets, "severino-192.png"), ImageFormat.Png);
+Console.WriteLine($"wrote {proxyAssets}\\severino-192.png");
 
 if (args.Length > 0)
     WritePreview(args[0], frames.Where(f => f.size <= 48).ToList());

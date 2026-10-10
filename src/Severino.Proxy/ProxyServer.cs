@@ -266,7 +266,10 @@ public sealed class ProxyServer(ILoggerFactory loggerFactory, Func<string, X509C
         context.Response.StatusCode = StatusCodes.Status404NotFound;
         context.Response.ContentType = "text/html; charset=utf-8";
         var domains = RouteRules.ActiveDomains(_routes);
-        return context.Response.WriteAsync(ErrorPages.NotFound(context.Request.Host.Host, domains, tls ? "https" : "http", port));
+        var host = context.Request.Host.Host;
+        var disabled = RouteRules.Normalize(host) is { } normalized
+            && _routes.Any(r => !r.Enabled && RouteRules.Normalize(r.Domain) == normalized);
+        return context.Response.WriteAsync(ErrorPages.NotFound(host, domains, tls ? "https" : "http", port, disabled));
     }
 
     private void SetStatus(bool tls, ProxyStatus status)
