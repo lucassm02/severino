@@ -32,4 +32,6 @@ dotnet run --project src/Severino.App
 
 ## Estado
 
-Fases 0 e 1 concluídas e verificadas com o Helper instalado (spec em [docs/specs/fase-1-mvp-http.md](docs/specs/fase-1-mvp-http.md)). Próximo passo: Fase 2 (HTTPS). Em desenvolvimento, o Helper se instala com `scripts/dev-helper.ps1 install` num terminal elevado.
+Fases 0, 1 e 2 concluídas e verificadas com o Helper instalado (specs em [docs/specs/](docs/specs/); roteiro manual da Fase 2 em [docs/testes/fase-2-https.md](docs/testes/fase-2-https.md)). Em andamento: Fase 3, Polimento ([spec](docs/specs/fase-3-polimento.md)). Em desenvolvimento, o Helper se instala com `scripts/dev-helper.ps1 install` num terminal elevado.
+
+Ao chamar algo que abre um aviso do próprio Windows (instalar ou remover CA), use `WindowsPrompt.Run`: o aviso nasce sem janela dona e cairia atrás do app.

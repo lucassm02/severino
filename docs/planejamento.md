@@ -61,7 +61,7 @@ Considerei três alternativas e descartei:
 
 No .NET fica tudo num processo, com acesso direto às APIs do Windows de certificados, serviços e registro.
 
-**Peso:** publicando dependente de framework, o executável fica com poucos MB e o instalador garante os runtimes Desktop e ASP.NET Core do .NET 10. A memória em repouso deve ficar em algumas dezenas de MB, mas convém medir já na Fase 1.
+**Peso:** a publicação é self-contained: o instalador leva o runtime do .NET 10 e fica por volta de 50 MB, mas instala offline e sem pré-requisitos. A primeira versão do plano previa publicar dependente de framework, com poucos MB, e fazer o instalador garantir os runtimes; a troca foi decidida na Fase 3, porque um segundo download atrapalha o "instala sem ajuda". A memória em repouso deve ficar em algumas dezenas de MB.
 
 ## 3. Experiência de uso
 
@@ -70,9 +70,9 @@ No .NET fica tudo num processo, com acesso direto às APIs do Windows de certifi
 Um assistente de duas telas:
 
 1. **Checagem automática.** Mostra ✓ ou ✗ para cada item: portas 80 e 443 livres, serviço auxiliar respondendo e proxy do sistema fora do caminho. Cada ✗ vem com um botão de correção ou uma explicação.
-2. **HTTPS opcional.** O botão "Ativar HTTPS local" gera a CA e abre o diálogo de confirmação do próprio Windows.
+2. **Primeira rota, com HTTPS opcional.** O formulário de rota embutido traz a caixa "Usar HTTPS". Marcada, ao criar a rota o app gera a CA e abre o diálogo de confirmação do próprio Windows. O HTTPS vem depois da rota porque a CA só pode existir com pelo menos um domínio para restringir (decisão da Fase 2).
 
-O assistente termina em "Criar minha primeira rota".
+O assistente termina abrindo a rota recém-criada no navegador.
 
 ### Tela principal
 
