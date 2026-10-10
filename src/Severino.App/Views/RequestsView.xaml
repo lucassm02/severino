@@ -136,7 +136,7 @@
                         </Style>
                     </DataGridTextColumn.ElementStyle>
                 </DataGridTextColumn>
-                <DataGridTextColumn Width="64" Header="Método" Binding="{Binding Method, Mode=OneTime}" />
+                <DataGridTextColumn Width="76" Header="Método" Binding="{Binding Method, Mode=OneTime}" />
                 <DataGridTextColumn Width="2*" Header="Domínio" Binding="{Binding Host, Mode=OneTime}">
                     <DataGridTextColumn.ElementStyle>
                         <Style TargetType="TextBlock">
