@@ -19,11 +19,14 @@ public sealed partial class StatusBarViewModel : ObservableObject
     private readonly HttpsService _https;
     private readonly Navigation _navigation;
     private readonly SystemProxy _systemProxy;
+    private readonly ServiceForwarder _services;
 
     public StatusBarViewModel(ProxyServer proxy, HostsSync hosts, ProxyCoordinator coordinator, HttpsService https, ConfigService config,
-        Navigation navigation, SystemProxy systemProxy)
+        Navigation navigation, SystemProxy systemProxy, ServiceForwarder services)
     {
         _systemProxy = systemProxy;
+        _services = services;
+        services.StatusChanged += (_, _) => Dispatch(Refresh);
         systemProxy.Changed += (_, _) => Dispatch(Refresh);
         _proxy = proxy;
         _hosts = hosts;
@@ -59,6 +62,10 @@ public sealed partial class StatusBarViewModel : ObservableObject
     /// <summary>Null when the system proxy is out of the way; then the segment is hidden.</summary>
     [ObservableProperty]
     public partial string? SystemProxyText { get; set; }
+
+    /// <summary>Null while every service route port is listening; then the segment is hidden.</summary>
+    [ObservableProperty]
+    public partial string? ServicesText { get; set; }
 
     /// <summary>A fixed proxy takes route domains. A PAC script only might, so it is shown but not counted.</summary>
     [ObservableProperty]
@@ -132,6 +139,19 @@ public sealed partial class StatusBarViewModel : ObservableObject
     }
 
     [RelayCommand]
+    private async Task FixServicesAsync()
+    {
+        var failing = _services.Statuses.Where(s => s.State != ProxyState.Running).ToList();
+        if (failing.Count == 0)
+            return;
+        var lines = string.Join("\n", failing.Select(s => $"• {s.Name} ({s.Address}:{s.Port}): {s.Detail}"));
+        if (await DialogService.ConfirmAsync("Rotas de serviço",
+                $"Estas portas não abriram:\n\n{lines}\n\nFeche o programa que está usando a porta e tente de novo.",
+                "Tentar de novo"))
+            await _coordinator.RetryAsync();
+    }
+
+    [RelayCommand]
     private void FixHosts() => DialogService.ShowMessage(
         "Serviço auxiliar",
         _hosts.Status.State == HostsSyncState.HelperUnavailable
@@ -183,6 +203,14 @@ public sealed partial class StatusBarViewModel : ObservableObject
             _ => ("hosts: sincronizando…", false),
         };
 
+        var failing = _services.Statuses.Where(s => s.State != ProxyState.Running).ToList();
+        ServicesText = failing switch
+        {
+            [] => null,
+            [var one] => $"serviço {one.Name}: porta {one.Port} indisponível",
+            _ => $"{failing.Count} portas de serviço indisponíveis",
+        };
+
         var systemProxy = _systemProxy.Read();
         var taken = _systemProxy.Uncovered().Count;
         (SystemProxyText, SystemProxyHasProblem) = (taken, systemProxy.HasScript) switch
@@ -192,13 +220,13 @@ public sealed partial class StatusBarViewModel : ObservableObject
             _ => ((string?)null, false),
         };
 
-        HasProblem = !IsPaused && (ProxyHasProblem || HttpsHasProblem || HostsHasProblem || SystemProxyHasProblem);
+        HasProblem = !IsPaused && (ProxyHasProblem || HttpsHasProblem || HostsHasProblem || SystemProxyHasProblem || ServicesText is not null);
         Summary = IsPaused ? "pausado"
             : ProxyHasProblem ? ProxyText
             : HttpsHasProblem ? HttpsText
             : HostsHasProblem ? HostsText
             : SystemProxyHasProblem ? SystemProxyText!
-            : "tudo certo";
+            : ServicesText ?? "tudo certo";
     }
 
     private static void Dispatch(Action action) => Application.Current?.Dispatcher.BeginInvoke(action);

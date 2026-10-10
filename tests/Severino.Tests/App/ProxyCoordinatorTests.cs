@@ -21,6 +21,9 @@ public sealed class ProxyCoordinatorTests : IAsyncLifetime
     private HostsSync _hosts = null!;
     private ProxyCoordinator _coordinator = null!;
     private int _port;
+    private ServiceForwarder _services = null!;
+    private readonly string _serviceAddress = $"127.77.{Random.Shared.Next(100, 250)}.250";
+    private int _servicePort;
 
     public async Task InitializeAsync()
     {
@@ -31,11 +34,21 @@ public sealed class ProxyCoordinatorTests : IAsyncLifetime
         {
             Settings = c.Settings with { HttpPort = _port },
             Routes = [new RouteEntry { Domain = "a.sev", Target = "http://127.0.0.1:1" }],
+            Services =
+            [
+                new ServiceRoute
+                {
+                    Names = ["redis"],
+                    Address = _serviceAddress,
+                    Ports = [new ServicePort { Port = _servicePort = TestBackend.FreePort(), TargetHost = "127.0.0.1", TargetPort = 1 }],
+                },
+            ],
         });
         _proxy = new ProxyServer(NullLoggerFactory.Instance);
         _hosts = new HostsSync(_config, _helper, NullLogger<HostsSync>.Instance);
         var ca = new LocalCa(new CaStore(Path.Combine(_dir, "ca")), new FakeTrustStore(), TimeProvider.System, NullLogger<LocalCa>.Instance);
-        _coordinator = new ProxyCoordinator(_config, _proxy, new HealthMonitor(TimeSpan.FromHours(1)), _hosts, ca);
+        _services = new ServiceForwarder(NullLoggerFactory.Instance);
+        _coordinator = new ProxyCoordinator(_config, _proxy, new HealthMonitor(TimeSpan.FromHours(1)), _hosts, ca, _services);
         await _coordinator.StartAsync();
         await WaitUntil(() => _helper.Requests.Count > 0);
     }
@@ -73,7 +86,23 @@ public sealed class ProxyCoordinatorTests : IAsyncLifetime
 
         Assert.False(_coordinator.IsPaused);
         Assert.Equal(new ProxyStatus(ProxyState.Running, _port), _proxy.Status);
-        await WaitUntil(() => _helper.Requests[^1].Domains is ["a.sev", "b.sev"]);
+        await WaitUntil(() => _helper.Requests[^1].Domains is ["a.sev", "b.sev", "redis"]);
+    }
+
+    [Fact]
+    public async Task Service_routes_listen_and_pause_with_the_proxy()
+    {
+        Assert.Equal(ProxyState.Running, Assert.Single(_services.Statuses).State);
+        Assert.Contains(new Severino.Contracts.HostEntry("redis", _serviceAddress), _helper.Requests[^1].Entries!);
+
+        await _coordinator.PauseAsync();
+        Assert.Empty(_services.Statuses);
+        var other = new TcpListener(IPAddress.Parse(_serviceAddress), _servicePort);
+        other.Start(); // free while paused
+        other.Stop();
+
+        await _coordinator.ResumeAsync();
+        Assert.Equal(ProxyState.Running, Assert.Single(_services.Statuses).State);
     }
 
     [Fact]

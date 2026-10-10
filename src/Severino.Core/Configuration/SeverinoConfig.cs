@@ -14,6 +14,9 @@ public sealed record SeverinoConfig
     public AppSettings Settings { get; set; } = new();
     public AppState State { get; set; } = new();
     public IReadOnlyList<RouteEntry> Routes { get; set; } = [];
+
+    /// <summary>Service routes: names forwarded as plain TCP, usually imported from Kubernetes or Docker.</summary>
+    public IReadOnlyList<ServiceRoute> Services { get; set; } = [];
 }
 
 public sealed record AppSettings
@@ -51,6 +54,67 @@ public sealed record RouteEntry
     public bool PreserveHost { get; set; }
     public bool IgnoreTargetCertErrors { get; set; }
     public string Notes { get; set; } = "";
+}
+
+/// <summary>
+/// A service as the app knows it, by one or more names (algarbffapi, algarbffapi.staging, …),
+/// reached through a loopback address of its own. Each port is forwarded byte for byte, so the
+/// name the app used, the HTTP Host or TLS SNI, arrives unchanged, and any protocol works.
+/// </summary>
+public sealed record ServiceRoute
+{
+    public Guid Id { get; set; } = Guid.NewGuid();
+
+    /// <summary>Normalized; one-label names allowed.</summary>
+    public IReadOnlyList<string> Names { get; set; } = [];
+
+    /// <summary>In 127.77.0.0/16, given once and kept, so the hosts block and the WSL rules stay put.</summary>
+    public string Address { get; set; } = "";
+
+    public IReadOnlyList<ServicePort> Ports { get; set; } = [];
+    public bool Enabled { get; set; } = true;
+
+    /// <summary>Where it was imported from, for "Atualizar"; null for one made by hand.</summary>
+    public ServiceOrigin? Origin { get; set; }
+
+    public string Notes { get; set; } = "";
+}
+
+public sealed record ServicePort
+{
+    /// <summary>What the app calls, e.g. 80 for algarbffapi.</summary>
+    public int Port { get; set; }
+
+    /// <summary>Where it really is: a node IP for a NodePort, 127.0.0.1 for a published container port.</summary>
+    public string TargetHost { get; set; } = "";
+
+    public int TargetPort { get; set; }
+
+    public override string ToString() => $"{Port} → {TargetHost}:{TargetPort}";
+}
+
+public sealed record ServiceOrigin
+{
+    public ServiceKind Kind { get; set; }
+
+    /// <summary>Where the tool ran: "windows" or "wsl:Ubuntu-22.04".</summary>
+    public string Source { get; set; } = "";
+
+    /// <summary>The kubectl context, or the Docker engine ID.</summary>
+    public string Context { get; set; } = "";
+
+    /// <summary>Kubernetes namespace, or Compose project.</summary>
+    public string Namespace { get; set; } = "";
+
+    /// <summary>Service or Compose service name, as the source calls it.</summary>
+    public string Name { get; set; } = "";
+}
+
+[JsonConverter(typeof(JsonStringEnumConverter<ServiceKind>))]
+public enum ServiceKind
+{
+    [JsonStringEnumMemberName("kubernetes")] Kubernetes,
+    [JsonStringEnumMemberName("docker")] Docker,
 }
 
 [JsonConverter(typeof(JsonStringEnumConverter<AppTheme>))]

@@ -202,6 +202,7 @@ public partial class App : Application
             domain => sp.GetRequiredService<LocalCa>().CertificateFor(domain),
             sp.GetRequiredService<RequestLog>()));
         services.AddSingleton(_ => new HealthMonitor());
+        services.AddSingleton(sp => new ServiceForwarder(sp.GetRequiredService<ILoggerFactory>(), sp.GetRequiredService<RequestLog>()));
         services.AddSingleton<ProxyCoordinator>();
 
         services.AddSingleton<ThemeService>();

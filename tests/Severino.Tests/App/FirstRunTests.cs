@@ -41,7 +41,7 @@ public sealed class FirstRunTests : IAsyncLifetime
         _proxy = new ProxyServer(NullLoggerFactory.Instance);
         _hosts = new HostsSync(_config, _helper, NullLogger<HostsSync>.Instance);
         _systemProxy = new SystemProxy(_config, tlds, $@"{_registryRoot}\Internet Settings");
-        _coordinator = new ProxyCoordinator(_config, _proxy, new HealthMonitor(TimeSpan.FromHours(1)), _hosts, ca);
+        _coordinator = new ProxyCoordinator(_config, _proxy, new HealthMonitor(TimeSpan.FromHours(1)), _hosts, ca, new ServiceForwarder(NullLoggerFactory.Instance));
         _https = new HttpsService(_config, ca, tlds);
         await _coordinator.StartAsync();
         await _hosts.SyncAsync();

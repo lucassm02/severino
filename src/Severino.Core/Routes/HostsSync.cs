@@ -32,7 +32,7 @@ public sealed class HostsSync : IDisposable
     private readonly ILogger<HostsSync> _logger;
     private readonly SemaphoreSlim _gate = new(1, 1);
     private readonly Timer _timer;
-    private IReadOnlyList<string>? _synced;
+    private IReadOnlyList<HostEntry>? _synced;
     private bool _stopped;
     private bool _paused;
 
@@ -64,17 +64,17 @@ public sealed class HostsSync : IDisposable
             if (_stopped || _paused)
                 return;
 
-            var domains = RouteRules.ActiveDomains(_config.Current.Routes);
-            var upToDate = Status.State == HostsSyncState.Synced && _synced is not null && _synced.SequenceEqual(domains);
+            var entries = HostsEntries.For(_config.Current);
+            var upToDate = Status.State == HostsSyncState.Synced && _synced is not null && _synced.SequenceEqual(entries);
 
             // Nothing to write: still ping, so a Helper that stopped shows up in the status bar.
             var status = upToDate
                 ? await PingAsync(cancellationToken)
-                : await SendAsync(domains, cancellationToken);
+                : await SendAsync(entries, cancellationToken);
 
             if (status.State == HostsSyncState.Synced)
             {
-                _synced = domains;
+                _synced = entries;
                 _timer.Change(HeartbeatInterval, Timeout.InfiniteTimeSpan);
             }
             else
@@ -132,7 +132,7 @@ public sealed class HostsSync : IDisposable
 
     private void OnConfigChanged(object? sender, SeverinoConfig e)
     {
-        if (_synced is not null && _synced.SequenceEqual(RouteRules.ActiveDomains(e.Routes)))
+        if (_synced is not null && _synced.SequenceEqual(HostsEntries.For(e)))
             return;
         _timer.Change(Debounce, Timeout.InfiniteTimeSpan);
     }
@@ -140,11 +140,11 @@ public sealed class HostsSync : IDisposable
     private Task<HostsSyncStatus> PingAsync(CancellationToken cancellationToken) =>
         RequestAsync(HelperRequest.Ping(), cancellationToken);
 
-    private async Task<HostsSyncStatus> SendAsync(IReadOnlyList<string> domains, CancellationToken cancellationToken)
+    private async Task<HostsSyncStatus> SendAsync(IReadOnlyList<HostEntry> entries, CancellationToken cancellationToken)
     {
-        var status = await RequestAsync(HelperRequest.Sync(domains), cancellationToken);
+        var status = await RequestAsync(HelperRequest.Sync(entries), cancellationToken);
         if (status.State == HostsSyncState.Synced)
-            _logger.LogInformation("Hosts synced with {Count} domains", domains.Count);
+            _logger.LogInformation("Hosts synced with {Count} entries", entries.Count);
         return status;
     }
 

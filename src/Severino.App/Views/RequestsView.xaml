@@ -156,7 +156,7 @@
                     <DataGridTemplateColumn.CellTemplate>
                         <DataTemplate DataType="{x:Type vm:RequestItemViewModel}">
                             <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                                <TextBlock Style="{StaticResource StatusText}" Text="{Binding Status, Mode=OneTime}" />
+                                <TextBlock Style="{StaticResource StatusText}" Text="{Binding StatusText, Mode=OneTime}" />
                                 <Border
                                     Margin="8,0,0,0"
                                     Padding="5,0,5,1"

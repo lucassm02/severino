@@ -32,8 +32,16 @@ public sealed partial class RequestItemViewModel(RequestEntry entry) : Observabl
     public string Host => Entry.Host;
     public string Path => Entry.PathAndQuery;
     public int Status => Entry.Status;
+
+    /// <summary>A service route's TCP connection has no HTTP status: it either reached the target or not.</summary>
+    public bool IsTcp => Entry.Scheme == "tcp";
+
+    public string StatusText => IsTcp ? (Entry.Status == 200 ? "ok" : "falhou") : Entry.Status.ToString(System.Globalization.CultureInfo.InvariantCulture);
+
     public bool FromProxy => Entry.FromProxy;
-    public string Url => $"{Entry.Scheme}://{Entry.Authority}{Entry.PathAndQuery}";
+
+    /// <summary>The address to copy: a URL for HTTP, "name:port" for a TCP connection.</summary>
+    public string Url => IsTcp ? Entry.Authority : $"{Entry.Scheme}://{Entry.Authority}{Entry.PathAndQuery}";
 
     public StatusClass StatusClass => Entry.Status switch
     {
@@ -162,7 +170,7 @@ public sealed partial class RequestsViewModel : ObservableObject
     [RelayCommand]
     private static void Open(RequestItemViewModel? item)
     {
-        if (item is not null && !item.Entry.IsWebSocket)
+        if (item is not null && !item.Entry.IsWebSocket && !item.IsTcp)
             Browser.Open(item.Url);
     }
 

@@ -6,7 +6,7 @@ using Severino.Proxy.Certificates;
 namespace Severino.App.Services;
 
 /// <summary>Keeps the proxy, the health monitor, the hosts block and HTTPS in step with the config.</summary>
-public sealed class ProxyCoordinator(ConfigService config, ProxyServer proxy, HealthMonitor health, HostsSync hosts, LocalCa ca)
+public sealed class ProxyCoordinator(ConfigService config, ProxyServer proxy, HealthMonitor health, HostsSync hosts, LocalCa ca, ServiceForwarder services)
 {
     private static readonly TimeSpan ClearTimeout = TimeSpan.FromSeconds(3);
 
@@ -23,12 +23,17 @@ public sealed class ProxyCoordinator(ConfigService config, ProxyServer proxy, He
         config.Changed += OnConfigChanged;
         ca.Changed += OnCaChanged;
         await proxy.StartAsync(current.Settings.HttpPort, HttpsPort, current.Routes);
+        await services.UpdateAsync(current.Services);
     }
 
     /// <summary>Tries the configured ports again, e.g. after the user freed them. Does nothing while paused.</summary>
-    public Task RetryAsync() => IsPaused
-        ? Task.CompletedTask
-        : proxy.StartAsync(config.Current.Settings.HttpPort, HttpsPort, config.Current.Routes);
+    public async Task RetryAsync()
+    {
+        if (IsPaused)
+            return;
+        await proxy.StartAsync(config.Current.Settings.HttpPort, HttpsPort, config.Current.Routes);
+        await services.UpdateAsync(config.Current.Services);
+    }
 
     public bool IsStopped { get; private set; }
 
@@ -50,6 +55,7 @@ public sealed class ProxyCoordinator(ConfigService config, ProxyServer proxy, He
         PausedChanged?.Invoke(this, EventArgs.Empty);
         await ClearHostsAsync(hosts.PauseAsync);
         await proxy.StopAsync();
+        await services.StopAsync();
     }
 
     public async Task ResumeAsync()
@@ -60,6 +66,7 @@ public sealed class ProxyCoordinator(ConfigService config, ProxyServer proxy, He
         PausedChanged?.Invoke(this, EventArgs.Empty);
         hosts.Resume();
         await proxy.StartAsync(config.Current.Settings.HttpPort, HttpsPort, config.Current.Routes);
+        await services.UpdateAsync(config.Current.Services);
     }
 
     /// <summary>Removes the hosts block and stops listening. Waits at most a few seconds for the Helper.</summary>
@@ -73,6 +80,7 @@ public sealed class ProxyCoordinator(ConfigService config, ProxyServer proxy, He
         await ClearHostsAsync(hosts.ClearAsync);
         // Stop, not dispose: the DI container disposes the proxy when the host shuts down.
         await proxy.StopAsync();
+        await services.StopAsync();
         await health.DisposeAsync();
     }
 
@@ -101,6 +109,7 @@ public sealed class ProxyCoordinator(ConfigService config, ProxyServer proxy, He
             _ = proxy.StartAsync(updated.Settings.HttpPort, HttpsPort, updated.Routes);
         else
             proxy.UpdateRoutes(updated.Routes);
+        _ = services.UpdateAsync(updated.Services);
     }
 
     // Activated, reissued or removed: start or stop the HTTPS listener to match.
