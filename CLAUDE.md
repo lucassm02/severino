@@ -1,6 +1,6 @@
 # Severino
 
-App desktop Windows para apontar domínios para apps locais de dev (`callfred.sev → 127.0.0.1:3000`): grava o hosts, roteia por um proxy reverso em loopback e, opcionalmente, emite HTTPS confiável por uma CA local.
+App desktop Windows para apontar domínios para apps locais de dev (`meuapp.sev → 127.0.0.1:3000`): grava o hosts, roteia por um proxy reverso em loopback e, opcionalmente, emite HTTPS confiável por uma CA local.
 
 **Fonte da verdade do design:** [docs/planejamento.md](docs/planejamento.md). Leia antes de propor arquitetura, stack ou escopo. Divergências do plano devem ser discutidas e registradas lá.
 
@@ -25,6 +25,8 @@ dotnet run --project src/Severino.App
 ## Convenções
 
 - Commits: Conventional Commits em inglês.
+- Mudanças relevantes entram em `[Unreleased]` no [CHANGELOG.md](CHANGELOG.md) ([Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/)), em pt-BR.
+- Exemplos públicos (site, docs, testes, capturas) usam nomes genéricos como `meuapp.sev`, `pedidos.loja` e `banco.interno`; nada de projetos ou clusters reais.
 - Versões de pacotes ficam em `Directory.Packages.props`; `Directory.Build.props` liga `TreatWarningsAsErrors`.
 - Modelos de config usam `{ get; set; }`, não `init` (ver comentário em `SeverinoConfig.cs`); trate as instâncias como imutáveis e altere com `with` via `ConfigService.Update`.
 - Ícones: `src/Severino.App/Assets/severino.ico` e `severino-512.png` são gerados por `dotnet run scripts/build-icons.cs` a partir de `assets/branding/severino-rosto.png`. Não edite os gerados à mão.
