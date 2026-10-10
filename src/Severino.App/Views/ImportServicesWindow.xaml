@@ -44,6 +44,7 @@
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="*" />
                 <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
             </Grid.RowDefinitions>
 
             <!-- Where to look -->
@@ -280,7 +281,44 @@
                 </ListBox>
             </Border>
 
-            <DockPanel Grid.Row="5" Margin="0,16,0,0">
+            <!-- Ingress hosts: web routes to the controller, Host kept -->
+            <StackPanel Grid.Row="5" Margin="0,12,0,0" Visibility="{Binding HasIngresses, Converter={StaticResource TrueToVisible}}">
+                <TextBlock Style="{StaticResource StatusText}" Text="{Binding IngressHeader}" />
+                <Border
+                    Margin="0,6,0,0"
+                    MaxHeight="150"
+                    BorderThickness="1"
+                    CornerRadius="6"
+                    BorderBrush="{DynamicResource ControlStrokeColorDefaultBrush}">
+                    <ScrollViewer VerticalScrollBarVisibility="Auto">
+                        <ItemsControl ItemsSource="{Binding Ingresses}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate DataType="{x:Type vm:IngressItemViewModel}">
+                                    <DockPanel Margin="12,6">
+                                        <CheckBox
+                                            DockPanel.Dock="Left"
+                                            MinWidth="0"
+                                            Margin="0,0,8,0"
+                                            VerticalAlignment="Top"
+                                            IsChecked="{Binding IsSelected}"
+                                            IsEnabled="{Binding CanImport}"
+                                            AutomationProperties.Name="{Binding Host, StringFormat='Criar rota para {0}'}" />
+                                        <StackPanel>
+                                            <TextBlock>
+                                                <Run FontWeight="SemiBold" Text="{Binding Host, Mode=OneWay}" />
+                                                <Run Foreground="{DynamicResource TextFillColorTertiaryBrush}" Text="{Binding Detail, Mode=OneWay, StringFormat='  {0}'}" />
+                                            </TextBlock>
+                                            <TextBlock Style="{StaticResource Caution}" Text="{Binding Warning}" Visibility="{Binding Warning, Converter={StaticResource NullToCollapsed}}" />
+                                        </StackPanel>
+                                    </DockPanel>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </ScrollViewer>
+                </Border>
+            </StackPanel>
+
+            <DockPanel Grid.Row="6" Margin="0,16,0,0">
                 <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
                     <ui:Button MinWidth="96" Content="Cancelar" IsCancel="True" Command="{Binding CancelCommand}" />
                     <ui:Button

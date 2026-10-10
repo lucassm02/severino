@@ -103,8 +103,9 @@ public sealed partial class RoutesViewModel : ObservableObject
     [RelayCommand]
     private void ImportServices()
     {
-        if (_dialogs.ImportServices() is not { } result)
+        if (_dialogs.ImportServices() is not { } outcome)
             return;
+        var result = outcome.Services;
         // Imported from a distro: its apps are the likely callers, so the distro gets the names too.
         var distros = result.Where(p => p.Route is not null)
             .Select(p => CommandSource.FromId(p.Candidate.Origin.Source))
@@ -114,7 +115,8 @@ public sealed partial class RoutesViewModel : ObservableObject
             .ToList();
         if (distros.Count > 0)
             _config.Update(c => c with { Settings = c.Settings with { WslDistros = [.. c.Settings.WslDistros, .. distros] } });
-        ShowToast(ImportServicesViewModel.Describe(result)
+        var ingress = outcome.IngressRoutes.Count switch { 0 => null, 1 => "1 rota de Ingress", var n => $"{n} rotas de Ingress" };
+        ShowToast((result.Count == 0 && ingress is not null ? ingress : ImportServicesViewModel.Describe(result) + (ingress is null ? "" : $" · {ingress}"))
             + (distros.Count > 0 ? $" · apps em WSL · {string.Join(", ", distros)} também chamam pelos nomes (Configurações › WSL)" : ""));
     }
 

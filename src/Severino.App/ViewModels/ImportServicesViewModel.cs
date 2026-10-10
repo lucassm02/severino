@@ -37,6 +37,39 @@ public sealed partial class ImportServicesViewModel : ObservableObject
     private CancellationTokenSource? _loading;
     private bool _batch;
     private readonly IReadOnlyList<Core.Dns.DnsDestination> _destinations;
+    private readonly RouteService? _routes;
+
+    /// <summary>The Ingress hosts of the cluster: each one marked becomes a web route to the controller.</summary>
+    public ObservableCollection<IngressItemViewModel> Ingresses { get; } = [];
+
+    [ObservableProperty]
+    public partial bool HasIngresses { get; set; }
+
+    /// <summary>"Hosts dos Ingress: rotas web para http://192.168.203.100:80, com o Host original".</summary>
+    [ObservableProperty]
+    public partial string? IngressHeader { get; set; }
+
+    private string? _ingressTarget;
+
+    /// <summary>The web routes made from Ingress hosts by the import.</summary>
+    public IReadOnlyList<string> IngressRoutes { get; private set; } = [];
+
+    private void SetIngresses(IReadOnlyList<IngressHost> hosts, string? target)
+    {
+        var marked = Ingresses.Where(i => i.IsSelected).Select(i => i.Host).ToHashSet(StringComparer.Ordinal);
+        _ingressTarget = target;
+        Ingresses.Clear();
+        foreach (var host in _routes is null ? [] : hosts)
+        {
+            var conflict = target is null ? "Não achei o controlador de Ingress para apontar a rota."
+                : _routes!.Validate(new RouteEntry { Domain = host.Host, Target = target }) is { IsValid: false } errors ? errors.Domain ?? errors.Target
+                : null;
+            Ingresses.Add(new IngressItemViewModel(host, conflict, () => UpdatePlan()) { IsSelected = conflict is null && marked.Contains(host.Host) });
+        }
+        HasIngresses = Ingresses.Count > 0;
+        IngressHeader = target is null ? "Hosts dos Ingress"
+            : $"Hosts dos Ingress: cada um vira uma rota web para {target}, com o Host original, sem passar pela internet";
+    }
 
     /// <summary>DNS name → node IP, for the nodes the hosts has a name for.</summary>
     private Dictionary<string, string> _nodeNames = [];
@@ -45,12 +78,13 @@ public sealed partial class ImportServicesViewModel : ObservableObject
     private string? _nodeChoice;
 
     public ImportServicesViewModel(ServiceDiscovery discovery, ServiceRouteService services, ConfigService config,
-        IReadOnlyList<Core.Dns.DnsDestination>? destinations = null)
+        IReadOnlyList<Core.Dns.DnsDestination>? destinations = null, RouteService? routes = null)
     {
         _discovery = discovery;
         _services = services;
         _config = config;
         _destinations = destinations ?? [];
+        _routes = routes;
         UseKubernetes = config.Current.State.ImportKubernetes;
         UseDocker = config.Current.State.ImportDocker;
         _toolsReady = true;
@@ -337,6 +371,7 @@ public sealed partial class ImportServicesViewModel : ObservableObject
         OnPropertyChanged(nameof(HasNodes));
         _batch = false;
 
+        SetIngresses(shownKubernetes?.IngressHosts ?? [], shownKubernetes?.IngressTarget);
         SetCandidates(candidates);
     }
 
@@ -370,7 +405,7 @@ public sealed partial class ImportServicesViewModel : ObservableObject
         _batch = true;
         _all = [.. candidates.Select(c => new CandidateItemViewModel(c, OnItemSelectionChanged)
         {
-            IsSelected = c.Service.CanImport && marked.Any(m => ServiceImport.SameService(m, c.Origin)),
+            IsSelected = (c.Service.CanImport || c.Service.CanForward) && marked.Any(m => ServiceImport.SameService(m, c.Origin)),
         })];
         _batch = false;
 
@@ -445,7 +480,7 @@ public sealed partial class ImportServicesViewModel : ObservableObject
         foreach (var item in _all.Where(i => !i.IsSelected && i.CanImport))
             item.Apply(_services.Plan([item.Candidate])[0]);
 
-        SelectedCount = plan.Count(p => p.Route is not null);
+        SelectedCount = plan.Count(p => p.Route is not null) + Ingresses.Count(i => i.IsSelected);
         UpdateNamespaceLabel();
         UpdateSummary();
     }
@@ -458,6 +493,20 @@ public sealed partial class ImportServicesViewModel : ObservableObject
     private void Import()
     {
         Result = _services.Import([.. _all.Where(i => i.IsSelected).Select(i => i.Candidate)]);
+        // Ingress hosts: web routes to the controller. Host kept, since the Ingress routes by it.
+        var made = new List<string>();
+        foreach (var item in Ingresses.Where(i => i.IsSelected))
+        {
+            try
+            {
+                made.Add(_routes!.Save(new RouteEntry { Domain = item.Host, Target = _ingressTarget!, PreserveHost = true, Notes = "Ingress: " + string.Join(", ", item.Source.Ingresses) }).Domain);
+            }
+            catch (ArgumentException)
+            {
+                // Taken meanwhile; the row said so.
+            }
+        }
+        IngressRoutes = made;
         CloseRequested?.Invoke(this, true);
     }
 
@@ -537,4 +586,19 @@ public sealed partial class CandidateItemViewModel(ServiceCandidate candidate, A
         Warning = CanImport ? planned.Warning : null;
         IsUpdate = planned.Replaces is not null;
     }
+}
+
+/// <summary>One Ingress host in the import window.</summary>
+public sealed partial class IngressItemViewModel(IngressHost source, string? conflict, Action selectionChanged) : ObservableObject
+{
+    public IngressHost Source { get; } = source;
+    public string Host => Source.Host;
+    public bool CanImport => conflict is null;
+    public string? Warning => conflict;
+    public string Detail => Source.Ingresses.Count == 1 ? $"Ingress {Source.Ingresses[0]}" : $"{Source.Ingresses.Count} Ingress, como {Source.Ingresses[0]}";
+
+    [ObservableProperty]
+    public partial bool IsSelected { get; set; }
+
+    partial void OnIsSelectedChanged(bool value) => selectionChanged();
 }

@@ -61,6 +61,36 @@ public sealed class DiscoveryParsingTests
         Assert.StartsWith("ExternalName", Find(services, "fora").Unreachable);
     }
 
+    private const string IngressesJson = """
+        { "kind": "List", "items": [
+          { "metadata": { "name": "loja", "namespace": "loja" },
+            "spec": { "rules": [ { "host": "Loja.Exemplo.com.br", "http": {} }, { "http": {} } ] },
+            "status": { "loadBalancer": {} } },
+          { "metadata": { "name": "api", "namespace": "loja" },
+            "spec": { "rules": [ { "host": "loja.exemplo.com.br" }, { "host": "*.lojas.exemplo.com.br" } ] } }
+        ] }
+        """;
+
+    [Fact]
+    public void Ingress_hosts_are_read_once_each_with_their_ingresses()
+    {
+        var hosts = KubernetesDiscovery.Ingresses(IngressesJson);
+
+        Assert.Equal(["*.lojas.exemplo.com.br", "loja.exemplo.com.br"], hosts.Select(h => h.Host));
+        Assert.Equal(["loja/loja", "loja/api"], hosts[1].Ingresses);
+    }
+
+    [Fact]
+    public void The_ingress_controller_is_found_by_its_status_or_its_service()
+    {
+        var services = KubernetesDiscovery.Services(Services, "10.0.0.1", null);
+        var withController = services.Append(Find(services, "ingress") with { Name = "ingress-nginx-controller" }).ToList();
+
+        Assert.Equal("http://10.0.0.10:80", KubernetesDiscovery.IngressTarget(KubernetesDiscovery.Ingresses(IngressesJson), withController));
+        Assert.Equal("http://10.0.0.99:80", KubernetesDiscovery.IngressTarget([new IngressHost("a.exemplo.com", ["x/y"], "10.0.0.99")], []));
+        Assert.Null(KubernetesDiscovery.IngressTarget(KubernetesDiscovery.Ingresses(IngressesJson), []));
+    }
+
     [Fact]
     public void Kubernetes_names_come_in_four_variants()
     {

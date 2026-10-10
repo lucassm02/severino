@@ -82,6 +82,25 @@ public sealed class ImportServicesTests : IDisposable
     }
 
     [Fact]
+    public async Task An_ingress_host_becomes_a_web_route_to_the_controller_keeping_the_host()
+    {
+        var routes = new RouteService(_config);
+        var viewModel = new ImportServicesViewModel(new ServiceDiscovery(new Runner()), _services, _config, routes: routes);
+        await viewModel.InitializeAsync();
+
+        var ingress = Assert.Single(viewModel.Ingresses);
+        Assert.Equal("loja.exemplo.com.br", ingress.Host);
+        ingress.IsSelected = true;
+        Assert.Equal(1, viewModel.SelectedCount);
+
+        viewModel.ImportCommand.Execute(null);
+
+        var route = Assert.Single(_config.Current.Routes);
+        Assert.Equal(("loja.exemplo.com.br", "http://10.0.0.50:80", true), (route.Domain, route.Target, route.PreserveHost));
+        Assert.Equal(["loja.exemplo.com.br"], viewModel.IngressRoutes);
+    }
+
+    [Fact]
     public async Task A_node_with_a_dns_name_is_used_by_name()
     {
         var viewModel = new ImportServicesViewModel(new ServiceDiscovery(new Runner()), _services, _config,
@@ -140,6 +159,7 @@ public sealed class ImportServicesTests : IDisposable
                 ("Ubuntu", "kubectl", "get nodes -o json --request-timeout=8s") => Ok("""{"items":[{"status":{"addresses":[{"type":"InternalIP","address":"10.0.0.1"}]}}]}"""),
                 ("Ubuntu", "kubectl", "get services -A -o json --request-timeout=8s") => Ok(ServicesJson),
                 ("Ubuntu", "kubectl", "get endpointslices -A -o json --request-timeout=8s") => Ok("""{"items":[]}"""),
+                ("Ubuntu", "kubectl", "get ingress -A -o json --request-timeout=8s") => Ok("""{"items":[{"metadata":{"name":"site","namespace":"loja"},"spec":{"rules":[{"host":"loja.exemplo.com.br"}]},"status":{"loadBalancer":{"ingress":[{"ip":"10.0.0.50"}]}}}]}"""),
                 ("Ubuntu", "docker", _) => new CommandResult(1, "", "Cannot connect to the Docker daemon at unix:///var/run/docker.sock.", false),
                 _ => new CommandResult(-1, "", "not installed", false),
             });

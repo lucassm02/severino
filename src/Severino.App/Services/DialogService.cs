@@ -15,6 +15,9 @@ using FluentResult = Wpf.Ui.Controls.MessageBoxResult;
 
 namespace Severino.App.Services;
 
+/// <param name="IngressRoutes">Web routes made from Ingress hosts.</param>
+public sealed record ImportOutcome(IReadOnlyList<PlannedService> Services, IReadOnlyList<string> IngressRoutes);
+
 public sealed class DialogService(RouteService routes, ServiceRouteService services, ServiceDiscovery discovery, ConfigService config, DomainInspector inspector, HttpsService https, Navigation navigation,
     DnsService? dns = null, DnsSync? dnsSync = null)
 {
@@ -60,11 +63,11 @@ public sealed class DialogService(RouteService routes, ServiceRouteService servi
     };
 
     /// <summary>The "Importar serviços" window; returns what was imported, or null when cancelled.</summary>
-    public IReadOnlyList<PlannedService>? ImportServices()
+    public ImportOutcome? ImportServices()
     {
-        var viewModel = new ImportServicesViewModel(discovery, services, config, dns?.Destinations());
+        var viewModel = new ImportServicesViewModel(discovery, services, config, dns?.Destinations(), routes);
         var window = new ImportServicesWindow(viewModel) { Owner = Application.Current.MainWindow };
-        return window.ShowDialog() == true ? viewModel.Result : null;
+        return window.ShowDialog() == true ? new ImportOutcome(viewModel.Result ?? [], viewModel.IngressRoutes) : null;
     }
 
     /// <summary>The service form; returns the saved route, or null when cancelled.</summary>

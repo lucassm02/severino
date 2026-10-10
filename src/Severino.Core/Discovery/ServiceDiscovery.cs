@@ -5,9 +5,14 @@ namespace Severino.Core.Discovery;
 /// <param name="Context">The kubectl context the services came from.</param>
 /// <param name="Nodes">Node internal IPs; any of them answers any NodePort.</param>
 /// <param name="Node">The node used for NodePorts: the API server's host when it is a node, else the first.</param>
-public sealed record KubernetesResult(string Context, IReadOnlyList<string> Nodes, string? Node, IReadOnlyList<DiscoveredService> Services, string? Error = null)
+/// <param name="Ingresses">The Ingress hosts, which can become web routes to the controller.</param>
+/// <param name="IngressTarget">Where the Ingress controller answers HTTP, when it could be found.</param>
+public sealed record KubernetesResult(string Context, IReadOnlyList<string> Nodes, string? Node, IReadOnlyList<DiscoveredService> Services, string? Error = null,
+    IReadOnlyList<IngressHost>? Ingresses = null, string? IngressTarget = null)
 {
     public static KubernetesResult Failed(string error) => new("", [], null, [], error);
+
+    public IReadOnlyList<IngressHost> IngressHosts => Ingresses ?? [];
 }
 
 /// <param name="Engine">Docker's engine ID: the same engine reached from Windows and from WSL is shown once.</param>
@@ -66,7 +71,8 @@ public sealed class ServiceDiscovery(ICommandRunner runner)
         var nodes = RunAsync(source, "kubectl", ["get", "nodes", "-o", "json", "--request-timeout=8s"], cancellationToken);
         var services = RunAsync(source, "kubectl", ["get", "services", "-A", "-o", "json", "--request-timeout=8s"], cancellationToken);
         var slices = RunAsync(source, "kubectl", ["get", "endpointslices", "-A", "-o", "json", "--request-timeout=8s"], cancellationToken);
-        await Task.WhenAll(server, nodes, services, slices);
+        var ingresses = RunAsync(source, "kubectl", ["get", "ingress", "-A", "-o", "json", "--request-timeout=8s"], cancellationToken);
+        await Task.WhenAll(server, nodes, services, slices, ingresses);
 
         if ((await services).Error is { } servicesError)
             return KubernetesResult.Failed(servicesError) with { Context = contextName };
@@ -79,7 +85,10 @@ public sealed class ServiceDiscovery(ICommandRunner runner)
                 : nodeList.Contains(apiHost) ? apiHost
                 : nodeList.FirstOrDefault();
             var ready = (await slices).Error is null ? KubernetesDiscovery.ReadyServices((await slices).Output) : null;
-            return new(contextName, nodeList, chosen, KubernetesDiscovery.Services((await services).Output, chosen, ready));
+            var found = KubernetesDiscovery.Services((await services).Output, chosen, ready);
+            // Without permission to list Ingresses (or none at all), the services still come.
+            var ingressHosts = (await ingresses).Error is null ? KubernetesDiscovery.Ingresses((await ingresses).Output) : [];
+            return new(contextName, nodeList, chosen, found, Ingresses: ingressHosts, IngressTarget: KubernetesDiscovery.IngressTarget(ingressHosts, found));
         }
         catch (JsonException ex)
         {

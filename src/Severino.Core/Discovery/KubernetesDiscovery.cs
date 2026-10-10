@@ -4,9 +4,57 @@ using Severino.Core.Configuration;
 
 namespace Severino.Core.Discovery;
 
+/// <summary>A host name some Ingress of the cluster answers for, like staging.empresa.com.br.</summary>
+/// <param name="Ingresses">"namespace/name" of the Ingresses that use the host.</param>
+/// <param name="Address">The controller's address, when an Ingress status gives it.</param>
+public sealed record IngressHost(string Host, IReadOnlyList<string> Ingresses, string? Address);
+
 /// <summary>Reads kubectl's JSON into service route candidates.</summary>
 public static class KubernetesDiscovery
 {
+    /// <summary>Every host of every Ingress rule, once each, with the Ingresses that use it.</summary>
+    public static IReadOnlyList<IngressHost> Ingresses(string ingressesJson)
+    {
+        using var doc = JsonDocument.Parse(ingressesJson);
+        var hosts = new Dictionary<string, (List<string> Ingresses, string? Address)>(StringComparer.Ordinal);
+        foreach (var item in Items(doc.RootElement))
+        {
+            var metadata = item.GetProperty("metadata");
+            var id = $"{(metadata.TryGetProperty("namespace", out var ns) ? ns.GetString() : "default")}/{metadata.GetProperty("name").GetString()}";
+            var address = FirstLoadBalancerAddress(item);
+            if (!item.TryGetProperty("spec", out var spec) || !spec.TryGetProperty("rules", out var rules) || rules.ValueKind != JsonValueKind.Array)
+                continue;
+            foreach (var rule in rules.EnumerateArray())
+            {
+                if (!rule.TryGetProperty("host", out var hostElement) || hostElement.GetString() is not { Length: > 0 } raw)
+                    continue;
+                var valid = DomainName.IsWildcard(raw) ? DomainName.TryNormalizeWildcard(raw, out var host, out _) : DomainName.TryNormalize(raw, out host, out _);
+                if (!valid)
+                    continue;
+                if (!hosts.TryGetValue(host!, out var entry))
+                    hosts[host!] = entry = ([], null);
+                if (!entry.Ingresses.Contains(id))
+                    entry.Ingresses.Add(id);
+                if (entry.Address is null && address is not null)
+                    hosts[host!] = (entry.Ingresses, address);
+            }
+        }
+        return [.. hosts.OrderBy(h => h.Key, StringComparer.Ordinal).Select(h => new IngressHost(h.Key, h.Value.Ingresses, h.Value.Address))];
+    }
+
+    /// <summary>
+    /// Where the Ingress controller answers HTTP: the address an Ingress status gives, on port 80,
+    /// else port 80 of the controller's service (its external IP, load balancer or node port).
+    /// </summary>
+    public static string? IngressTarget(IReadOnlyList<IngressHost> hosts, IReadOnlyList<DiscoveredService> services)
+    {
+        if (hosts.Select(h => h.Address).FirstOrDefault(a => a is not null) is { } address)
+            return $"http://{(address.Contains(':') ? $"[{address}]" : address)}:80";
+        var controller = services.FirstOrDefault(s => s.Name.Contains("ingress", StringComparison.Ordinal)
+            && s.Name.Contains("controller", StringComparison.Ordinal) && s.Ports.Any(p => p.Port == 80));
+        return controller?.Ports.First(p => p.Port == 80) is { } port ? $"http://{port.TargetHost}:{port.TargetPort}" : null;
+    }
+
     /// <summary>The four names a service answers to inside the cluster, short first.</summary>
     public static IReadOnlyList<string> NameVariants(string name, string @namespace) =>
         [.. new[] { name, $"{name}.{@namespace}", $"{name}.{@namespace}.svc", $"{name}.{@namespace}.svc.cluster.local" }
