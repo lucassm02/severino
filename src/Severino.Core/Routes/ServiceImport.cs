@@ -34,12 +34,15 @@ public static class ServiceImport
     /// What importing <paramref name="candidates"/> would do, in order. A service imported before
     /// from the same origin is updated in place. A new one takes the next address and the names
     /// nobody has yet, so two namespaces with a <c>redis</c> each still both import: the second
-    /// keeps <c>redis.ns</c> and the longer names.
+    /// keeps <c>redis.ns</c> and the longer names. Names of DNS entries and of hosts lines outside
+    /// Severino (<paramref name="otherNames"/>) are taken too.
     /// </summary>
-    public static IReadOnlyList<PlannedService> Plan(IReadOnlyList<ServiceCandidate> candidates, IReadOnlyList<ServiceRoute> services, IReadOnlyList<RouteEntry> webRoutes)
+    public static IReadOnlyList<PlannedService> Plan(IReadOnlyList<ServiceCandidate> candidates, IReadOnlyList<ServiceRoute> services, IReadOnlyList<RouteEntry> webRoutes,
+        IEnumerable<string>? otherNames = null)
     {
         var taken = services.SelectMany(s => s.Names)
             .Concat(webRoutes.Select(r => RouteRules.Normalize(r.Domain)).OfType<string>())
+            .Concat(otherNames ?? [])
             .ToHashSet(StringComparer.Ordinal);
         var addresses = services.ToList();
         var plan = new List<PlannedService>();

@@ -51,9 +51,11 @@ public static partial class ServiceRules
 
     /// <summary>
     /// The route with its names normalized, or the first reason in Portuguese it cannot be used.
-    /// A name may not belong to another service or to a web route.
+    /// A name may not belong to another service, a web route, a DNS entry (<paramref name="dnsNames"/>)
+    /// or a hosts line outside Severino (<paramref name="external"/>).
     /// </summary>
-    public static (ServiceRoute? Normalized, string? Error) Validate(ServiceRoute route, IReadOnlyList<ServiceRoute> services, IReadOnlyList<RouteEntry> webRoutes)
+    public static (ServiceRoute? Normalized, string? Error) Validate(ServiceRoute route, IReadOnlyList<ServiceRoute> services, IReadOnlyList<RouteEntry> webRoutes,
+        IReadOnlySet<string>? dnsNames = null, IReadOnlySet<string>? external = null)
     {
         if (route.Names.Count == 0)
             return (null, "Informe pelo menos um nome.");
@@ -72,6 +74,10 @@ public static partial class ServiceRules
             .ToHashSet(StringComparer.Ordinal);
         if (names.FirstOrDefault(others.Contains) is { } taken)
             return (null, $"{taken} já está em outra rota.");
+        if (dnsNames is not null && names.FirstOrDefault(dnsNames.Contains) is { } entry)
+            return (null, $"{entry} já é uma entrada DNS.");
+        if (external is not null && names.FirstOrDefault(external.Contains) is { } line)
+            return (null, $"{line} {Dns.DnsRules.ExternalClash}");
 
         if (!IsServiceAddress(route.Address))
             return (null, "Endereço de loopback inválido.");

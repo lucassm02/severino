@@ -17,6 +17,24 @@ public sealed record SeverinoConfig
 
     /// <summary>Service routes: names forwarded as plain TCP, usually imported from Kubernetes or Docker.</summary>
     public IReadOnlyList<ServiceRoute> Services { get; set; } = [];
+
+    /// <summary>Plain name → address entries, kept in the hosts while the app is closed or paused.</summary>
+    public IReadOnlyList<DnsEntry> DnsEntries { get; set; } = [];
+}
+
+/// <summary>A line of the hosts that Severino owns: one address and the names that point to it.</summary>
+public sealed record DnsEntry
+{
+    public Guid Id { get; set; } = Guid.NewGuid();
+
+    /// <summary>Normalized; one-label names allowed.</summary>
+    public IReadOnlyList<string> Names { get; set; } = [];
+
+    /// <summary>Any host address: loopback, private or public (public ones need an approval).</summary>
+    public string Address { get; set; } = "";
+
+    public bool Enabled { get; set; } = true;
+    public string Notes { get; set; } = "";
 }
 
 public sealed record AppSettings

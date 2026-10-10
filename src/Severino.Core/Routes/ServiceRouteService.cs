@@ -4,12 +4,16 @@ using Severino.Core.Discovery;
 namespace Severino.Core.Routes;
 
 /// <summary>Create, import, refresh and remove service routes; every change goes through <see cref="ConfigService"/>.</summary>
-public sealed class ServiceRouteService(ConfigService config)
+public sealed class ServiceRouteService(ConfigService config, Dns.ExternalHosts? external = null)
 {
     public IReadOnlyList<ServiceRoute> Services => config.Current.Services;
 
+    /// <summary>Names an import must leave alone: DNS entries and hosts lines outside Severino.</summary>
+    private IEnumerable<string> OtherNames(SeverinoConfig c) =>
+        Dns.DnsRules.Names(c.DnsEntries).Concat(external?.Names ?? Enumerable.Empty<string>());
+
     public IReadOnlyList<PlannedService> Plan(IReadOnlyList<ServiceCandidate> candidates) =>
-        ServiceImport.Plan(candidates, Services, config.Current.Routes);
+        ServiceImport.Plan(candidates, Services, config.Current.Routes, OtherNames(config.Current));
 
     /// <summary>Saves the plan's routes in one change, planned again against the config as it is now.</summary>
     public IReadOnlyList<PlannedService> Import(IReadOnlyList<ServiceCandidate> candidates)
@@ -17,7 +21,7 @@ public sealed class ServiceRouteService(ConfigService config)
         IReadOnlyList<PlannedService> plan = [];
         config.Update(c =>
         {
-            plan = ServiceImport.Plan(candidates, c.Services, c.Routes);
+            plan = ServiceImport.Plan(candidates, c.Services, c.Routes, OtherNames(c));
             var services = c.Services.ToList();
             foreach (var planned in plan.Where(p => p.Route is not null))
             {
@@ -33,7 +37,7 @@ public sealed class ServiceRouteService(ConfigService config)
     }
 
     public (ServiceRoute? Normalized, string? Error) Validate(ServiceRoute route) =>
-        ServiceRules.Validate(route, Services, config.Current.Routes);
+        ServiceRules.Validate(route, Services, config.Current.Routes, Dns.DnsRules.Names(config.Current.DnsEntries), external?.Names);
 
     /// <summary>Adds the route, or replaces the one with the same id.</summary>
     /// <exception cref="ArgumentException">The route does not pass <see cref="Validate"/>.</exception>
@@ -87,7 +91,7 @@ public sealed class ServiceRouteService(ConfigService config)
                 var route = services.Any(s => s.Address == original.Address)
                     ? original with { Address = ServiceRules.NextAddress(services) }
                     : original;
-                if (services.Any(s => s.Id == route.Id) || ServiceRules.Validate(route, services, c.Routes).Error is not null)
+                if (services.Any(s => s.Id == route.Id) || ServiceRules.Validate(route, services, c.Routes, Dns.DnsRules.Names(c.DnsEntries), external?.Names).Error is not null)
                     continue;
                 services.Add(route);
                 restored++;

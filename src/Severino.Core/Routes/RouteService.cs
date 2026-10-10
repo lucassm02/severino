@@ -3,12 +3,13 @@ using Severino.Core.Configuration;
 namespace Severino.Core.Routes;
 
 /// <summary>Create, edit and remove routes; every change is saved through <see cref="ConfigService"/>.</summary>
-public sealed class RouteService(ConfigService config)
+public sealed class RouteService(ConfigService config, Dns.ExternalHosts? external = null)
 {
     public IReadOnlyList<RouteEntry> Routes => config.Current.Routes;
 
     public RouteErrors Validate(RouteEntry route) =>
-        RouteRules.Validate(route, Routes, config.Current.Settings.HttpPort, config.Current.Settings.HttpsPort, config.Current.Services);
+        RouteRules.Validate(route, Routes, config.Current.Settings.HttpPort, config.Current.Settings.HttpsPort, config.Current.Services,
+            Dns.DnsRules.Names(config.Current.DnsEntries), external?.Names);
 
     /// <summary>Adds the route, or replaces the one with the same id. Domain is stored normalized.</summary>
     /// <exception cref="ArgumentException">The route does not pass <see cref="Validate"/>.</exception>

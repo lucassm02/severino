@@ -14,9 +14,11 @@ public static class RouteRules
 {
     /// <summary>
     /// Checks <paramref name="route"/> against the other routes; ignores the one with the same id.
-    /// <paramref name="services"/> are the service routes, whose names a web route cannot take.
+    /// <paramref name="services"/>, <paramref name="dnsNames"/> and <paramref name="external"/> (hosts
+    /// lines outside Severino) hold names a web route cannot take.
     /// </summary>
-    public static RouteErrors Validate(RouteEntry route, IReadOnlyList<RouteEntry> routes, int proxyPort, int? httpsPort = null, IReadOnlyList<ServiceRoute>? services = null)
+    public static RouteErrors Validate(RouteEntry route, IReadOnlyList<RouteEntry> routes, int proxyPort, int? httpsPort = null, IReadOnlyList<ServiceRoute>? services = null,
+        IReadOnlySet<string>? dnsNames = null, IReadOnlySet<string>? external = null)
     {
         string? domainError = null;
         if (!DomainName.TryNormalize(route.Domain, out var domain, out var reason))
@@ -25,6 +27,10 @@ public static class RouteRules
             domainError = "Já existe uma rota para este domínio.";
         else if (services?.Any(s => s.Names.Contains(domain)) == true)
             domainError = "Já existe uma rota de serviço com este nome.";
+        else if (dnsNames?.Contains(domain) == true)
+            domainError = "Já existe uma entrada DNS com este nome.";
+        else if (external?.Contains(domain) == true)
+            domainError = $"Este nome {Dns.DnsRules.ExternalClash}";
 
         string? targetError = null;
         if (!TryParseTarget(route.Target, out var target, out var targetReason))
