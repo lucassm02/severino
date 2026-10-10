@@ -7,7 +7,7 @@ namespace Severino.App.Services;
 
 /// <summary>Keeps the proxy, the health monitor, the hosts block, HTTPS and the WSL distros in step with the config.</summary>
 public sealed class ProxyCoordinator(ConfigService config, ProxyServer proxy, HealthMonitor health, HostsSync hosts, LocalCa ca, ServiceForwarder services, WslCallers wsl,
-    Severino.Core.Discovery.PortForwards? forwards = null)
+    Severino.Core.Discovery.PortForwards? forwards = null, Severino.Core.Discovery.ServiceWatcher? watcher = null)
 {
     private static readonly TimeSpan ClearTimeout = TimeSpan.FromSeconds(3);
 
@@ -27,6 +27,7 @@ public sealed class ProxyCoordinator(ConfigService config, ProxyServer proxy, He
         await services.UpdateAsync(current.Services);
         wsl.Start();
         forwards?.Start();
+        watcher?.Start();
     }
 
     /// <summary>Tries the configured ports again, e.g. after the user freed them. Does nothing while paused.</summary>
@@ -62,6 +63,8 @@ public sealed class ProxyCoordinator(ConfigService config, ProxyServer proxy, He
         await wsl.PauseAsync();
         if (forwards is not null)
             await forwards.PauseAsync();
+        if (watcher is not null)
+            await watcher.PauseAsync();
     }
 
     public async Task ResumeAsync()
@@ -75,6 +78,7 @@ public sealed class ProxyCoordinator(ConfigService config, ProxyServer proxy, He
         await services.UpdateAsync(config.Current.Services);
         await wsl.ResumeAsync();
         forwards?.Resume();
+        watcher?.Resume();
     }
 
     /// <summary>Removes the hosts block and stops listening. Waits at most a few seconds for the Helper.</summary>
@@ -92,6 +96,8 @@ public sealed class ProxyCoordinator(ConfigService config, ProxyServer proxy, He
         await wsl.StopAsync(ClearTimeout);
         if (forwards is not null)
             await forwards.StopAsync();
+        if (watcher is not null)
+            await watcher.StopAsync();
         await health.DisposeAsync();
     }
 

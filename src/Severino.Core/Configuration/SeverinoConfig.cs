@@ -47,6 +47,9 @@ public sealed record AppSettings
 
     /// <summary>WSL distros whose apps call the service routes by name; each gets the hosts block and the NAT rules.</summary>
     public IReadOnlyList<string> WslDistros { get; set; } = [];
+
+    /// <summary>Refresh imported services on their own while the app is open (Docker events, Kubernetes every 30 s).</summary>
+    public bool WatchServices { get; set; } = true;
 }
 
 /// <summary>Flags the app records about itself; not shown as settings.</summary>

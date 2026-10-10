@@ -205,6 +205,20 @@
                 </StackPanel>
             </ui:Card>
 
+            <ui:CardControl Margin="0,0,0,4" Icon="{ui:SymbolIcon ArrowSync24}">
+                <ui:CardControl.Header>
+                    <StackPanel>
+                        <ui:TextBlock Text="Acompanhar serviços importados" />
+                        <ui:TextBlock
+                            Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                            FontTypography="Caption"
+                            TextWrapping="Wrap"
+                            Text="Com o app aberto, faz o Atualizar sozinho: quando um container do Docker sobe ou cai, e no Kubernetes a cada 30 s." />
+                    </StackPanel>
+                </ui:CardControl.Header>
+                <ui:ToggleSwitch IsChecked="{Binding WatchServices}" AutomationProperties.Name="Acompanhar serviços importados" />
+            </ui:CardControl>
+
             <ui:TextBlock Margin="0,16,0,8" FontTypography="BodyStrong" Text="Aparência" />
             <ui:CardControl Margin="0,0,0,4" Icon="{ui:SymbolIcon DarkTheme24}">
                 <ui:CardControl.Header>

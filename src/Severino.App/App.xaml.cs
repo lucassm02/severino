@@ -206,6 +206,10 @@ public partial class App : Application
         services.AddSingleton<WslCallers>();
         services.AddSingleton<IPortForwardRunner, ProcessPortForwardRunner>();
         services.AddSingleton<PortForwards>();
+        services.AddSingleton<ServiceRefresher>();
+        services.AddSingleton<IServiceEvents, ProcessServiceEvents>();
+        services.AddSingleton(sp => new ServiceWatcher(sp.GetRequiredService<ConfigService>(), sp.GetRequiredService<ServiceRefresher>(),
+            sp.GetRequiredService<IServiceEvents>(), sp.GetRequiredService<ILogger<ServiceWatcher>>()));
         services.AddSingleton<IHelperClient>(_ => new HelperClient());
         services.AddSingleton<HostsSync>();
         services.AddSingleton<IDnsResolver, WindowsDnsResolver>();

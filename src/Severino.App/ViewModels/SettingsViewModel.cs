@@ -50,6 +50,7 @@ public sealed partial class SettingsViewModel : ObservableObject
         Theme = settings.Theme;
         StartWithWindows = autoStart.IsEnabled;
         StartMinimized = settings.StartMinimized;
+        WatchServices = settings.WatchServices;
         HttpPort = settings.HttpPort.ToString();
         HttpsPort = settings.HttpsPort.ToString();
 
@@ -86,6 +87,13 @@ public sealed partial class SettingsViewModel : ObservableObject
 
     partial void OnStartMinimizedChanged(bool value) =>
         _config.Update(c => c with { Settings = c.Settings with { StartMinimized = value } });
+
+    /// <summary>Follow imported services on their own: Docker events, Kubernetes every 30 s.</summary>
+    [ObservableProperty]
+    public partial bool WatchServices { get; set; }
+
+    partial void OnWatchServicesChanged(bool value) =>
+        _config.Update(c => c with { Settings = c.Settings with { WatchServices = value } });
 
     /// <summary>The Run key is the truth; the config mirrors it for exports and support.</summary>
     [ObservableProperty]

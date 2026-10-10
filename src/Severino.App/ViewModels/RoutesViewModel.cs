@@ -38,7 +38,7 @@ public sealed partial class RoutesViewModel : ObservableObject
     private Func<string?>? _undo;
 
     public RoutesViewModel(RouteService routes, ServiceRouteService services, ServiceDiscovery discovery, ConfigService config, HealthMonitor health, DialogService dialogs, HttpsService https,
-        DnsService? dns = null, HostsSync? hosts = null, PortForwards? forwards = null)
+        DnsService? dns = null, HostsSync? hosts = null, PortForwards? forwards = null, ServiceWatcher? watcher = null)
     {
         _routes = routes;
         _services = services;
@@ -48,6 +48,8 @@ public sealed partial class RoutesViewModel : ObservableObject
         _forwards = forwards;
         if (forwards is not null)
             forwards.Changed += (_, _) => Dispatch(ApplyForwards);
+        if (watcher is not null)
+            watcher.Updated += (_, message) => Dispatch(() => ShowToast(message));
         if (hosts is not null)
         {
             hosts.StatusChanged += (_, _) => Dispatch(UpdateWildcardPending);
@@ -157,54 +159,8 @@ public sealed partial class RoutesViewModel : ObservableObject
         group.IsRefreshing = true;
         try
         {
-            var source = CommandSource.FromId(origin.Source);
-            IReadOnlyList<DiscoveredService> found;
-            if (origin.Kind == ServiceKind.Kubernetes)
-            {
-                // Keep the node the routes use, when it is still one of the cluster's.
-                var node = group.Items.SelectMany(i => i.Route.Ports).Select(p => p.TargetHost).FirstOrDefault();
-                // A node kept by its DNS name: ask with its IP, then write the name back.
-                string? nodeName = null;
-                if (node is not null && !System.Net.IPAddress.TryParse(node, out _)
-                    && _dns?.Destinations().FirstOrDefault(d => d.Name == node) is { } destination)
-                {
-                    nodeName = node;
-                    node = destination.Address;
-                }
-                var result = await _discovery.KubernetesAsync(source, CancellationToken.None, node);
-                if (result.Error is { } error)
-                {
-                    ShowToast(error);
-                    return;
-                }
-                if (result.Context != origin.Context)
-                {
-                    ShowToast($"O kubectl em {source} está no contexto {result.Context}, não em {origin.Context}. Troque o contexto e atualize de novo.");
-                    return;
-                }
-                found = nodeName is not null && result.Node is { } address
-                    ? DiscoveredService.UseName(result.Services, address, nodeName)
-                    : result.Services;
-            }
-            else
-            {
-                var result = await _discovery.DockerAsync(source, CancellationToken.None);
-                if (result.Error is { } error)
-                {
-                    ShowToast(error);
-                    return;
-                }
-                found = result.Containers;
-            }
-
-            var refresh = _services.Refresh(origin, found);
-            var parts = new List<string>
-            {
-                refresh.Updated.Count == 0 ? "Nada mudou" : $"{Plural(refresh.Updated.Count, "serviço com portas novas", "serviços com portas novas")}",
-            };
-            if (refresh.Missing.Count > 0)
-                parts.Add($"não encontrados agora: {string.Join(", ", refresh.Missing.Select(m => m.Names[0]))}");
-            ShowToast(string.Join(" · ", parts));
+            var outcome = await new ServiceRefresher(_discovery, _services, _dns).RefreshAsync(origin, CancellationToken.None);
+            ShowToast(outcome.Describe());
         }
         finally
         {
