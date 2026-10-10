@@ -53,10 +53,17 @@ public sealed partial class SystemProxy(ConfigService config, TldDirectory tlds,
         }, null, PollInterval, PollInterval);
     }
 
-    /// <summary>Adds bypass entries for every uncovered domain and remembers which ones it added.</summary>
-    public async Task<IReadOnlyList<string>> AddExceptionsAsync(CancellationToken cancellationToken = default)
+    /// <summary>Adds bypass entries for every uncovered route domain and remembers which ones it added.</summary>
+    public Task<IReadOnlyList<string>> AddExceptionsAsync(CancellationToken cancellationToken = default) =>
+        AddExceptionsForAsync(RouteRules.ActiveDomains(config.Current.Routes), cancellationToken);
+
+    /// <summary>
+    /// The same for <paramref name="domains"/>, routed or not yet: the first-run wizard asks about
+    /// ".sev" before any route exists.
+    /// </summary>
+    public async Task<IReadOnlyList<string>> AddExceptionsForAsync(IEnumerable<string> domains, CancellationToken cancellationToken = default)
     {
-        var uncovered = Uncovered();
+        var uncovered = ProxyBypass.Uncovered(Read(), domains);
         if (uncovered.Count == 0)
             return [];
         // Whole TLDs where the TLD does not exist on the internet: new .sev routes need nothing more.

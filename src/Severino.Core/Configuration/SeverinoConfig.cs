@@ -30,6 +30,9 @@ public sealed record AppState
 {
     public bool CloseToTrayHintShown { get; set; }
 
+    /// <summary>The first-run wizard was finished or skipped; it can be reopened from Settings.</summary>
+    public bool FirstRunCompleted { get; set; }
+
     /// <summary>TLD -> exists on the internet, cached for the CA coverage (see TldDirectory).</summary>
     public IReadOnlyDictionary<string, bool> TldExists { get; set; } = new Dictionary<string, bool>();
 

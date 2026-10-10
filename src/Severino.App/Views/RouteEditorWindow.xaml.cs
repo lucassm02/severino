@@ -10,9 +10,6 @@ public partial class RouteEditorWindow : FluentWindow
         DataContext = viewModel;
         InitializeComponent();
         viewModel.CloseRequested += (_, saved) => DialogResult = saved;
-        Loaded += (_, _) => DomainBox.Focus();
+        Loaded += (_, _) => Form.FocusDomain();
     }
-
-    // The list goes stale quickly while you start servers; read it again each time it opens.
-    private void OnPortsOpening(object? sender, EventArgs e) => _ = ((RouteEditorViewModel)DataContext).RefreshPortsAsync();
 }

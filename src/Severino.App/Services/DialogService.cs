@@ -22,6 +22,10 @@ public sealed class DialogService(RouteService routes, DomainInspector inspector
         return window.ShowDialog() == true ? viewModel.Saved : null;
     }
 
+    /// <summary>The first-run wizard, over the main window.</summary>
+    public static void ShowFirstRun(FirstRunViewModel viewModel) =>
+        new FirstRunWindow(viewModel) { Owner = Application.Current.MainWindow }.ShowDialog();
+
     public static void ShowMessage(string title, string message) =>
         MessageBox.Show(Application.Current.MainWindow, message, title, MessageBoxButton.OK, MessageBoxImage.Information);
 

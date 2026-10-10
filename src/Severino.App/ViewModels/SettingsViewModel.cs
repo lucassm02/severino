@@ -27,10 +27,12 @@ public sealed partial class SettingsViewModel : ObservableObject
     private readonly AutoStart _autoStart;
     private readonly SystemCleanup _cleanup;
     private readonly Lazy<ShellService> _shell;
+    private readonly Func<FirstRunViewModel> _firstRun;
 
     public SettingsViewModel(ConfigService config, ThemeService themes, HttpsService https, RouteService routes,
-        AutoStart autoStart, SystemCleanup cleanup, Lazy<ShellService> shell)
+        AutoStart autoStart, SystemCleanup cleanup, Lazy<ShellService> shell, Func<FirstRunViewModel> firstRun)
     {
+        _firstRun = firstRun;
         _config = config;
         _themes = themes;
         _https = https;
@@ -384,6 +386,9 @@ public sealed partial class SettingsViewModel : ObservableObject
         // Exiting clears the hosts block, like any exit.
         await shell.ExitAsync();
     }
+
+    [RelayCommand]
+    private void ReviewSetup() => DialogService.ShowFirstRun(_firstRun());
 
     [RelayCommand]
     private void OpenConfigFolder()

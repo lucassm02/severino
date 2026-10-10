@@ -89,6 +89,9 @@ public sealed partial class RouteEditorViewModel : ObservableObject
     /// <summary>The local CA is active, so the HTTPS options apply.</summary>
     public bool HttpsAvailable { get; }
 
+    /// <summary>False in the first-run wizard, which offers HTTPS its own way, before any CA exists.</summary>
+    public bool ShowHttpsOptions { get; init; } = true;
+
     /// <summary>The TLD is HSTS-preloaded: browsers only open it over HTTPS.</summary>
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(CanToggleHttps), nameof(HttpsRequiredText))]

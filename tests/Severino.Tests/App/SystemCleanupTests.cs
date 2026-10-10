@@ -13,7 +13,7 @@ namespace Severino.Tests.App;
 /// <summary>Autostart and cleanup, against a throwaway registry key: never the real Run key.</summary>
 public sealed class SystemCleanupTests : IDisposable
 {
-    private readonly string _keyPath = $@"Software\Severino\Tests\{Guid.NewGuid():N}\Run";
+    private readonly string _keyPath = TestRegistry.NewKey() + @"\Run";
     private readonly string _dir = Path.Combine(Path.GetTempPath(), "severino-tests", Guid.NewGuid().ToString("N"));
     private readonly string _exe;
     private readonly ConfigService _config;
@@ -50,17 +50,7 @@ public sealed class SystemCleanupTests : IDisposable
     public void Dispose()
     {
         _proxy.Dispose();
-        Registry.CurrentUser.DeleteSubKeyTree(Path.GetDirectoryName(_keyPath)!, throwOnMissingSubKey: false);
-        // Leave no empty parents behind either.
-        foreach (var parent in new[] { @"Software\Severino\Tests", @"Software\Severino" })
-        {
-            using var key = Registry.CurrentUser.OpenSubKey(parent);
-            if (key is { SubKeyCount: 0, ValueCount: 0 })
-            {
-                key.Dispose();
-                Registry.CurrentUser.DeleteSubKey(parent, throwOnMissingSubKey: false);
-            }
-        }
+        TestRegistry.Delete(Path.GetDirectoryName(_keyPath)!);
         if (Directory.Exists(_dir))
             Directory.Delete(_dir, recursive: true);
     }

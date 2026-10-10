@@ -200,6 +200,15 @@
                 </ui:CardControl.Header>
                 <ui:Button Content="Abrir pasta" Command="{Binding OpenConfigFolderCommand}" />
             </ui:CardControl>
+            <ui:CardControl Margin="0,0,0,4" Icon="{ui:SymbolIcon CheckmarkCircle24}">
+                <ui:CardControl.Header>
+                    <StackPanel>
+                        <ui:TextBlock Text="Rever checagem" />
+                        <ui:TextBlock Foreground="{DynamicResource TextFillColorSecondaryBrush}" FontTypography="Caption" TextWrapping="Wrap" Text="Abre de novo o assistente do primeiro uso: serviço auxiliar, porta e proxy do sistema" />
+                    </StackPanel>
+                </ui:CardControl.Header>
+                <ui:Button Content="Abrir" Command="{Binding ReviewSetupCommand}" />
+            </ui:CardControl>
             <ui:CardControl Margin="0,0,0,4" Icon="{ui:SymbolIcon ArrowSwap24}">
                 <ui:CardControl.Header>
                     <StackPanel>

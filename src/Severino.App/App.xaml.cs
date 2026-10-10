@@ -89,7 +89,10 @@ public partial class App : Application
 
         // Started by Windows at logon: straight to the tray, whatever "Iniciar minimizado" says.
         if (!config.Current.Settings.StartMinimized && !e.Args.Contains(AutoStart.Argument))
+        {
             shell.ShowMainWindow();
+            OfferFirstRun(config);
+        }
 
         _ = StartProxyAsync(_host.Services.GetRequiredService<ProxyCoordinator>());
     }
@@ -111,6 +114,23 @@ public partial class App : Application
             SystemCleanup.DeleteData(ConfigStore.DefaultDirectory);
         _singleInstance?.Dispose();
         base.OnExit(e);
+    }
+
+    /// <summary>
+    /// The wizard, once, for someone new. A config that already has routes predates the wizard:
+    /// that person needs no introduction.
+    /// </summary>
+    private void OfferFirstRun(ConfigService config)
+    {
+        if (config.Current.State.FirstRunCompleted)
+            return;
+        if (config.Current.Routes.Count > 0)
+        {
+            config.Update(c => c with { State = c.State with { FirstRunCompleted = true } });
+            return;
+        }
+        // After the main window is up, so the wizard opens over it.
+        Dispatcher.BeginInvoke(() => DialogService.ShowFirstRun(_host!.Services.GetRequiredService<FirstRunViewModel>()));
     }
 
     private const string CleanupArgument = "--cleanup";
@@ -201,6 +221,8 @@ public partial class App : Application
         services.AddSingleton<RoutesViewModel>();
         services.AddSingleton<RequestsViewModel>();
         services.AddSingleton<SettingsViewModel>();
+        services.AddTransient<FirstRunViewModel>();
+        services.AddSingleton<Func<FirstRunViewModel>>(sp => sp.GetRequiredService<FirstRunViewModel>);
         services.AddSingleton<StatusBarViewModel>();
         services.AddSingleton<TrayViewModel>();
 

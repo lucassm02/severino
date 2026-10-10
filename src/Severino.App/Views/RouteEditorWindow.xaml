@@ -5,6 +5,7 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
+    xmlns:views="clr-namespace:Severino.App.Views"
     xmlns:vm="clr-namespace:Severino.App.ViewModels"
     mc:Ignorable="d"
     d:DataContext="{d:DesignInstance Type=vm:RouteEditorViewModel}"
@@ -17,143 +18,12 @@
     WindowBackdropType="Mica"
     Icon="/Assets/severino.ico"
     ExtendsContentIntoTitleBar="True">
-    <ui:FluentWindow.Resources>
-        <Style x:Key="FieldLabel" TargetType="ui:TextBlock">
-            <Setter Property="Margin" Value="0,0,0,6" />
-            <Setter Property="FontTypography" Value="BodyStrong" />
-        </Style>
-        <Style x:Key="ErrorText" TargetType="ui:TextBlock">
-            <Setter Property="Margin" Value="0,4,0,0" />
-            <Setter Property="TextWrapping" Value="Wrap" />
-            <Setter Property="Foreground" Value="{DynamicResource SystemFillColorCriticalBrush}" />
-        </Style>
-    </ui:FluentWindow.Resources>
 
     <StackPanel>
         <ui:TitleBar Title="{Binding Title}" ShowMaximize="False" ShowMinimize="False" />
 
         <StackPanel Margin="24,8,24,24">
-            <ui:TextBlock Style="{StaticResource FieldLabel}" Text="Domínio" />
-            <ui:TextBox
-                x:Name="DomainBox"
-                PlaceholderText="ex.: callfred.sev"
-                AutomationProperties.Name="Domínio"
-                Text="{Binding Domain, UpdateSourceTrigger=PropertyChanged}" />
-            <ui:TextBlock
-                Margin="0,4,0,0"
-                Foreground="{DynamicResource TextFillColorSecondaryBrush}"
-                FontTypography="Caption"
-                TextWrapping="Wrap"
-                Text="Qualquer nome vale. .test e .localhost são reservados e nunca colidem com a internet." />
-            <ui:TextBlock Style="{StaticResource ErrorText}" Text="{Binding DomainError}" Visibility="{Binding DomainError, Converter={StaticResource NullToCollapsed}}" />
-            <ItemsControl Margin="0,4,0,0" ItemsSource="{Binding DomainWarnings}">
-                <ItemsControl.ItemTemplate>
-                    <DataTemplate>
-                        <ui:InfoBar
-                            Margin="0,4,0,0"
-                            IsOpen="True"
-                            IsClosable="False"
-                            Severity="Warning"
-                            Message="{Binding Message}"
-                            AutomationProperties.Name="{Binding Message}"
-                            AutomationProperties.LiveSetting="Polite" />
-                    </DataTemplate>
-                </ItemsControl.ItemTemplate>
-            </ItemsControl>
-
-            <ui:TextBlock Margin="0,16,0,6" Style="{StaticResource FieldLabel}" Text="Destino" />
-            <Grid>
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="104" />
-                    <ColumnDefinition Width="Auto" />
-                    <ColumnDefinition Width="*" />
-                    <ColumnDefinition Width="Auto" />
-                    <ColumnDefinition Width="96" />
-                </Grid.ColumnDefinitions>
-                <ComboBox Grid.Column="0" ItemsSource="{Binding Schemes}" SelectedItem="{Binding Scheme}" AutomationProperties.Name="Protocolo do destino" />
-                <ui:TextBlock Grid.Column="1" Margin="6,0" VerticalAlignment="Center" Text="://" />
-                <ui:TextBox Grid.Column="2" AutomationProperties.Name="Host do destino" Text="{Binding TargetHost, UpdateSourceTrigger=PropertyChanged}" />
-                <ui:TextBlock Grid.Column="3" Margin="6,0" VerticalAlignment="Center" Text=":" />
-                <!-- Editable: any number works; the list only saves remembering it. No autocomplete,
-                     which would turn a typed "50" into "5000". -->
-                <ComboBox
-                    Grid.Column="4"
-                    IsEditable="True"
-                    IsTextSearchEnabled="False"
-                    TextSearch.TextPath="PortText"
-                    ItemsSource="{Binding Ports}"
-                    Text="{Binding TargetPort, UpdateSourceTrigger=PropertyChanged}"
-                    DropDownOpened="OnPortsOpening"
-                    ToolTip="Portas com algum programa escutando agora"
-                    AutomationProperties.Name="Porta do destino">
-                    <ComboBox.ItemTemplate>
-                        <DataTemplate>
-                            <TextBlock Text="{Binding Label}" />
-                        </DataTemplate>
-                    </ComboBox.ItemTemplate>
-                </ComboBox>
-            </Grid>
-            <ui:TextBlock Style="{StaticResource ErrorText}" Text="{Binding TargetError}" Visibility="{Binding TargetError, Converter={StaticResource NullToCollapsed}}" />
-            <ui:TextBlock
-                Margin="0,4,0,0"
-                TextWrapping="Wrap"
-                Foreground="{DynamicResource SystemFillColorCautionBrush}"
-                Text="{Binding PortWarning}"
-                Visibility="{Binding PortWarning, Converter={StaticResource NullToCollapsed}}" />
-
-            <ui:TextBlock Margin="0,16,0,6" Style="{StaticResource FieldLabel}" Text="HTTPS" />
-            <CheckBox Content="HTTPS" IsChecked="{Binding Https}" IsEnabled="{Binding CanToggleHttps}" />
-            <CheckBox Content="Redirecionar HTTP→HTTPS" IsChecked="{Binding RedirectToHttps}" IsEnabled="{Binding CanToggleRedirect}" />
-            <ui:TextBlock
-                Margin="0,4,0,0"
-                Foreground="{DynamicResource TextFillColorSecondaryBrush}"
-                FontTypography="Caption"
-                TextWrapping="Wrap"
-                Text="{Binding HttpsRequiredText}"
-                Visibility="{Binding HttpsRequiredText, Converter={StaticResource NullToCollapsed}}" />
-            <TextBlock
-                Margin="0,4,0,0"
-                FontSize="12"
-                TextWrapping="Wrap"
-                Foreground="{DynamicResource TextFillColorSecondaryBrush}"
-                Visibility="{Binding HttpsAvailable, Converter={StaticResource FalseToVisible}}">
-                <Run Text="O HTTPS está desativado." />
-                <Hyperlink Foreground="{DynamicResource AccentTextFillColorPrimaryBrush}" Command="{Binding OpenHttpsSettingsCommand}">Ativar em Configurações</Hyperlink>
-            </TextBlock>
-            <ui:InfoBar
-                Margin="0,8,0,0"
-                IsOpen="True"
-                IsClosable="False"
-                Severity="Warning"
-                Message="{Binding CoverageWarning}"
-                Visibility="{Binding CoverageWarning, Converter={StaticResource NullToCollapsed}}"
-                AutomationProperties.LiveSetting="Polite" />
-
-            <Expander Margin="0,16,0,0" Header="Avançado" IsExpanded="{Binding ShowAdvanced}">
-                <StackPanel Margin="0,8,0,0">
-                    <CheckBox Content="Preservar o Host original" IsChecked="{Binding PreserveHost}" />
-                    <ui:TextBlock
-                        Margin="28,0,0,8"
-                        Foreground="{DynamicResource TextFillColorSecondaryBrush}"
-                        FontTypography="Caption"
-                        TextWrapping="Wrap"
-                        Text="Para apps que geram URLs absolutas. Desligado, o destino recebe o próprio host, o que agrada o Vite e o webpack." />
-                    <CheckBox Content="Ignorar certificado inválido do destino" IsChecked="{Binding IgnoreTargetCertErrors}" />
-                    <ui:TextBlock
-                        Margin="28,0,0,8"
-                        Foreground="{DynamicResource TextFillColorSecondaryBrush}"
-                        FontTypography="Caption"
-                        TextWrapping="Wrap"
-                        Text="Útil para destinos https de desenvolvimento, como o https://localhost:5001 do ASP.NET." />
-                    <ui:TextBox
-                        MinHeight="64"
-                        AcceptsReturn="True"
-                        TextWrapping="Wrap"
-                        PlaceholderText="Observações"
-                        AutomationProperties.Name="Observações"
-                        Text="{Binding Notes, UpdateSourceTrigger=PropertyChanged}" />
-                </StackPanel>
-            </Expander>
+            <views:RouteForm x:Name="Form" />
 
             <StackPanel Margin="0,24,0,0" HorizontalAlignment="Right" Orientation="Horizontal">
                 <ui:Button MinWidth="96" Content="Cancelar" IsCancel="True" Command="{Binding CancelCommand}" />
