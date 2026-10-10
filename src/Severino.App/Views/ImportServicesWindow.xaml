@@ -62,8 +62,8 @@
                     Margin="16,0,0,0"
                     Orientation="Horizontal"
                     Visibility="{Binding HasNodes, Converter={StaticResource TrueToVisible}}">
-                    <TextBlock Margin="0,0,8,0" VerticalAlignment="Center" Text="Nó das NodePorts" />
-                    <ComboBox MinWidth="150" ItemsSource="{Binding Nodes}" SelectedItem="{Binding SelectedNode}" AutomationProperties.Name="Nó das NodePorts" />
+                    <TextBlock Margin="0,0,8,0" VerticalAlignment="Center" Text="Endereço do cluster" ToolTip="O nó por onde as NodePorts entram: um IP, ou o nome dele na aba DNS" />
+                    <ComboBox MinWidth="150" ItemsSource="{Binding Nodes}" SelectedItem="{Binding SelectedNode}" ToolTip="O nó por onde as NodePorts entram: um IP, ou o nome dele na aba DNS" AutomationProperties.Name="Endereço do cluster" />
                 </StackPanel>
                 <ui:Button
                     DockPanel.Dock="Right"
@@ -252,10 +252,7 @@
                                             <Run Foreground="{DynamicResource TextFillColorSecondaryBrush}" Text="{Binding Namespace, Mode=OneWay, StringFormat='  {0}'}" />
                                             <Run Foreground="{DynamicResource TextFillColorTertiaryBrush}" Text="{Binding KindText, Mode=OneWay, StringFormat='  ·  {0}'}" />
                                         </TextBlock>
-                                        <TextBlock
-                                            Style="{StaticResource StatusText}"
-                                            FontFamily="Cascadia Mono, Consolas"
-                                            Text="{Binding Detail}" />
+                                        <TextBlock Style="{StaticResource StatusText}" Text="{Binding Detail}" />
                                         <TextBlock
                                             FontSize="12"
                                             Foreground="{DynamicResource TextFillColorTertiaryBrush}"
@@ -283,7 +280,8 @@
 
             <!-- Ingress hosts: web routes to the controller, Host kept -->
             <StackPanel Grid.Row="5" Margin="0,12,0,0" Visibility="{Binding HasIngresses, Converter={StaticResource TrueToVisible}}">
-                <TextBlock Style="{StaticResource StatusText}" Text="{Binding IngressHeader}" />
+                <TextBlock FontWeight="SemiBold" Text="Ingress" />
+                <TextBlock Style="{StaticResource StatusText}" TextWrapping="Wrap" Text="{Binding IngressHeader}" />
                 <Border
                     Margin="0,6,0,0"
                     MaxHeight="150"

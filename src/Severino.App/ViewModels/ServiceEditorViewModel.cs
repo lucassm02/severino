@@ -1,3 +1,4 @@
+using System.Collections.ObjectModel;
 using System.Net;
 using System.Net.Sockets;
 using CommunityToolkit.Mvvm.ComponentModel;
@@ -7,7 +8,41 @@ using Severino.Core.Routes;
 
 namespace Severino.App.ViewModels;
 
-/// <summary>The "Novo serviço" / "Editar serviço" form: names, one per line, and port lines.</summary>
+/// <summary>One port of a service: the one the app calls, and where the service answers.</summary>
+public sealed partial class ServicePortRow : ObservableObject
+{
+    [ObservableProperty]
+    public partial string Port { get; set; } = "";
+
+    [ObservableProperty]
+    public partial string Host { get; set; } = "";
+
+    [ObservableProperty]
+    public partial string TargetPort { get; set; } = "";
+
+    public static ServicePortRow From(ServicePort port) => new()
+    {
+        Port = port.Port.ToString(),
+        Host = port.TargetHost,
+        TargetPort = port.TargetPort.ToString(),
+    };
+
+    /// <summary>The row as a port line, so it goes through the same parsing as everywhere else.</summary>
+    public string Line
+    {
+        get
+        {
+            var host = Host.Trim();
+            if (IPAddress.TryParse(host, out var ip) && ip.AddressFamily == AddressFamily.InterNetworkV6)
+                host = $"[{host}]";
+            return $"{Port.Trim()} → {host}:{TargetPort.Trim()}";
+        }
+    }
+
+    public bool IsEmpty => Port.Trim().Length == 0 && Host.Trim().Length == 0 && TargetPort.Trim().Length == 0;
+}
+
+/// <summary>The "Novo serviço" / "Editar serviço" form: names, one per line, and a row per port.</summary>
 public sealed partial class ServiceEditorViewModel : ObservableObject
 {
     private readonly ServiceRouteService _services;
@@ -20,23 +55,26 @@ public sealed partial class ServiceEditorViewModel : ObservableObject
         IsNew = existing is null;
         _original = existing ?? (draft ?? new ServiceRoute()) with { Address = ServiceRules.NextAddress(services.Services) };
         NamesText = string.Join(Environment.NewLine, _original.Names);
-        PortsText = string.Join(Environment.NewLine, _original.Ports.Select(Format));
+        foreach (var port in _original.Ports)
+            Ports.Add(ServicePortRow.From(port));
+        if (Ports.Count == 0)
+            Ports.Add(new ServicePortRow());
         Notes = _original.Notes;
-        var named = (destinations ?? []).Where(d => !d.Outside).Take(6).ToList();
-        DestinationsHint = named.Count == 0 ? null
-            : "Destinos por nome, do DNS: " + string.Join(", ", named.Select(d => $"{d.Name} ({d.Address})")) +
-              ". Com o nome, mudar o IP na aba DNS muda o destino.";
+        HostSuggestions = [new Core.Dns.DnsDestination("127.0.0.1", "esta máquina", Outside: false), .. destinations ?? []];
     }
 
-    /// <summary>The DNS names that can stand for a destination host, so the IP lives in one place.</summary>
-    public string? DestinationsHint { get; }
+    /// <summary>
+    /// Destinations to pick from: this machine and the names in the hosts. A port that points at a
+    /// DNS name follows it when its address changes in the DNS tab.
+    /// </summary>
+    public IReadOnlyList<Core.Dns.DnsDestination> HostSuggestions { get; }
 
     public bool IsNew { get; }
     public string Title => IsNew ? "Novo serviço" : "Editar serviço";
     public string SaveLabel => IsNew ? "Criar" : "Salvar";
 
     /// <summary>The loopback address the names point to; given once and kept.</summary>
-    public string Address => _original.Address;
+    public string AddressText => $"Os nomes apontam para {_original.Address}, onde o Severino escuta essas portas.";
 
     /// <summary>Where it was imported from, and what "Atualizar" will change.</summary>
     public string? OriginText => _original.Origin is { } origin
@@ -47,8 +85,7 @@ public sealed partial class ServiceEditorViewModel : ObservableObject
     [ObservableProperty]
     public partial string NamesText { get; set; }
 
-    [ObservableProperty]
-    public partial string PortsText { get; set; }
+    public ObservableCollection<ServicePortRow> Ports { get; } = [];
 
     [ObservableProperty]
     public partial string Notes { get; set; }
@@ -61,15 +98,26 @@ public sealed partial class ServiceEditorViewModel : ObservableObject
     public event EventHandler<bool>? CloseRequested;
 
     [RelayCommand]
+    private void AddPort() => Ports.Add(new ServicePortRow());
+
+    [RelayCommand]
+    private void RemovePort(ServicePortRow row)
+    {
+        Ports.Remove(row);
+        if (Ports.Count == 0)
+            Ports.Add(new ServicePortRow());
+    }
+
+    [RelayCommand]
     private void Save()
     {
         var names = NamesText.Split(['\n', '\r', ',', ' ', '\t'], StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries).ToList();
         var ports = new List<ServicePort>();
-        foreach (var line in PortsText.Split('\n', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
+        foreach (var row in Ports.Where(r => !r.IsEmpty))
         {
-            if (!ServiceRules.TryParsePort(line, out var port))
+            if (!ServiceRules.TryParsePort(row.Line, out var port))
             {
-                Error = $"Não entendi a porta \"{line}\". Use uma linha por porta, como 80 → 192.168.0.10:30080.";
+                Error = $"A porta {row.Line} está incompleta: diga a porta que o app chama, o destino e a porta do destino.";
                 return;
             }
             ports.Add(port);
@@ -88,9 +136,4 @@ public sealed partial class ServiceEditorViewModel : ObservableObject
 
     [RelayCommand]
     private void Cancel() => CloseRequested?.Invoke(this, false);
-
-    private static string Format(ServicePort port) =>
-        IPAddress.TryParse(port.TargetHost, out var ip) && ip.AddressFamily == AddressFamily.InterNetworkV6
-            ? $"{port.Port} → [{port.TargetHost}]:{port.TargetPort}"
-            : port.ToString();
 }

@@ -67,8 +67,8 @@ public sealed partial class ImportServicesViewModel : ObservableObject
             Ingresses.Add(new IngressItemViewModel(host, conflict, () => UpdatePlan()) { IsSelected = conflict is null && marked.Contains(host.Host) });
         }
         HasIngresses = Ingresses.Count > 0;
-        IngressHeader = target is null ? "Hosts dos Ingress"
-            : $"Hosts dos Ingress: cada um vira uma rota web para {target}, com o Host original, sem passar pela internet";
+        IngressHeader = target is null ? "Cada host vira uma rota web, na aba Rotas."
+            : $"Cada host vira uma rota web, na aba Rotas, para {target}, com o Host original, sem passar pela internet.";
     }
 
     /// <summary>DNS name → node IP, for the nodes the hosts has a name for.</summary>
@@ -487,7 +487,9 @@ public sealed partial class ImportServicesViewModel : ObservableObject
 
     private void UpdateSummary() =>
         ListSummary = _all.Count == 0 ? ""
-            : $"{_all.Count(i => i.IsSelected)} de {_all.Count} marcados" + (Visible.Count < _all.Count ? $" · {Visible.Count} na lista" : "");
+            : $"{_all.Count(i => i.IsSelected)} de {_all.Count} {(_all.Count == 1 ? "serviço marcado" : "serviços marcados")}"
+              + (Ingresses.Count(i => i.IsSelected) is var routes and > 0 ? $" · {routes} {(routes == 1 ? "rota" : "rotas")} de Ingress" : "")
+              + (Visible.Count < _all.Count ? $" · {Visible.Count} na lista" : "");
 
     [RelayCommand(CanExecute = nameof(CanImport))]
     private void Import()
@@ -558,7 +560,7 @@ public sealed partial class CandidateItemViewModel(ServiceCandidate candidate, A
     /// </summary>
     public bool Direct => Service.CanImport;
     public string Detail => Service.CanImport ? string.Join("   ", Service.Ports)
-        : Service.CanForward ? $"Por kubectl port-forward, que o Severino mantém rodando: {string.Join(", ", Service.ClusterPorts!)}"
+        : Service.CanForward ? $"{string.Join(", ", Service.ClusterPorts!)} → kubectl port-forward, que o Severino mantém rodando"
         : Service.Unreachable ?? "";
     public string NamesText => string.Join(", ", Service.Names);
     public bool NoReadyPods => CanImport && Service.Ready == false;

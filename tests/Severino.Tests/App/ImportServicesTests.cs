@@ -93,6 +93,7 @@ public sealed class ImportServicesTests : IDisposable
         Assert.Equal("loja.exemplo.com.br", ingress.Host);
         ingress.IsSelected = true;
         Assert.Equal(1, viewModel.SelectedCount);
+        Assert.Equal("0 de 4 serviços marcados · 1 rota de Ingress", viewModel.ListSummary);
 
         viewModel.ImportCommand.Execute(null);
 

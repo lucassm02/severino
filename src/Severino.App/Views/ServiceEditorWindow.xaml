@@ -40,28 +40,79 @@
                 AutomationProperties.Name="Nomes"
                 Text="{Binding NamesText, UpdateSourceTrigger=PropertyChanged}" />
 
-            <TextBlock Margin="0,12,0,4" Text="Portas: a que o app chama → onde o serviço responde" />
-            <ui:TextBox
-                Height="80"
-                AcceptsReturn="True"
-                VerticalScrollBarVisibility="Auto"
-                FontFamily="Cascadia Mono, Consolas"
-                PlaceholderText="80 → 192.168.0.10:30080"
-                AutomationProperties.Name="Portas"
-                Text="{Binding PortsText, UpdateSourceTrigger=PropertyChanged}" />
+            <!-- One row per port: what the app calls, then where the service answers. -->
+            <Grid Margin="0,12,0,4">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="88" />
+                    <ColumnDefinition Width="28" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="14" />
+                    <ColumnDefinition Width="88" />
+                    <ColumnDefinition Width="40" />
+                </Grid.ColumnDefinitions>
+                <TextBlock Grid.Column="0" Text="Porta" ToolTip="A porta que o app chama, como 5432" />
+                <TextBlock Grid.Column="2" Text="Destino" ToolTip="Onde o serviço responde: um IP ou um nome do DNS" />
+                <TextBlock Grid.Column="4" Text="Na porta" ToolTip="A porta em que o destino responde, como a NodePort 30080" />
+            </Grid>
+            <ItemsControl ItemsSource="{Binding Ports}">
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate DataType="{x:Type vm:ServicePortRow}">
+                        <Grid Margin="0,0,0,6">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="88" />
+                                <ColumnDefinition Width="28" />
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="14" />
+                                <ColumnDefinition Width="88" />
+                                <ColumnDefinition Width="40" />
+                            </Grid.ColumnDefinitions>
+                            <ui:TextBox Grid.Column="0" PlaceholderText="80" AutomationProperties.Name="Porta que o app chama" Text="{Binding Port, UpdateSourceTrigger=PropertyChanged}" />
+                            <TextBlock Grid.Column="1" HorizontalAlignment="Center" VerticalAlignment="Center" Text="→" />
+                            <ComboBox
+                                Grid.Column="2"
+                                IsEditable="True"
+                                IsTextSearchEnabled="False"
+                                TextSearch.TextPath="Name"
+                                ItemsSource="{Binding DataContext.HostSuggestions, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
+                                Text="{Binding Host, UpdateSourceTrigger=PropertyChanged}"
+                                ToolTip="Um IP ou um nome do DNS: com o nome, mudar o IP na aba DNS muda o destino"
+                                AutomationProperties.Name="Destino">
+                                <ComboBox.ItemTemplate>
+                                    <DataTemplate>
+                                        <StackPanel>
+                                            <TextBlock Text="{Binding Name}" />
+                                            <TextBlock FontSize="11" Foreground="{DynamicResource TextFillColorSecondaryBrush}" Text="{Binding Detail}" />
+                                        </StackPanel>
+                                    </DataTemplate>
+                                </ComboBox.ItemTemplate>
+                            </ComboBox>
+                            <TextBlock Grid.Column="3" HorizontalAlignment="Center" VerticalAlignment="Center" Text=":" />
+                            <ui:TextBox Grid.Column="4" PlaceholderText="30080" AutomationProperties.Name="Porta do destino" Text="{Binding TargetPort, UpdateSourceTrigger=PropertyChanged}" />
+                            <ui:Button
+                                Grid.Column="5"
+                                Margin="4,0,0,0"
+                                Appearance="Transparent"
+                                Icon="{ui:SymbolIcon Dismiss24}"
+                                ToolTip="Tirar esta porta"
+                                AutomationProperties.Name="Tirar esta porta"
+                                Command="{Binding DataContext.RemovePortCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
+                                CommandParameter="{Binding}" />
+                        </Grid>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+            <ui:Button
+                HorizontalAlignment="Left"
+                Appearance="Transparent"
+                Icon="{ui:SymbolIcon Add24}"
+                Content="Outra porta"
+                Command="{Binding AddPortCommand}" />
             <TextBlock
                 Margin="0,4,0,0"
                 FontSize="12"
                 TextWrapping="Wrap"
                 Foreground="{DynamicResource TextFillColorSecondaryBrush}"
-                Text="{Binding Address, StringFormat='Os nomes apontam para {0}, onde o Severino escuta essas portas.'}" />
-            <TextBlock
-                Margin="0,4,0,0"
-                FontSize="12"
-                TextWrapping="Wrap"
-                Foreground="{DynamicResource TextFillColorSecondaryBrush}"
-                Text="{Binding DestinationsHint}"
-                Visibility="{Binding DestinationsHint, Converter={StaticResource NullToCollapsed}}" />
+                Text="{Binding AddressText}" />
 
             <TextBlock Margin="0,12,0,4" Text="Notas" />
             <ui:TextBox AutomationProperties.Name="Notas" Text="{Binding Notes, UpdateSourceTrigger=PropertyChanged}" />
