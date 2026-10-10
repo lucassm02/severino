@@ -49,11 +49,14 @@ public sealed partial class DnsRowViewModel : ObservableObject
             _ => "IP público",
         };
 
-    /// <summary>Where an outside line came from and what Severino did to it.</summary>
-    public string? OutsideText => Line is null ? null
-        : Line.Removed ? "Fora do Severino: removida por ele, está comentada no hosts"
-        : Line.Note is not null ? "Fora do Severino: não foi criada por ele, já editada por ele"
-        : "Fora do Severino: não foi criada por ele";
+    /// <summary>
+    /// What Severino did to a line that is not its own, for a second label next to "fora do
+    /// Severino"; null when it never touched it.
+    /// </summary>
+    public string? TouchedText => Line is null ? null
+        : Line.Removed ? "comentada pelo Severino"
+        : Line.Note is not null ? "editada pelo Severino"
+        : null;
 
     public string? OriginText => Line?.Origin;
 
@@ -63,13 +66,30 @@ public sealed partial class DnsRowViewModel : ObservableObject
 
     public bool IsPending => Pending;
 
-    /// <summary>"destino de 2 serviços", when routes or services depend on the names.</summary>
+    /// <summary>"1 rota", when routes go to the names; a link to them in the Rotas tab.</summary>
     [ObservableProperty]
-    public partial string? UsedByText { get; set; }
+    [NotifyPropertyChangedFor(nameof(IsUsed), nameof(UsedByJoin))]
+    public partial string? UsedByRoutes { get; set; }
+
+    /// <summary>"3 serviços", when services go to the names; a link to them in the Serviços tab.</summary>
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(IsUsed), nameof(UsedByJoin))]
+    public partial string? UsedByServices { get; set; }
+
+    public bool IsUsed => UsedByRoutes is not null || UsedByServices is not null;
+
+    /// <summary>" e " between the two links, when there are both.</summary>
+    public string? UsedByJoin => UsedByRoutes is not null && UsedByServices is not null ? " e " : null;
+
+    public void SetUsedBy(int routes, int services)
+    {
+        UsedByRoutes = routes switch { 0 => null, 1 => "1 rota", _ => $"{routes} rotas" };
+        UsedByServices = services switch { 0 => null, 1 => "1 serviço", _ => $"{services} serviços" };
+    }
 
     public string StateText => IsOutside ? (IsRemoved ? "Removida" : "No hosts")
         : Pending ? "Aguardando aprovação"
-        : Entry!.Enabled ? "Valendo"
+        : Entry!.Enabled ? "Ativa"
         : "Desligada";
 
     public bool Enabled

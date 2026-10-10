@@ -145,7 +145,7 @@ public sealed partial class StatusBarViewModel : ObservableObject
         if (failing.Count == 0)
             return;
         var lines = string.Join("\n", failing.Select(s => $"• {s.Name} ({s.Address}:{s.Port}): {s.Detail}"));
-        if (await DialogService.ConfirmAsync("Rotas de serviço",
+        if (await DialogService.ConfirmAsync("Serviços",
                 $"Estas portas não abriram:\n\n{lines}\n\nFeche o programa que está usando a porta e tente de novo.",
                 "Tentar de novo"))
             await _coordinator.RetryAsync();

@@ -1,66 +1,43 @@
 using System.Collections.ObjectModel;
 using System.Windows;
-using System.Windows.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Severino.App.Services;
 using Severino.Core.Configuration;
-using Severino.Core.Discovery;
 using Severino.Core.Dns;
 using Severino.Core.Routes;
 using Severino.Proxy;
 
 namespace Severino.App.ViewModels;
 
-public sealed partial class RoutesViewModel : ObservableObject
+/// <summary>The Rotas tab: names opened in the browser, through the proxy, by group.</summary>
+public sealed partial class RoutesViewModel : ListPageViewModel
 {
-    private static readonly TimeSpan UndoWindow = TimeSpan.FromSeconds(5);
-
     private readonly RouteService _routes;
-    private readonly ServiceRouteService _services;
-    private readonly ServiceDiscovery _discovery;
     private readonly DnsService? _dns;
     private readonly HostsSync? _hosts;
-    private readonly PortForwards? _forwards;
-
-    private void ApplyForwards()
-    {
-        foreach (var item in ServiceGroups.SelectMany(g => g.Items))
-            item.ApplyForward(_forwards?.StatusOf(item.Id));
-    }
     private readonly ConfigService _config;
     private readonly HealthMonitor _health;
     private readonly DialogService _dialogs;
     private readonly HttpsService _https;
-    private readonly DispatcherTimer _undoTimer;
+    private readonly Navigation _navigation;
 
-    /// <summary>Puts back what was removed; returns why it could not, or null.</summary>
-    private Func<string?>? _undo;
-
-    public RoutesViewModel(RouteService routes, ServiceRouteService services, ServiceDiscovery discovery, ConfigService config, HealthMonitor health, DialogService dialogs, HttpsService https,
-        DnsService? dns = null, HostsSync? hosts = null, PortForwards? forwards = null, ServiceWatcher? watcher = null)
+    public RoutesViewModel(RouteService routes, ConfigService config, HealthMonitor health, DialogService dialogs, HttpsService https, Navigation navigation,
+        DnsService? dns = null, HostsSync? hosts = null)
     {
         _routes = routes;
-        _services = services;
-        _discovery = discovery;
         _dns = dns;
         _hosts = hosts;
-        _forwards = forwards;
-        if (forwards is not null)
-            forwards.Changed += (_, _) => Dispatch(ApplyForwards);
-        if (watcher is not null)
-            watcher.Updated += (_, message) => Dispatch(() => ShowToast(message));
+        _config = config;
+        _health = health;
+        _dialogs = dialogs;
+        _https = https;
+        _navigation = navigation;
         if (hosts is not null)
         {
             hosts.StatusChanged += (_, _) => Dispatch(UpdateWildcardPending);
             UpdateWildcardPending();
         }
-        _config = config;
-        _health = health;
-        _dialogs = dialogs;
-        _https = https;
-        _undoTimer = new DispatcherTimer { Interval = UndoWindow };
-        _undoTimer.Tick += (_, _) => DismissUndo();
 
         Reconcile(config.Current);
         config.Changed += (_, c) => Dispatch(() => Reconcile(c));
@@ -70,105 +47,20 @@ public sealed partial class RoutesViewModel : ObservableObject
 
     public ObservableCollection<RouteItemViewModel> Items { get; } = [];
 
-    public ObservableCollection<ServiceGroupViewModel> ServiceGroups { get; } = [];
-
-    /// <summary>Any web route, before the search.</summary>
-    [ObservableProperty]
-    public partial bool HasRoutes { get; set; }
-
-    [ObservableProperty]
-    public partial bool HasServices { get; set; }
+    /// <summary>The web routes, by group; the first group, with no name, holds the routes without one.</summary>
+    public ObservableCollection<RouteGroupViewModel> RouteGroups { get; } = [];
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(IsEmpty))]
-    public partial bool HasAnything { get; set; }
+    public partial bool HasRoutes { get; set; }
 
-    public bool IsEmpty => !HasAnything;
+    public bool IsEmpty => !HasRoutes;
 
-    /// <summary>"3 rotas · 2 ligadas · 12 serviços".</summary>
+    /// <summary>"3 rotas · 2 ligadas".</summary>
     [ObservableProperty]
     public partial string Summary { get; set; } = "";
 
-    [ObservableProperty]
-    public partial string Search { get; set; } = "";
-
-    [ObservableProperty]
-    public partial string? UndoMessage { get; set; }
-
-    [ObservableProperty]
-    public partial string? Toast { get; set; }
-
-    partial void OnSearchChanged(string value) => Reconcile(_config.Current, force: true);
-
-    [RelayCommand]
-    private void ImportServices()
-    {
-        if (_dialogs.ImportServices() is not { } outcome)
-            return;
-        var result = outcome.Services;
-        // Imported from a distro: its apps are the likely callers, so the distro gets the names too.
-        var distros = result.Where(p => p.Route is not null)
-            .Select(p => CommandSource.FromId(p.Candidate.Origin.Source))
-            .Where(s => s.IsWsl && !_config.Current.Settings.WslDistros.Contains(s.Distro!, StringComparer.OrdinalIgnoreCase))
-            .Select(s => s.Distro!)
-            .Distinct(StringComparer.OrdinalIgnoreCase)
-            .ToList();
-        if (distros.Count > 0)
-            _config.Update(c => c with { Settings = c.Settings with { WslDistros = [.. c.Settings.WslDistros, .. distros] } });
-        var ingress = outcome.IngressRoutes.Count switch { 0 => null, 1 => "1 rota de Ingress", var n => $"{n} rotas de Ingress" };
-        ShowToast((result.Count == 0 && ingress is not null ? ingress : ImportServicesViewModel.Describe(result) + (ingress is null ? "" : $" · {ingress}"))
-            + (distros.Count > 0 ? $" · apps em WSL · {string.Join(", ", distros)} também chamam pelos nomes (Configurações › WSL)" : ""));
-    }
-
-    [RelayCommand]
-    private void NewService()
-    {
-        if (_dialogs.EditService(null) is { } saved)
-            ShowToast($"{saved.Names[0]} pronto");
-    }
-
-    [RelayCommand]
-    private void EditService(ServiceItemViewModel item) => _dialogs.EditService(item.Route);
-
-    [RelayCommand]
-    private void CopyServiceName(ServiceItemViewModel item)
-    {
-        Clipboard.SetText(item.Name);
-        ShowToast("Nome copiado");
-    }
-
-    [RelayCommand]
-    private void RemoveService(ServiceItemViewModel item) => RemoveServices([item.Id], $"{item.Name} removido");
-
-    [RelayCommand]
-    private void RemoveGroup(ServiceGroupViewModel group) =>
-        RemoveServices([.. group.Items.Select(i => i.Id)], $"{Plural(group.Items.Count, "serviço removido", "serviços removidos")}");
-
-    private void RemoveServices(IReadOnlyCollection<Guid> ids, string message)
-    {
-        var removed = _services.Remove(ids);
-        if (removed.Count == 0)
-            return;
-        ShowUndo(message, () => _services.Restore(removed) == removed.Count ? null : "Parte não voltou: os nomes ou endereços já estão em outra rota.");
-    }
-
-    /// <summary>Asks the group's source again and moves its routes to the ports of now.</summary>
-    [RelayCommand]
-    private async Task RefreshGroupAsync(ServiceGroupViewModel group)
-    {
-        if (group.Origin is not { } origin || group.IsRefreshing)
-            return;
-        group.IsRefreshing = true;
-        try
-        {
-            var outcome = await new ServiceRefresher(_discovery, _services, _dns).RefreshAsync(origin, CancellationToken.None);
-            ShowToast(outcome.Describe());
-        }
-        finally
-        {
-            group.IsRefreshing = false;
-        }
-    }
+    protected override void OnSearch() => Reconcile(_config.Current, force: true);
 
     [RelayCommand]
     private async Task NewRouteAsync()
@@ -176,6 +68,35 @@ public sealed partial class RoutesViewModel : ObservableObject
         var saved = _dialogs.EditRoute(null);
         if (saved is not null && !await OfferReissueAsync(saved))
             ShowToast($"{saved.Domain} pronto");
+    }
+
+    [RelayCommand]
+    private async Task NewRouteInGroupAsync(RouteGroupViewModel group)
+    {
+        var saved = _dialogs.EditRoute(null, group: group.Name);
+        if (saved is not null && !await OfferReissueAsync(saved))
+            ShowToast($"{saved.Domain} pronto");
+    }
+
+    [RelayCommand]
+    private async Task RenameGroupAsync(RouteGroupViewModel group)
+    {
+        if (await DialogService.PromptAsync("Renomear grupo", "Com o nome de outro grupo, os dois viram um só.", group.Name, "Renomear") is not { } name)
+            return;
+        if (name.Trim().Length == 0)
+        {
+            ShowToast("Para tirar as rotas do grupo, use Desfazer o grupo.");
+            return;
+        }
+        _routes.RenameGroup(group.Name, name);
+    }
+
+    [RelayCommand]
+    private void Ungroup(RouteGroupViewModel group)
+    {
+        var name = group.Name;
+        _routes.RenameGroup(name, "");
+        ShowToast($"As rotas de {name} ficaram sem grupo. Para juntar de novo, edite cada uma.");
     }
 
     [RelayCommand]
@@ -191,6 +112,9 @@ public sealed partial class RoutesViewModel : ObservableObject
         if (_dialogs.EditRoute(item.Route with { Id = Guid.NewGuid(), Domain = "" }, isCopy: true) is { } saved)
             await OfferReissueAsync(saved);
     }
+
+    [RelayCommand]
+    private void ShowDns(string name) => _navigation.Show(AppTab.Dns, name);
 
     /// <summary>
     /// A saved HTTPS route outside the CA's coverage needs a new CA. Returns true when it asked,
@@ -248,7 +172,7 @@ public sealed partial class RoutesViewModel : ObservableObject
             return;
         }
         _dns.Save(draft);
-        ShowToast($"{item.Domain} agora é uma entrada DNS, na aba DNS.");
+        ShowToast($"{item.Domain} agora é uma entrada DNS.", "Ver no DNS", () => _navigation.Show(AppTab.Dns, item.Domain));
     }
 
     /// <summary>"*.callfred.sev espera aprovação…", while a wildcard's suffix is not approved.</summary>
@@ -294,57 +218,23 @@ public sealed partial class RoutesViewModel : ObservableObject
         ShowUndo($"{item.Domain} removido", () => _routes.Restore(removed) ? null : "Não deu para desfazer: o domínio já está em outra rota.");
     }
 
-    private void ShowUndo(string message, Func<string?> undo)
-    {
-        _undo = undo;
-        UndoMessage = message;
-        _undoTimer.Stop();
-        _undoTimer.Start();
-    }
-
-    [RelayCommand]
-    private void Undo()
-    {
-        if (_undo?.Invoke() is { } error)
-            ShowToast(error);
-        DismissUndo();
-    }
-
     private string Url(RouteItemViewModel item)
     {
         var settings = _config.Current.Settings;
         return Browser.UrlFor(item.Domain, settings.HttpPort, item.HttpsState == RouteHttpsState.On ? settings.HttpsPort : null, item.Route.Path);
     }
 
-    private void DismissUndo()
-    {
-        _undoTimer.Stop();
-        _undo = null;
-        UndoMessage = null;
-    }
-
-    private async void ShowToast(string message)
-    {
-        Toast = message;
-        await Task.Delay(TimeSpan.FromSeconds(3));
-        if (Toast == message)
-            Toast = null;
-    }
-
     private void Reconcile(SeverinoConfig config, bool force = false)
     {
         var routes = config.Routes;
         HasRoutes = routes.Count > 0;
-        HasServices = config.Services.Count > 0;
-        HasAnything = HasRoutes || HasServices;
         var enabled = routes.Count(r => r.Enabled);
-        Summary = $"{routes.Count} {(routes.Count == 1 ? "rota" : "rotas")} · {enabled} {(enabled == 1 ? "ligada" : "ligadas")}"
-            + (HasServices ? $" · {Plural(config.Services.Count, "serviço", "serviços")}" : "");
+        Summary = $"{Plural(routes.Count, "rota", "rotas")} · {enabled} {(enabled == 1 ? "ligada" : "ligadas")}";
         // Routes without a group first, then each group in the order it first appears.
         var groupOrder = routes.Select(r => r.Group).Distinct(StringComparer.Ordinal).OrderBy(g => g.Length == 0 ? 0 : 1).ToList();
+        var search = Search.Trim();
         var visible = routes
-            .Where(r => Search.Length == 0 || r.Domain.Contains(Search.Trim(), StringComparison.OrdinalIgnoreCase)
-                || r.Group.Contains(Search.Trim(), StringComparison.OrdinalIgnoreCase))
+            .Where(r => Matches(r, search))
             .OrderBy(r => groupOrder.IndexOf(r.Group))
             .ToList();
 
@@ -358,15 +248,19 @@ public sealed partial class RoutesViewModel : ObservableObject
         {
             Items.Clear();
             foreach (var route in visible)
-                Items.Add(new RouteItemViewModel(route, (row, enabled) => _routes.SetEnabled(row.Id, enabled)));
+                Items.Add(new RouteItemViewModel(route, (row, on) => _routes.SetEnabled(row.Id, on)));
         }
 
+        var destinations = _dns?.Destinations() ?? [];
         foreach (var item in Items)
         {
             ApplyHealth(item.Id);
             item.HttpsState = !item.Route.Https || !_https.IsActive ? RouteHttpsState.Off
                 : _https.Covers(item.Domain) ? RouteHttpsState.On
                 : RouteHttpsState.Uncovered;
+            item.Destination = Uri.TryCreate(item.Route.Target, UriKind.Absolute, out var target)
+                ? destinations.FirstOrDefault(d => d.Name.Equals(target.IdnHost, StringComparison.OrdinalIgnoreCase))
+                : null;
         }
 
         // The groups reuse the rows, so a toggle keeps its state; rebuilt only when membership changes.
@@ -383,75 +277,25 @@ public sealed partial class RoutesViewModel : ObservableObject
             foreach (var group in RouteGroups)
                 group.Refresh();
         }
-
-        ReconcileServices(config.Services, force);
     }
 
     private string? _groupSignature;
 
-    /// <summary>The web routes, by group; the first group, with no name, holds the routes without one.</summary>
-    public ObservableCollection<RouteGroupViewModel> RouteGroups { get; } = [];
-
-    /// <summary>Groups by where they came from, imported groups first, in the order they were added.</summary>
-    private void ReconcileServices(IReadOnlyList<ServiceRoute> services, bool force)
-    {
-        var search = Search.Trim();
-        var visible = services
-            .Where(s => search.Length == 0 || s.Names.Any(n => n.Contains(search, StringComparison.OrdinalIgnoreCase)))
-            .ToList();
-        var origins = new List<ServiceOrigin?>();
-        foreach (var service in visible.Where(s => s.Origin is not null))
-        {
-            if (!origins.Any(o => ServiceImport.SameSource(o!, service.Origin!)))
-                origins.Add(service.Origin! with { Namespace = "", Name = "" });
-        }
-        if (visible.Any(s => s.Origin is null))
-            origins.Add(null);
-
-        if (force || !origins.SequenceEqual(ServiceGroups.Select(g => g.Origin)))
-        {
-            ServiceGroups.Clear();
-            foreach (var origin in origins)
-                ServiceGroups.Add(new ServiceGroupViewModel(origin));
-        }
-
-        foreach (var group in ServiceGroups)
-        {
-            var members = visible.Where(group.Holds).ToList();
-            if (members.Select(s => s.Id).SequenceEqual(group.Items.Select(i => i.Id)))
-            {
-                for (var i = 0; i < members.Count; i++)
-                    group.Items[i].Update(members[i]);
-            }
-            else
-            {
-                group.Items.Clear();
-                foreach (var service in members)
-                    group.Items.Add(new ServiceItemViewModel(service, (row, enabled) => _services.SetEnabled(row.Id, enabled)));
-            }
-            foreach (var item in group.Items)
-            {
-                ApplyHealth(item.Id);
-                item.ApplyForward(_forwards?.StatusOf(item.Id));
-            }
-        }
-    }
+    /// <summary>By domain, group or destination host, so "gateway.k8s" finds what goes through it.</summary>
+    private static bool Matches(RouteEntry route, string search) =>
+        search.Length == 0
+        || (route.Domain + route.Path).Contains(search, StringComparison.OrdinalIgnoreCase)
+        || route.Group.Contains(search, StringComparison.OrdinalIgnoreCase)
+        || (Uri.TryCreate(route.Target, UriKind.Absolute, out var target) && target.Host.Contains(search, StringComparison.OrdinalIgnoreCase));
 
     private void ApplyHealth(Guid routeId)
     {
-        var state = _health.IsUp(routeId) switch
-        {
-            true => RouteHealthState.Up,
-            false => RouteHealthState.Down,
-            null => RouteHealthState.Unknown,
-        };
         if (Items.FirstOrDefault(i => i.Id == routeId) is { Enabled: true } item)
-            item.Health = state;
-        else if (ServiceGroups.SelectMany(g => g.Items).FirstOrDefault(i => i.Id == routeId) is { Enabled: true } service)
-            service.Health = state;
+            item.Health = _health.IsUp(routeId) switch
+            {
+                true => RouteHealthState.Up,
+                false => RouteHealthState.Down,
+                null => RouteHealthState.Unknown,
+            };
     }
-
-    private static string Plural(int count, string one, string many) => count == 1 ? $"1 {one}" : $"{count} {many}";
-
-    private static void Dispatch(Action action) => Application.Current?.Dispatcher.BeginInvoke(action);
 }

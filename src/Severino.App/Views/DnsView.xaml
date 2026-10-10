@@ -10,26 +10,31 @@
     mc:Ignorable="d"
     d:DataContext="{d:DesignInstance Type=vm:DnsViewModel}">
     <UserControl.Resources>
-        <views:BindingProxy x:Key="Root" Data="{Binding}" />
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="/Severino;component/Views/ListStyles.xaml" />
+            </ResourceDictionary.MergedDictionaries>
+            <views:BindingProxy x:Key="Root" Data="{Binding}" />
 
-        <Style x:Key="Caption" TargetType="TextBlock">
-            <Setter Property="FontSize" Value="12" />
-            <Setter Property="TextTrimming" Value="CharacterEllipsis" />
-            <Setter Property="Foreground" Value="{DynamicResource TextFillColorSecondaryBrush}" />
-        </Style>
-        <Style x:Key="Caution" TargetType="TextBlock" BasedOn="{StaticResource Caption}">
-            <Setter Property="Foreground" Value="{DynamicResource SystemFillColorCautionBrush}" />
-        </Style>
-        <Style x:Key="StateText" TargetType="TextBlock">
-            <Setter Property="FontSize" Value="12" />
-            <Setter Property="VerticalAlignment" Value="Center" />
-            <Setter Property="Foreground" Value="{DynamicResource TextFillColorSecondaryBrush}" />
-            <Style.Triggers>
-                <DataTrigger Binding="{Binding IsPending}" Value="True">
-                    <Setter Property="Foreground" Value="{DynamicResource SystemFillColorCautionBrush}" />
-                </DataTrigger>
-            </Style.Triggers>
-        </Style>
+            <Style x:Key="Caption" TargetType="TextBlock" BasedOn="{StaticResource RowCaption}" />
+            <Style x:Key="StateText" TargetType="TextBlock">
+                <Setter Property="FontSize" Value="12" />
+                <Setter Property="VerticalAlignment" Value="Center" />
+                <Setter Property="Foreground" Value="{DynamicResource TextFillColorSecondaryBrush}" />
+                <Style.Triggers>
+                    <DataTrigger Binding="{Binding IsPending}" Value="True">
+                        <Setter Property="Foreground" Value="{DynamicResource SystemFillColorCautionBrush}" />
+                    </DataTrigger>
+                </Style.Triggers>
+            </Style>
+
+            <!-- "Destino de 1 rota e 3 serviços", each part a link to the tab that has them. -->
+            <DataTemplate x:Key="UsedBy" DataType="{x:Type vm:DnsRowViewModel}">
+                <TextBlock Style="{StaticResource Caption}" Visibility="{Binding IsUsed, Converter={StaticResource TrueToVisible}}">
+                    <Run Text="Destino de " /><Hyperlink Style="{StaticResource RowLink}" Command="{Binding Data.ShowRoutesCommand, Source={StaticResource Root}}" CommandParameter="{Binding}"><Run Text="{Binding UsedByRoutes, Mode=OneWay}" /></Hyperlink><Run Text="{Binding UsedByJoin, Mode=OneWay}" /><Hyperlink Style="{StaticResource RowLink}" Command="{Binding Data.ShowServicesCommand, Source={StaticResource Root}}" CommandParameter="{Binding}"><Run Text="{Binding UsedByServices, Mode=OneWay}" /></Hyperlink>
+                </TextBlock>
+            </DataTemplate>
+        </ResourceDictionary>
     </UserControl.Resources>
 
     <Grid Margin="0,20,0,0">
@@ -48,13 +53,25 @@
                 <ColumnDefinition Width="Auto" />
             </Grid.ColumnDefinitions>
             <StackPanel Grid.Column="0" VerticalAlignment="Center">
-                <ui:TextBlock FontTypography="Subtitle" Text="DNS" />
-                <ui:TextBlock Foreground="{DynamicResource TextFillColorSecondaryBrush}" FontTypography="Caption" Text="{Binding Summary}" />
+                <StackPanel Orientation="Horizontal">
+                    <ui:TextBlock FontTypography="Subtitle" Text="DNS" />
+                    <ui:TextBlock
+                        Margin="12,0,0,3"
+                        VerticalAlignment="Bottom"
+                        Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                        FontTypography="Caption"
+                        Text="{Binding Summary}" />
+                </StackPanel>
+                <ui:TextBlock
+                    Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                    FontTypography="Caption"
+                    TextWrapping="Wrap"
+                    Text="Um nome direto para um IP, sem proxy. Vale com o app fechado." />
             </StackPanel>
             <ui:TextBox
                 Grid.Column="1"
-                Width="220"
-                Margin="0,0,8,0"
+                Width="200"
+                Margin="16,0,8,0"
                 VerticalAlignment="Center"
                 PlaceholderText="Buscar nome ou IP"
                 Icon="{ui:SymbolIcon Search24}"
@@ -124,7 +141,7 @@
                                             <Run FontFamily="Cascadia Mono, Consolas" Text="{Binding Address, Mode=OneWay}" />
                                             <Run Text="{Binding ScopeText, Mode=OneWay, StringFormat='   {0}'}" />
                                         </TextBlock>
-                                        <TextBlock Style="{StaticResource Caption}" Text="{Binding UsedByText}" Visibility="{Binding UsedByText, Converter={StaticResource NullToCollapsed}}" />
+                                        <ContentControl Content="{Binding}" ContentTemplate="{StaticResource UsedBy}" Focusable="False" />
                                     </StackPanel>
                                     <TextBlock Grid.Column="1" Margin="16,0" Style="{StaticResource StateText}" Text="{Binding StateText}" />
                                     <ui:ToggleSwitch
@@ -184,8 +201,8 @@
                                     Margin="0,0,0,6"
                                     Padding="14,10,16,10"
                                     CornerRadius="6"
-                                    BorderThickness="4,1,1,1"
-                                    BorderBrush="{DynamicResource SystemFillColorCautionBrush}"
+                                    BorderThickness="1"
+                                    BorderBrush="{DynamicResource ControlStrokeColorDefaultBrush}"
                                     Background="{DynamicResource CardBackgroundFillColorDefaultBrush}">
                                     <Border.Style>
                                         <Style TargetType="Border">
@@ -201,18 +218,35 @@
                                             <ColumnDefinition Width="*" />
                                             <ColumnDefinition Width="Auto" />
                                         </Grid.ColumnDefinitions>
+                                        <!-- The caution colour only on the left edge: marked, not shouting. -->
+                                        <Border
+                                            Grid.Column="0"
+                                            Width="3"
+                                            Margin="-14,-10,0,-10"
+                                            HorizontalAlignment="Left"
+                                            CornerRadius="5,0,0,5"
+                                            Background="{DynamicResource SystemFillColorCautionBrush}" />
                                         <StackPanel Grid.Column="0" VerticalAlignment="Center">
                                             <TextBlock FontSize="14" TextTrimming="CharacterEllipsis" ToolTip="{Binding AllNames}">
                                                 <Run FontWeight="SemiBold" Text="{Binding Name, Mode=OneWay}" />
                                                 <Run FontSize="12" Foreground="{DynamicResource TextFillColorSecondaryBrush}" Text="{Binding MoreNames, Mode=OneWay, StringFormat='  {0}'}" />
+                                                <InlineUIContainer BaselineAlignment="Center">
+                                                    <Border Style="{StaticResource Badge}" ToolTip="Outra pessoa ou outro programa escreveu esta linha. O Severino só a altera se você pedir, com aviso.">
+                                                        <TextBlock Style="{StaticResource CautionBadgeText}" Text="fora do Severino" />
+                                                    </Border>
+                                                </InlineUIContainer>
+                                                <InlineUIContainer BaselineAlignment="Center">
+                                                    <Border Style="{StaticResource Badge}" Visibility="{Binding TouchedText, Converter={StaticResource NullToCollapsed}}" ToolTip="Há um comentário do Severino acima dela no hosts, com a linha de antes">
+                                                        <TextBlock Style="{StaticResource BadgeText}" Text="{Binding TouchedText}" />
+                                                    </Border>
+                                                </InlineUIContainer>
                                             </TextBlock>
                                             <TextBlock Style="{StaticResource Caption}">
                                                 <Run FontFamily="Cascadia Mono, Consolas" Text="{Binding Address, Mode=OneWay}" />
                                                 <Run Text="{Binding ScopeText, Mode=OneWay, StringFormat='   {0}'}" />
                                             </TextBlock>
-                                            <TextBlock Style="{StaticResource Caution}" Text="{Binding OutsideText}" />
                                             <TextBlock Style="{StaticResource Caption}" Text="{Binding OriginText, StringFormat='Perto de: {0}'}" Visibility="{Binding OriginText, Converter={StaticResource NullToCollapsed}}" />
-                                            <TextBlock Style="{StaticResource Caption}" Text="{Binding UsedByText}" Visibility="{Binding UsedByText, Converter={StaticResource NullToCollapsed}}" />
+                                            <ContentControl Content="{Binding}" ContentTemplate="{StaticResource UsedBy}" Focusable="False" />
                                         </StackPanel>
                                         <ui:Button
                                             Grid.Column="1"
@@ -250,16 +284,6 @@
             </StackPanel>
         </ScrollViewer>
 
-        <StackPanel Grid.Row="3">
-            <ui:Card Margin="0,8,0,0" Padding="16,8" Visibility="{Binding UndoMessage, Converter={StaticResource NullToCollapsed}}">
-                <DockPanel>
-                    <ui:Button DockPanel.Dock="Right" Content="Desfazer" Command="{Binding UndoCommand}" />
-                    <ui:TextBlock VerticalAlignment="Center" Text="{Binding UndoMessage}" />
-                </DockPanel>
-            </ui:Card>
-            <ui:Card Margin="0,8,0,0" Padding="16,10" Visibility="{Binding Toast, Converter={StaticResource NullToCollapsed}}">
-                <ui:TextBlock TextWrapping="Wrap" Text="{Binding Toast}" />
-            </ui:Card>
-        </StackPanel>
+        <views:PageFooter Grid.Row="3" />
     </Grid>
 </UserControl>

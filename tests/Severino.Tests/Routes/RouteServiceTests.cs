@@ -98,6 +98,24 @@ public sealed class RouteServiceTests : IDisposable
     }
 
     [Fact]
+    public void A_group_is_renamed_joined_or_undone()
+    {
+        _routes.Save(Route("a.sev") with { Group = "callfred" });
+        _routes.Save(Route("b.sev") with { Group = "callfred" });
+        _routes.Save(Route("c.sev") with { Group = "loja" });
+
+        _routes.RenameGroup("callfred", " fred ");
+        Assert.Equal(["fred", "loja"], _routes.Groups);
+
+        _routes.RenameGroup("loja", "fred");
+        Assert.Equal(["fred"], _routes.Groups);
+
+        _routes.RenameGroup("fred", "");
+        Assert.Empty(_routes.Groups);
+        Assert.Equal(3, _routes.Routes.Count);
+    }
+
+    [Fact]
     public void SetEnabled_toggles_route()
     {
         var saved = _routes.Save(Route("a.sev"));

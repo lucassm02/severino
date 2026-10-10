@@ -79,11 +79,29 @@ public sealed class DialogService(RouteService routes, ServiceRouteService servi
     }
 
     /// <summary>Opens the route form; returns the saved route, or null when cancelled.</summary>
-    public RouteEntry? EditRoute(RouteEntry? existing, bool isCopy = false)
+    /// <param name="group">For a new route, the group it starts in.</param>
+    public RouteEntry? EditRoute(RouteEntry? existing, bool isCopy = false, string? group = null)
     {
         var viewModel = new RouteEditorViewModel(routes, inspector, https, navigation, existing, isCopy, dns?.Destinations());
+        if (group is not null)
+            viewModel.Group = group;
         var window = new RouteEditorWindow(viewModel) { Owner = Application.Current.MainWindow };
         return window.ShowDialog() == true ? viewModel.Saved : null;
+    }
+
+    /// <summary>Asks for one line of text; null when cancelled.</summary>
+    public static async Task<string?> PromptAsync(string title, string message, string initial, string confirmText)
+    {
+        var box = new Wpf.Ui.Controls.TextBox { Text = initial, Margin = new Thickness(0, 0, 0, 4) };
+        var content = new StackPanel { MaxWidth = 460 };
+        content.Children.Add(Paragraph(message));
+        content.Children.Add(box);
+        box.Loaded += (_, _) =>
+        {
+            box.Focus();
+            box.SelectAll();
+        };
+        return await ShowAsync(title, content, confirmText) ? box.Text : null;
     }
 
     /// <summary>The first-run wizard, over the main window.</summary>

@@ -66,7 +66,22 @@ public sealed partial class ServiceItemViewModel : ObservableObject
     /// <summary>Namespace or Compose project it came from.</summary>
     public string? Namespace => Route.Origin is { Namespace.Length: > 0 } o ? o.Namespace : null;
 
-    public string Detail => $"{Route.Address}   " + string.Join("   ", Route.Ports);
+    /// <summary>
+    /// "80 → gateway.k8s:30080", what the app calls and where it lands. The loopback address the
+    /// names point to is Severino's business, so it stays in the tooltip.
+    /// </summary>
+    public string Detail => string.Join("   ", Route.Ports.Select(p => Route.PortForward ? $"{p.Port} → port-forward" : p.ToString()));
+
+    public string DetailTooltip => $"Os nomes apontam para {Route.Address}, onde o Severino escuta "
+        + (Route.Ports.Count == 1 ? "a porta" : "as portas") + ".\n" + string.Join("\n", Route.Ports);
+
+    /// <summary>The DNS name a port goes to, when it goes by one: shown with its IP, linking to the DNS tab.</summary>
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(DestinationText))]
+    public partial Severino.Core.Dns.DnsDestination? Destination { get; set; }
+
+    /// <summary>"gateway.k8s é 192.168.203.100".</summary>
+    public string? DestinationText => Destination is { } d ? $"{d.Name} é {d.Address}" : null;
 
     /// <summary>"Port-forward rodando", or why it is starting over; null for a route without one.</summary>
     [ObservableProperty]

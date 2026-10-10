@@ -3,9 +3,9 @@ using System.Windows.Controls;
 
 namespace Severino.App.Views;
 
-public partial class DnsView : UserControl
+public partial class ServicesView : UserControl
 {
-    public DnsView() => InitializeComponent();
+    public ServicesView() => InitializeComponent();
 
     private void OnMoreClick(object sender, RoutedEventArgs e) => MoreMenu.Open(sender);
 }

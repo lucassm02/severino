@@ -67,6 +67,7 @@ public sealed class ImportServicesTests : IDisposable
         Assert.Equal(["api", "pedidos"], _services.Services.Select(s => s.Names[0]).Order());
         Assert.Equal("wsl:Ubuntu", _services.Services[0].Origin!.Source);
         Assert.Equal("2 serviços importados", ImportServicesViewModel.Describe(viewModel.Result!));
+        Assert.Equal("2 serviços importados.", ServicesViewModel.Describe(viewModel.Result!, 0));
     }
 
     [Fact]
@@ -98,6 +99,7 @@ public sealed class ImportServicesTests : IDisposable
         var route = Assert.Single(_config.Current.Routes);
         Assert.Equal(("loja.exemplo.com.br", "http://10.0.0.50:80", true), (route.Domain, route.Target, route.PreserveHost));
         Assert.Equal(["loja.exemplo.com.br"], viewModel.IngressRoutes);
+        Assert.Equal("1 rota web criada na aba Rotas.", ServicesViewModel.Describe(viewModel.Result!, viewModel.IngressRoutes.Count));
     }
 
     [Fact]

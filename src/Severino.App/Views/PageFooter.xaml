@@ -1,0 +1,31 @@
+<UserControl
+    x:Class="Severino.App.Views.PageFooter"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
+    xmlns:vm="clr-namespace:Severino.App.ViewModels"
+    mc:Ignorable="d"
+    d:DataContext="{d:DesignInstance Type=vm:ListPageViewModel}">
+    <!-- "Desfazer" after a removal, and the last message, with its action when it has one. -->
+    <StackPanel>
+        <ui:Card Margin="0,8,0,0" Padding="16,8" Visibility="{Binding UndoMessage, Converter={StaticResource NullToCollapsed}}">
+            <DockPanel>
+                <ui:Button DockPanel.Dock="Right" Content="Desfazer" Command="{Binding UndoCommand}" />
+                <ui:TextBlock VerticalAlignment="Center" Text="{Binding UndoMessage}" />
+            </DockPanel>
+        </ui:Card>
+        <ui:Card Margin="0,8,0,0" Padding="16,8" Visibility="{Binding Toast, Converter={StaticResource NullToCollapsed}}">
+            <DockPanel MinHeight="32">
+                <ui:Button
+                    DockPanel.Dock="Right"
+                    Margin="12,0,0,0"
+                    Content="{Binding ToastActionLabel}"
+                    Command="{Binding ToastActionCommand}"
+                    Visibility="{Binding ToastActionLabel, Converter={StaticResource NullToCollapsed}}" />
+                <ui:TextBlock VerticalAlignment="Center" TextWrapping="Wrap" Text="{Binding Toast}" />
+            </DockPanel>
+        </ui:Card>
+    </StackPanel>
+</UserControl>

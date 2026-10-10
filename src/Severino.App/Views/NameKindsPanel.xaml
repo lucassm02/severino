@@ -1,0 +1,24 @@
+<UserControl
+    x:Class="Severino.App.Views.NameKindsPanel"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml">
+    <!-- In each empty tab: the three ways to give a name, so the first one made is the right kind. -->
+    <ui:Card Padding="16,12">
+        <StackPanel>
+            <ui:TextBlock Margin="0,0,0,8" FontTypography="BodyStrong" Text="Rota, serviço ou DNS: qual usar" />
+            <TextBlock Margin="0,0,0,6" TextWrapping="Wrap">
+                <Run FontWeight="SemiBold" Text="Rota:" />
+                <Run Foreground="{DynamicResource TextFillColorSecondaryBrush}" Text="para abrir no navegador. O nome passa pelo proxy, com HTTPS, caminhos como /api e curingas como *.app.sev." />
+            </TextBlock>
+            <TextBlock Margin="0,0,0,6" TextWrapping="Wrap">
+                <Run FontWeight="SemiBold" Text="Serviço:" />
+                <Run Foreground="{DynamicResource TextFillColorSecondaryBrush}" Text="para bancos, filas e outros programas. O nome leva direto à porta, em qualquer protocolo; vem pronto do Kubernetes e do Docker." />
+            </TextBlock>
+            <TextBlock TextWrapping="Wrap">
+                <Run FontWeight="SemiBold" Text="Entrada DNS:" />
+                <Run Foreground="{DynamicResource TextFillColorSecondaryBrush}" Text="um nome direto para o IP de outra máquina, sem proxy. Vale com o app fechado." />
+            </TextBlock>
+        </StackPanel>
+    </ui:Card>
+</UserControl>

@@ -77,6 +77,14 @@ public sealed partial class RouteItemViewModel : ObservableObject
         ? (uri.Scheme == Uri.UriSchemeHttps ? "https://" : "") + uri.Authority
         : Route.Target;
 
+    /// <summary>The DNS name the target goes by, when it does: shown with its IP, linking to the DNS tab.</summary>
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(DestinationText))]
+    public partial Severino.Core.Dns.DnsDestination? Destination { get; set; }
+
+    /// <summary>"gateway.k8s é 192.168.203.100".</summary>
+    public string? DestinationText => Destination is { } d ? $"{d.Name} é {d.Address}" : null;
+
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(HasHttpsBadge), nameof(HttpsBadgeText), nameof(HttpsBadgeTooltip))]
     public partial RouteHttpsState HttpsState { get; set; }

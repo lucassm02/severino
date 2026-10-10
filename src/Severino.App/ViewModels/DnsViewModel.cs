@@ -1,6 +1,5 @@
 using System.Collections.ObjectModel;
 using System.Windows;
-using System.Windows.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Severino.App.Services;
@@ -12,27 +11,23 @@ using Severino.Core.Routes;
 namespace Severino.App.ViewModels;
 
 /// <summary>The DNS tab: Severino's entries, and the hosts lines from outside it.</summary>
-public sealed partial class DnsViewModel : ObservableObject
+public sealed partial class DnsViewModel : ListPageViewModel
 {
-    private static readonly TimeSpan UndoWindow = TimeSpan.FromSeconds(5);
-
     private readonly DnsService _dns;
     private readonly DnsSync _sync;
     private readonly ExternalHosts _external;
     private readonly ConfigService _config;
     private readonly DialogService _dialogs;
-    private readonly DispatcherTimer _undoTimer;
-    private (DnsEntry Entry, int Index)? _removed;
+    private readonly Navigation? _navigation;
 
-    public DnsViewModel(DnsService dns, DnsSync sync, ExternalHosts external, ConfigService config, DialogService dialogs)
+    public DnsViewModel(DnsService dns, DnsSync sync, ExternalHosts external, ConfigService config, DialogService dialogs, Navigation? navigation = null)
     {
         _dns = dns;
         _sync = sync;
         _external = external;
         _config = config;
         _dialogs = dialogs;
-        _undoTimer = new DispatcherTimer { Interval = UndoWindow };
-        _undoTimer.Tick += (_, _) => DismissUndo();
+        _navigation = navigation;
 
         Reconcile();
         config.Changed += (_, _) => Dispatch(Reconcile);
@@ -53,10 +48,7 @@ public sealed partial class DnsViewModel : ObservableObject
     [ObservableProperty]
     public partial string Summary { get; set; } = "";
 
-    [ObservableProperty]
-    public partial string Search { get; set; } = "";
-
-    partial void OnSearchChanged(string value) => Reconcile();
+    protected override void OnSearch() => Reconcile();
 
     /// <summary>The Helper is missing or refused: the DNS block is not being written.</summary>
     [ObservableProperty]
@@ -65,12 +57,6 @@ public sealed partial class DnsViewModel : ObservableObject
     /// <summary>"2 entradas com IP público aguardam aprovação."</summary>
     [ObservableProperty]
     public partial string? PendingText { get; set; }
-
-    [ObservableProperty]
-    public partial string? UndoMessage { get; set; }
-
-    [ObservableProperty]
-    public partial string? Toast { get; set; }
 
     [RelayCommand]
     private async Task NewEntryAsync()
@@ -99,12 +85,9 @@ public sealed partial class DnsViewModel : ObservableObject
                     string.Join("\n", routes.Select(r => r.Domain).Concat(services.Select(s => s.Names[0]))),
                     "Remover mesmo assim"))
                 return;
-            _removed = _dns.Remove(entry.Id);
-            if (_removed is null)
+            if (_dns.Remove(entry.Id) is not { } removed)
                 return;
-            UndoMessage = $"{entry.Names[0]} removido";
-            _undoTimer.Stop();
-            _undoTimer.Start();
+            ShowUndo($"{entry.Names[0]} removido", () => _dns.Restore(removed) ? null : "Não deu para desfazer: os nomes já estão em outra entrada.");
             return;
         }
 
@@ -145,16 +128,16 @@ public sealed partial class DnsViewModel : ObservableObject
         var rest = entry.Names.Where(n => n != name).ToList();
         if (rest.Count > 0)
             _dns.Save(entry with { Names = rest });
-        ShowToast($"{name} agora é uma rota, na aba Rotas.");
+        ShowToast($"{name} agora é uma rota.", "Ver em Rotas", () => _navigation?.Show(AppTab.Routes, name));
     }
 
+    /// <summary>The routes that go to this name, in the Rotas tab.</summary>
     [RelayCommand]
-    private void Undo()
-    {
-        if (_removed is { } removed && !_dns.Restore(removed))
-            ShowToast("Não deu para desfazer: os nomes já estão em outra entrada.");
-        DismissUndo();
-    }
+    private void ShowRoutes(DnsRowViewModel row) => _navigation?.Show(AppTab.Routes, row.Name);
+
+    /// <summary>The services that go to this name, in the Serviços tab.</summary>
+    [RelayCommand]
+    private void ShowServices(DnsRowViewModel row) => _navigation?.Show(AppTab.Services, row.Name);
 
     [RelayCommand]
     private void CopyName(DnsRowViewModel row)
@@ -210,7 +193,7 @@ public sealed partial class DnsViewModel : ObservableObject
         {
             row.Pending = row.Entry!.Enabled && pending.Any(p => p.Address == row.Address && row.Names.Contains(p.Name));
             var (routes, services) = DnsRules.UsedBy(row.Names, config);
-            row.UsedByText = routes.Count + services.Count == 0 ? null : $"Destino de {UsedBy(routes.Count, services.Count)}";
+            row.SetUsedBy(routes.Count, services.Count);
         }
 
         var outside = _external.Lines.Where(l => Matches(l.Names, l.Address)).ToList();
@@ -223,7 +206,7 @@ public sealed partial class DnsViewModel : ObservableObject
         foreach (var row in Outside)
         {
             var (routes, services) = DnsRules.UsedBy(row.Names, config);
-            row.UsedByText = routes.Count + services.Count == 0 ? null : $"Destino de {UsedBy(routes.Count, services.Count)}";
+            row.SetUsedBy(routes.Count, services.Count);
         }
 
         HasOwn = config.DnsEntries.Count > 0;
@@ -255,22 +238,4 @@ public sealed partial class DnsViewModel : ObservableObject
             services == 0 ? null : Plural(services, "serviço", "serviços"),
         }.OfType<string>());
 
-    private static string Plural(int count, string one, string many) => count == 1 ? $"1 {one}" : $"{count} {many}";
-
-    private void DismissUndo()
-    {
-        _undoTimer.Stop();
-        _removed = null;
-        UndoMessage = null;
-    }
-
-    private async void ShowToast(string message)
-    {
-        Toast = message;
-        await Task.Delay(TimeSpan.FromSeconds(4));
-        if (Toast == message)
-            Toast = null;
-    }
-
-    private static void Dispatch(Action action) => Application.Current?.Dispatcher.BeginInvoke(action);
 }

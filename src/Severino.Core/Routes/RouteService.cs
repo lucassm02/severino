@@ -53,6 +53,16 @@ public sealed class RouteService(ConfigService config, Dns.ExternalHosts? extern
     public void SetGroupEnabled(string group, bool enabled) =>
         config.Update(c => c with { Routes = [.. c.Routes.Select(r => r.Group == group ? r with { Enabled = enabled } : r)] });
 
+    /// <summary>
+    /// Gives the group's routes another group name; an empty one takes them out of any group, and
+    /// the name of a group in use joins the two.
+    /// </summary>
+    public void RenameGroup(string group, string newName)
+    {
+        var name = newName.Trim();
+        config.Update(c => c with { Routes = [.. c.Routes.Select(r => r.Group == group ? r with { Group = name } : r)] });
+    }
+
     /// <summary>The groups in use, in the order they first appear.</summary>
     public IReadOnlyList<string> Groups => [.. Routes.Select(r => r.Group).Where(g => g.Length > 0).Distinct(StringComparer.Ordinal)];
 

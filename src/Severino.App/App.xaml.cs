@@ -247,6 +247,7 @@ public partial class App : Application
         services.AddSingleton<MainWindow>();
         services.AddSingleton<MainWindowViewModel>();
         services.AddSingleton<RoutesViewModel>();
+        services.AddSingleton<ServicesViewModel>();
         services.AddSingleton<DnsViewModel>();
         services.AddSingleton<RequestsViewModel>();
         services.AddSingleton<SettingsViewModel>();
