@@ -299,6 +299,8 @@ O `Contracts` existe para que app e serviço usem exatamente o mesmo validador. 
 | 4. Serviços | Rotas de serviço com encaminhamento TCP e loopback dedicado; descoberta de services do Kubernetes e containers do Docker, no Windows e no WSL, ou colando a saída dos comandos; nomes no `/etc/hosts` das distros | Um app no Windows ou no WSL chama `pedidos:8080` e chega ao serviço no cluster, pelo gateway, com o nome original |
 | 5. Site e publicação | Site do Severino; pipeline do GitHub Actions que publica o site; pipeline de build que gera a versão e cria a release no GitHub com o instalador `.exe` anexado ([spec](specs/fase-5-site.md)) | O site está no ar, e um clique no Actions publica a próxima versão com o `.exe` |
 | 6. DNS e extras | Aba DNS para entradas `nome → IP` persistentes, importando o hosts feito à mão, e integrada a rotas e serviços (nome como destino); curinga via DNS embutido + regra NRPT (a validar), rotas por caminho (`/api`), grupos de rotas, `kubectl port-forward` gerenciado, acompanhar mudanças do cluster e do Docker sozinho, módulo PowerShell ([spec](specs/fase-6-dns-e-extras.md)) | Os critérios do spec |
+| 7. A definir | Reservada; candidata: aviso de versão nova dentro do app | |
+| 8. winget | Pacote `lucassm02.Severino` no catálogo do winget, instalador que instala, atualiza e desinstala em silêncio, e envio automático de cada release ([spec](specs/fase-8-winget.md)) | `winget install lucassm02.Severino` instala sem perguntar nada, e cada release chega ao catálogo sozinha |
 
 ## 8. Riscos restantes
 
