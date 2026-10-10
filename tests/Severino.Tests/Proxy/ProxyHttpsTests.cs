@@ -21,6 +21,7 @@ public sealed class ProxyHttpsTests : IAsyncLifetime
     private int _backendPort;
     private CertificateAuthority _ca = CertificateAuthority.Create(["sev"], TimeProvider.System);
     private readonly Dictionary<string, X509Certificate2> _issued = [];
+    private readonly RequestLog _log = new();
     private ProxyServer _proxy = null!;
     private int _httpPort;
     private int _httpsPort;
@@ -29,7 +30,7 @@ public sealed class ProxyHttpsTests : IAsyncLifetime
     {
         _backend = await TestBackend.StartAsync();
         _backendPort = TestBackend.PortOf(_backend);
-        _proxy = new ProxyServer(NullLoggerFactory.Instance, Issue);
+        _proxy = new ProxyServer(NullLoggerFactory.Instance, Issue, _log);
         _httpPort = TestBackend.FreePort();
         _httpsPort = TestBackend.FreePort();
         await _proxy.StartAsync(_httpPort, _httpsPort,
@@ -136,6 +137,8 @@ public sealed class ProxyHttpsTests : IAsyncLifetime
 
         Assert.Equal(HttpStatusCode.TemporaryRedirect, response.StatusCode);
         Assert.Equal(Https("callfred.sev", "/x?y=1"), response.Headers.Location);
+        var logged = _log.Since(-1)[^1];
+        Assert.Equal((307, true, "http"), (logged.Status, logged.FromProxy, logged.Scheme));
     }
 
     [Theory]

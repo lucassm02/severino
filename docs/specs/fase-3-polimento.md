@@ -47,6 +47,11 @@ São perguntas que mudam o desenho. Vêm antes de tudo, como testes descartávei
 - **Firefox.** Desde a versão 120, o Firefox importaria as CAs do Windows por padrão. Se isso se confirmar, a detecção se resume a procurar `security.enterprise_roots.enabled = false` explícito no `prefs.js` de algum perfil. O Firefox não está instalado nesta máquina; a validação usa um Windows Sandbox.
 - **Custo do log de requisições.** Medir o middleware sob carga (`bombardier` ou um loop de `HttpClient`) para confirmar que o custo é desprezível perto do YARP.
 
+**Resultados:**
+
+- **Custo do log (2026-10-09):** 40 mil requisições com 32 conexões, alternando proxy sem e com log. Deu 1295 e 1774 req/s sem log, contra 1414 e 1477 com log. A variação entre rodadas iguais é maior que a diferença entre as duas versões, então o custo fica abaixo do ruído.
+- **As outras quatro** dependem do Inno Setup, de um Windows Sandbox ou de alterar o registro do usuário. Elas são feitas no começo do passo que depende de cada uma: proxy e Firefox no passo 6, instalador no passo 8.
+
 ## Escopo
 
 ### Requisições (`Proxy` + `App`)

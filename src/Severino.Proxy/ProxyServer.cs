@@ -35,7 +35,7 @@ public sealed record ProxyStatus(ProxyState State, int Port, string? Detail = nu
 /// place; a port change restarts only that listener.
 /// </summary>
 /// <param name="certificates">Server certificate for a normalized domain, or null when it has none.</param>
-public sealed class ProxyServer(ILoggerFactory loggerFactory, Func<string, X509Certificate2?>? certificates = null) : IAsyncDisposable
+public sealed class ProxyServer(ILoggerFactory loggerFactory, Func<string, X509Certificate2?>? certificates = null, RequestLog? requests = null) : IAsyncDisposable
 {
     private readonly SemaphoreSlim _gate = new(1, 1);
     private readonly ILogger _logger = loggerFactory.CreateLogger<ProxyServer>();
@@ -180,6 +180,8 @@ public sealed class ProxyServer(ILoggerFactory loggerFactory, Func<string, X509C
         builder.Services.AddSingleton<IForwarderHttpClientFactory, ProxyHttpClientFactory>();
 
         var app = builder.Build();
+        if (requests is not null)
+            app.Use(requests.RecordAsync);
         if (!tls)
             app.Use(RedirectToHttpsAsync);
         app.MapReverseProxy(pipeline => pipeline.Use(WriteErrorPageAsync));
@@ -213,6 +215,7 @@ public sealed class ProxyServer(ILoggerFactory loggerFactory, Func<string, X509C
 
         var port = https.Port == 443 ? "" : $":{https.Port}";
         var request = context.Request;
+        RequestLog.MarkFromProxy(context);
         context.Response.StatusCode = StatusCodes.Status307TemporaryRedirect;
         context.Response.Headers.Location = $"https://{host}{port}{request.PathBase}{request.Path}{request.QueryString}";
         return Task.CompletedTask;
@@ -254,6 +257,7 @@ public sealed class ProxyServer(ILoggerFactory loggerFactory, Func<string, X509C
         var (domain, target) = (metadata[ProxyConfigMapper.DomainKey], metadata[ProxyConfigMapper.TargetKey]);
         var timedOut = error.Error == ForwarderError.RequestTimedOut;
 
+        RequestLog.MarkFromProxy(context);
         context.Response.StatusCode = timedOut ? StatusCodes.Status504GatewayTimeout : StatusCodes.Status502BadGateway;
         context.Response.ContentType = "text/html; charset=utf-8";
         await context.Response.WriteAsync(timedOut
@@ -263,6 +267,7 @@ public sealed class ProxyServer(ILoggerFactory loggerFactory, Func<string, X509C
 
     private Task WriteNotFoundAsync(HttpContext context, bool tls, int port)
     {
+        RequestLog.MarkFromProxy(context);
         context.Response.StatusCode = StatusCodes.Status404NotFound;
         context.Response.ContentType = "text/html; charset=utf-8";
         var domains = RouteRules.ActiveDomains(_routes);

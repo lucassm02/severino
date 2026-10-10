@@ -132,9 +132,11 @@ public partial class App : Application
         services.AddSingleton<ITrustStore, WindowsTrustStore>();
         services.AddSingleton<LocalCa>();
         services.AddSingleton<TldDirectory>();
+        services.AddSingleton(_ => new RequestLog());
         services.AddSingleton(sp => new ProxyServer(
             sp.GetRequiredService<ILoggerFactory>(),
-            domain => sp.GetRequiredService<LocalCa>().CertificateFor(domain)));
+            domain => sp.GetRequiredService<LocalCa>().CertificateFor(domain),
+            sp.GetRequiredService<RequestLog>()));
         services.AddSingleton(_ => new HealthMonitor());
         services.AddSingleton<ProxyCoordinator>();
 
@@ -148,6 +150,7 @@ public partial class App : Application
         services.AddSingleton<MainWindow>();
         services.AddSingleton<MainWindowViewModel>();
         services.AddSingleton<RoutesViewModel>();
+        services.AddSingleton<RequestsViewModel>();
         services.AddSingleton<SettingsViewModel>();
         services.AddSingleton<StatusBarViewModel>();
         services.AddSingleton<TrayViewModel>();
