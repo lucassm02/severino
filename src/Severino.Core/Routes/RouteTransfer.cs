@@ -3,15 +3,24 @@ using Severino.Core.Configuration;
 
 namespace Severino.Core.Routes;
 
-/// <summary>The routes file: what "Exportar rotas" writes and "Importar rotas" reads.</summary>
+/// <summary>
+/// The backup file: what "Exportar" writes and "Importar" reads. Version 1 had only the routes;
+/// version 2 also carries services and DNS entries.
+/// </summary>
 public sealed record RouteFile
 {
-    public const int CurrentVersion = 1;
+    public const int CurrentVersion = 2;
 
     /// <summary>Format version; also tells a Severino routes file apart from any other JSON.</summary>
     public int Severino { get; set; }
 
     public IReadOnlyList<ExportedRoute> Routes { get; set; } = [];
+
+    /// <summary>As saved here; an import gives them new ids and addresses.</summary>
+    public IReadOnlyList<ServiceRoute> Services { get; set; } = [];
+
+    /// <summary>As saved here; an import gives them new ids.</summary>
+    public IReadOnlyList<DnsEntry> DnsEntries { get; set; } = [];
 }
 
 /// <summary>A route without its id: ids are per machine, and an import makes new ones.</summary>
@@ -40,10 +49,12 @@ public sealed class InvalidRouteFileException(string message, Exception? inner =
 
 public static class RouteTransfer
 {
-    public static string Export(IEnumerable<RouteEntry> routes) => JsonSerializer.Serialize(
+    public static string Export(IEnumerable<RouteEntry> routes, IEnumerable<ServiceRoute>? services = null, IEnumerable<DnsEntry>? dns = null) => JsonSerializer.Serialize(
         new RouteFile
         {
             Severino = RouteFile.CurrentVersion,
+            Services = [.. services ?? []],
+            DnsEntries = [.. dns ?? []],
             Routes = [.. routes.Select(r => new ExportedRoute
             {
                 Domain = r.Domain,
@@ -66,7 +77,12 @@ public static class RouteTransfer
     /// route form. Existing routes are never replaced.
     /// </summary>
     /// <exception cref="InvalidRouteFileException">Not a Severino routes file, or one from a newer version.</exception>
-    public static ImportResult Import(string json, IReadOnlyList<RouteEntry> existing, int httpPort, int? httpsPort, IReadOnlyList<ServiceRoute>? services = null)
+    public static ImportResult Import(string json, IReadOnlyList<RouteEntry> existing, int httpPort, int? httpsPort, IReadOnlyList<ServiceRoute>? services = null) =>
+        Import(Read(json), existing, httpPort, httpsPort, services);
+
+    /// <summary>Reads a backup file of this version or an older one.</summary>
+    /// <exception cref="InvalidRouteFileException">Not a Severino backup file, or one from a newer version.</exception>
+    public static RouteFile Read(string json)
     {
         RouteFile? file;
         try
@@ -81,7 +97,12 @@ public static class RouteTransfer
             throw new InvalidRouteFileException("O arquivo não é uma exportação de rotas do Severino.");
         if (file.Severino > RouteFile.CurrentVersion)
             throw new InvalidRouteFileException("O arquivo veio de uma versão mais nova do Severino. Atualize antes de importar.");
+        return file;
+    }
 
+    /// <summary>The routes of <paramref name="file"/>, sorted into new, already present and invalid.</summary>
+    public static ImportResult Import(RouteFile file, IReadOnlyList<RouteEntry> existing, int httpPort, int? httpsPort, IReadOnlyList<ServiceRoute>? services = null)
+    {
         var routes = existing.ToList();
         var added = new List<RouteEntry>();
         var skipped = new List<string>();

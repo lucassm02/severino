@@ -33,19 +33,6 @@ public sealed class RouteService(ConfigService config, Dns.ExternalHosts? extern
         return saved;
     }
 
-    public string Export() => RouteTransfer.Export(Routes);
-
-    /// <summary>Adds the file's new routes in one change; see <see cref="RouteTransfer.Import"/>.</summary>
-    /// <exception cref="InvalidRouteFileException">Not a routes file this version can read.</exception>
-    public ImportResult Import(string json)
-    {
-        var settings = config.Current.Settings;
-        var result = RouteTransfer.Import(json, Routes, settings.HttpPort, settings.HttpsPort, config.Current.Services);
-        if (result.Added.Count > 0)
-            config.Update(c => c with { Routes = [.. c.Routes, .. result.Added] });
-        return result;
-    }
-
     public void SetEnabled(Guid id, bool enabled) =>
         Change(id, r => r with { Enabled = enabled });
 

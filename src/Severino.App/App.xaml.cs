@@ -209,6 +209,7 @@ public partial class App : Application
         services.AddSingleton<IPortForwardRunner, ProcessPortForwardRunner>();
         services.AddSingleton<PortForwards>();
         services.AddSingleton<ServiceRefresher>();
+        services.AddSingleton<Backup>();
         services.AddSingleton<Severino.Core.Control.ControlHandler>();
         services.AddSingleton<ControlServer>();
         services.AddSingleton<IServiceEvents, ProcessServiceEvents>();

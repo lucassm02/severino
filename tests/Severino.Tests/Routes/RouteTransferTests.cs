@@ -65,7 +65,7 @@ public sealed class RouteTransferTests
     [Theory]
     [InlineData("isto não é json")]
     [InlineData("""{ "version": 1, "routes": [] }""")]
-    [InlineData("""{ "severino": 2, "routes": [] }""")]
+    [InlineData("""{ "severino": 3, "routes": [] }""")]
     public void Foreign_or_newer_files_are_refused(string json)
     {
         Assert.Throws<InvalidRouteFileException>(() => Import(json));
@@ -74,8 +74,11 @@ public sealed class RouteTransferTests
     [Fact]
     public void Summary_lists_added_skipped_and_invalid()
     {
-        var text = SettingsViewModel.DescribeImport(new ImportResult([Route("a.sev")], ["b.sev"], [new("c", "Domínio inválido.")]));
+        var text = SettingsViewModel.DescribeImport(new BackupResult(
+            new ImportResult([Route("a.sev")], ["b.sev"], [new("c", "Domínio inválido.")]), ["pedidos"], [], [new("sql.interno", "Nome já usado.")]));
 
-        Assert.Equal("1 rota importada.\n\nJá existiam, e ficaram como estavam: b.sev.\n\nNão importadas:\n• c: Domínio inválido.", text);
+        Assert.Equal(
+            "Importados: 1 rota, 1 serviço.\n\nRotas que já existiam, e ficaram como estavam: b.sev.\n\nNão importados:\n• c: Domínio inválido.\n• sql.interno: Nome já usado.",
+            text);
     }
 }

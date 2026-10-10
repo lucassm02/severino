@@ -35,6 +35,30 @@
                     <ui:Button Margin="8,0,0,0" Content="Aplicar" Command="{Binding ApplyHttpPortCommand}" />
                 </StackPanel>
             </ui:CardControl>
+            <ui:CardControl Margin="0,0,0,4" Icon="{ui:SymbolIcon PlugConnected24}">
+                <ui:CardControl.Header>
+                    <StackPanel>
+                        <ui:TextBlock Text="Porta HTTPS do proxy" />
+                        <ui:TextBlock Foreground="{DynamicResource TextFillColorSecondaryBrush}" FontTypography="Caption" Text="Fora da 443, as URLs https:// passam a levar a porta" />
+                        <ui:TextBlock
+                            FontTypography="Caption"
+                            Foreground="{DynamicResource SystemFillColorCriticalBrush}"
+                            Text="{Binding HttpsPortError}"
+                            Visibility="{Binding HttpsPortError, Converter={StaticResource NullToCollapsed}}" />
+                    </StackPanel>
+                </ui:CardControl.Header>
+                <StackPanel Orientation="Horizontal">
+                    <ui:TextBox
+                        Width="96"
+                        Text="{Binding HttpsPort, UpdateSourceTrigger=PropertyChanged}"
+                        AutomationProperties.Name="Porta HTTPS">
+                        <ui:TextBox.InputBindings>
+                            <KeyBinding Key="Enter" Command="{Binding ApplyHttpsPortCommand}" />
+                        </ui:TextBox.InputBindings>
+                    </ui:TextBox>
+                    <ui:Button Margin="8,0,0,0" Content="Aplicar" Command="{Binding ApplyHttpsPortCommand}" />
+                </StackPanel>
+            </ui:CardControl>
 
             <ui:TextBlock Margin="0,16,0,8" FontTypography="BodyStrong" Text="HTTPS" />
             <ui:Card Margin="0,0,0,4" Padding="16">
@@ -129,32 +153,21 @@
                         Text="Ao ativar, o Windows pede para confirmar a instalação da CA. Ela só assina os domínios das rotas." />
                 </StackPanel>
             </ui:Card>
-            <ui:CardControl Margin="0,0,0,4" Icon="{ui:SymbolIcon PlugConnected24}">
+
+            <ui:TextBlock Margin="0,16,0,8" FontTypography="BodyStrong" Text="Serviços" />
+            <ui:CardControl Margin="0,0,0,4" Icon="{ui:SymbolIcon ArrowSync24}">
                 <ui:CardControl.Header>
                     <StackPanel>
-                        <ui:TextBlock Text="Porta HTTPS do proxy" />
-                        <ui:TextBlock Foreground="{DynamicResource TextFillColorSecondaryBrush}" FontTypography="Caption" Text="Fora da 443, as URLs https:// passam a levar a porta" />
+                        <ui:TextBlock Text="Acompanhar serviços importados" />
                         <ui:TextBlock
+                            Foreground="{DynamicResource TextFillColorSecondaryBrush}"
                             FontTypography="Caption"
-                            Foreground="{DynamicResource SystemFillColorCriticalBrush}"
-                            Text="{Binding HttpsPortError}"
-                            Visibility="{Binding HttpsPortError, Converter={StaticResource NullToCollapsed}}" />
+                            TextWrapping="Wrap"
+                            Text="Com o app aberto, faz o Atualizar sozinho: quando um container do Docker sobe ou cai, e no Kubernetes a cada 30 s." />
                     </StackPanel>
                 </ui:CardControl.Header>
-                <StackPanel Orientation="Horizontal">
-                    <ui:TextBox
-                        Width="96"
-                        Text="{Binding HttpsPort, UpdateSourceTrigger=PropertyChanged}"
-                        AutomationProperties.Name="Porta HTTPS">
-                        <ui:TextBox.InputBindings>
-                            <KeyBinding Key="Enter" Command="{Binding ApplyHttpsPortCommand}" />
-                        </ui:TextBox.InputBindings>
-                    </ui:TextBox>
-                    <ui:Button Margin="8,0,0,0" Content="Aplicar" Command="{Binding ApplyHttpsPortCommand}" />
-                </StackPanel>
+                <ui:ToggleSwitch IsChecked="{Binding WatchServices}" AutomationProperties.Name="Acompanhar serviços importados" />
             </ui:CardControl>
-
-            <ui:TextBlock Margin="0,16,0,8" FontTypography="BodyStrong" Text="WSL" />
             <ui:Card Margin="0,0,0,4" Padding="16">
                 <StackPanel>
                     <DockPanel>
@@ -205,21 +218,34 @@
                 </StackPanel>
             </ui:Card>
 
-            <ui:CardControl Margin="0,0,0,4" Icon="{ui:SymbolIcon ArrowSync24}">
-                <ui:CardControl.Header>
-                    <StackPanel>
-                        <ui:TextBlock Text="Acompanhar serviços importados" />
-                        <ui:TextBlock
-                            Foreground="{DynamicResource TextFillColorSecondaryBrush}"
-                            FontTypography="Caption"
-                            TextWrapping="Wrap"
-                            Text="Com o app aberto, faz o Atualizar sozinho: quando um container do Docker sobe ou cai, e no Kubernetes a cada 30 s." />
-                    </StackPanel>
-                </ui:CardControl.Header>
-                <ui:ToggleSwitch IsChecked="{Binding WatchServices}" AutomationProperties.Name="Acompanhar serviços importados" />
-            </ui:CardControl>
+            <ui:TextBlock Margin="0,16,0,8" FontTypography="BodyStrong" Text="Terminal" />
+            <ui:Card Margin="0,0,0,4" Padding="16">
+                <StackPanel>
+                    <DockPanel>
+                        <ui:SymbolIcon DockPanel.Dock="Left" Margin="0,2,16,0" VerticalAlignment="Top" FontSize="24" Symbol="WindowConsole20" />
+                        <StackPanel>
+                            <ui:TextBlock Text="Comandos no PowerShell" />
+                            <ui:TextBlock Foreground="{DynamicResource TextFillColorSecondaryBrush}" FontTypography="Caption" TextWrapping="Wrap" Text="{Binding TerminalStatus}" />
+                        </StackPanel>
+                    </DockPanel>
+                    <DockPanel Margin="40,10,0,0">
+                        <StackPanel DockPanel.Dock="Right" Margin="8,0,0,0" VerticalAlignment="Top">
+                            <ui:Button Icon="{ui:SymbolIcon Copy24}" Content="Copiar" Command="{Binding CopyTerminalExamplesCommand}" />
+                            <ui:TextBlock Margin="0,4,0,0" HorizontalAlignment="Center" FontTypography="Caption" Text="{Binding TerminalCopied}" />
+                        </StackPanel>
+                        <ui:TextBox
+                            IsReadOnly="True"
+                            TextWrapping="NoWrap"
+                            HorizontalScrollBarVisibility="Auto"
+                            FontFamily="Cascadia Mono, Consolas"
+                            FontSize="12"
+                            Text="{Binding TerminalExamples, Mode=OneWay}"
+                            AutomationProperties.Name="Exemplos de comandos" />
+                    </DockPanel>
+                </StackPanel>
+            </ui:Card>
 
-            <ui:TextBlock Margin="0,16,0,8" FontTypography="BodyStrong" Text="Aparência" />
+            <ui:TextBlock Margin="0,16,0,8" FontTypography="BodyStrong" Text="Geral" />
             <ui:CardControl Margin="0,0,0,4" Icon="{ui:SymbolIcon DarkTheme24}">
                 <ui:CardControl.Header>
                     <StackPanel>
@@ -234,8 +260,6 @@
                     SelectedValuePath="Value"
                     SelectedValue="{Binding Theme}" />
             </ui:CardControl>
-
-            <ui:TextBlock Margin="0,16,0,8" FontTypography="BodyStrong" Text="Inicialização" />
             <ui:CardControl Margin="0,0,0,4" Icon="{ui:SymbolIcon Power24}">
                 <ui:CardControl.Header>
                     <StackPanel>
@@ -277,20 +301,20 @@
             <ui:CardControl Margin="0,0,0,4" Icon="{ui:SymbolIcon ArrowSwap24}">
                 <ui:CardControl.Header>
                     <StackPanel>
-                        <ui:TextBlock Text="Rotas" />
-                        <ui:TextBlock Foreground="{DynamicResource TextFillColorSecondaryBrush}" FontTypography="Caption" TextWrapping="Wrap" Text="Leve suas rotas para outra máquina num arquivo JSON. Importar só acrescenta: rotas que já existem ficam como estão." />
+                        <ui:TextBlock Text="Backup" />
+                        <ui:TextBlock Foreground="{DynamicResource TextFillColorSecondaryBrush}" FontTypography="Caption" TextWrapping="Wrap" Text="Rotas, serviços e entradas DNS num arquivo JSON, para outra máquina. Importar só acrescenta: o que já existe aqui fica como está." />
                     </StackPanel>
                 </ui:CardControl.Header>
                 <StackPanel Orientation="Horizontal">
-                    <ui:Button Content="Exportar" Command="{Binding ExportRoutesCommand}" />
-                    <ui:Button Margin="8,0,0,0" Content="Importar" Command="{Binding ImportRoutesCommand}" />
+                    <ui:Button Content="Exportar" Command="{Binding ExportBackupCommand}" />
+                    <ui:Button Margin="8,0,0,0" Content="Importar" Command="{Binding ImportBackupCommand}" />
                 </StackPanel>
             </ui:CardControl>
             <ui:CardControl Margin="0,0,0,4" Icon="{ui:SymbolIcon Broom24}">
                 <ui:CardControl.Header>
                     <StackPanel>
                         <ui:TextBlock Text="Limpar tudo" />
-                        <ui:TextBlock Foreground="{DynamicResource TextFillColorSecondaryBrush}" FontTypography="Caption" TextWrapping="Wrap" Text="Tira do Windows o bloco do hosts, a CA local, a inicialização automática e as exceções de proxy, tira os nomes das distros do WSL, e fecha o app" />
+                        <ui:TextBlock Foreground="{DynamicResource TextFillColorSecondaryBrush}" FontTypography="Caption" TextWrapping="Wrap" Text="Tira do Windows o que o Severino pôs: os blocos do hosts (rotas e DNS), as regras de DNS dos curingas, a CA local, a inicialização automática, as exceções de proxy e os nomes nas distros do WSL. Depois fecha o app." />
                     </StackPanel>
                 </ui:CardControl.Header>
                 <ui:Button Content="Limpar tudo…" Command="{Binding CleanAllCommand}" />

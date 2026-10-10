@@ -181,12 +181,12 @@ public sealed class DialogService(RouteService routes, ServiceRouteService servi
     /// <summary>"Limpar tudo": confirmed, and whether to delete the routes and settings too.</summary>
     public static async Task<(bool Confirmed, bool DeleteData)> ConfirmCleanupAsync()
     {
-        var deleteData = new CheckBox { Content = "Apagar também as rotas e configurações", Margin = new Thickness(0, 0, 0, 4) };
+        var deleteData = new CheckBox { Content = "Apagar também rotas, serviços, entradas DNS e configurações", Margin = new Thickness(0, 0, 0, 4) };
         var content = new StackPanel { MaxWidth = 460 };
         content.Children.Add(Paragraph(
-            "O Severino tira do Windows tudo o que colocou: os blocos do arquivo hosts (rotas e DNS), a CA local, a inicialização automática, as exceções de proxy que ele adicionou e os nomes nas distros do WSL que estão rodando. Linhas do hosts que não são dele ficam como estão. " +
+            "O Severino tira do Windows tudo o que colocou: os blocos do arquivo hosts (rotas e DNS), as regras de DNS dos curingas, a CA local, a inicialização automática, as exceções de proxy que ele adicionou e os nomes nas distros do WSL que estão rodando. Linhas do hosts que não são dele ficam como estão. " +
             "Depois, o app fecha. O Windows pede confirmação para remover a CA."));
-        content.Children.Add(Paragraph("Sem a caixa abaixo, suas rotas ficam guardadas para quando você abrir o Severino de novo."));
+        content.Children.Add(Paragraph("Sem a caixa abaixo, o que você cadastrou fica guardado para quando abrir o Severino de novo. Para levar a outra máquina, use Backup antes."));
         content.Children.Add(deleteData);
         var confirmed = await ShowAsync("Limpar tudo", content, "Limpar e fechar");
         return (confirmed, deleteData.IsChecked == true);

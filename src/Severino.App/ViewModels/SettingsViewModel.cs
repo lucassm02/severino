@@ -24,13 +24,13 @@ public sealed partial class SettingsViewModel : ObservableObject
     private readonly ConfigService _config;
     private readonly ThemeService _themes;
     private readonly HttpsService _https;
-    private readonly RouteService _routes;
+    private readonly Backup _backup;
     private readonly AutoStart _autoStart;
     private readonly SystemCleanup _cleanup;
     private readonly Lazy<ShellService> _shell;
     private readonly Func<FirstRunViewModel> _firstRun;
 
-    public SettingsViewModel(ConfigService config, ThemeService themes, HttpsService https, RouteService routes,
+    public SettingsViewModel(ConfigService config, ThemeService themes, HttpsService https, Backup backup,
         AutoStart autoStart, SystemCleanup cleanup, Lazy<ShellService> shell, Func<FirstRunViewModel> firstRun,
         WslCallers wsl, ServiceDiscovery discovery, Severino.Core.Dns.DnsSync? dnsSync = null)
     {
@@ -41,7 +41,7 @@ public sealed partial class SettingsViewModel : ObservableObject
         _config = config;
         _themes = themes;
         _https = https;
-        _routes = routes;
+        _backup = backup;
         _autoStart = autoStart;
         _cleanup = cleanup;
         _shell = shell;
@@ -315,60 +315,65 @@ public sealed partial class SettingsViewModel : ObservableObject
     private static void Dispatch(Action action) => Application.Current?.Dispatcher.BeginInvoke(action);
 
     [RelayCommand]
-    private async Task ExportRoutesAsync()
+    private async Task ExportBackupAsync()
     {
-        var path = DialogService.PickSavePath("severino-rotas.json", "Rotas do Severino (*.json)|*.json");
+        var path = DialogService.PickSavePath("severino-backup.json", "Backup do Severino (*.json)|*.json");
         if (path is null)
             return;
         try
         {
-            File.WriteAllText(path, _routes.Export());
+            File.WriteAllText(path, _backup.Export());
         }
         catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
         {
-            await DialogService.ShowInfoAsync("Exportar rotas", $"Não deu para gravar o arquivo: {ex.Message}");
+            await DialogService.ShowInfoAsync("Exportar backup", $"Não deu para gravar o arquivo: {ex.Message}");
         }
     }
 
     [RelayCommand]
-    private async Task ImportRoutesAsync()
+    private async Task ImportBackupAsync()
     {
-        var path = DialogService.PickOpenPath("Rotas do Severino (*.json)|*.json|Todos os arquivos (*.*)|*.*");
+        var path = DialogService.PickOpenPath("Backup do Severino (*.json)|*.json|Todos os arquivos (*.*)|*.*");
         if (path is null)
             return;
 
-        ImportResult result;
+        BackupResult result;
         try
         {
-            result = _routes.Import(File.ReadAllText(path));
+            result = _backup.Import(File.ReadAllText(path));
         }
         catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or InvalidRouteFileException)
         {
-            await DialogService.ShowInfoAsync("Importar rotas", $"Não deu para importar: {ex.Message}");
+            await DialogService.ShowInfoAsync("Importar backup", $"Não deu para importar: {ex.Message}");
             return;
         }
 
-        await DialogService.ShowInfoAsync("Importar rotas", DescribeImport(result));
-        await OfferReissueAsync(result.Added);
+        await DialogService.ShowInfoAsync("Importar backup", DescribeImport(result));
+        await OfferReissueAsync(result.Routes.Added);
     }
 
     /// <summary>The summary after an import: what came in, what was already here, what was refused.</summary>
-    public static string DescribeImport(ImportResult result)
+    public static string DescribeImport(BackupResult result)
     {
+        var routes = result.Routes;
+        var came = new[]
+        {
+            Count(routes.Added.Count, "rota", "rotas"),
+            Count(result.Services.Count, "serviço", "serviços"),
+            Count(result.Dns.Count, "entrada DNS", "entradas DNS"),
+        }.OfType<string>().ToList();
         var lines = new List<string>
         {
-            result.Added.Count switch
-            {
-                0 => "Nenhuma rota nova.",
-                1 => "1 rota importada.",
-                var n => $"{n} rotas importadas.",
-            },
+            came.Count == 0 ? "Nada novo para importar." : $"Importados: {string.Join(", ", came)}.",
         };
-        if (result.Skipped.Count > 0)
-            lines.Add($"Já existiam, e ficaram como estavam: {string.Join(", ", result.Skipped)}.");
-        if (result.Invalid.Count > 0)
-            lines.Add("Não importadas:\n" + string.Join("\n", result.Invalid.Select(i => $"• {i.Domain}: {i.Reason}")));
+        if (routes.Skipped.Count > 0)
+            lines.Add($"Rotas que já existiam, e ficaram como estavam: {string.Join(", ", routes.Skipped)}.");
+        var refused = routes.Invalid.Concat(result.Refused).ToList();
+        if (refused.Count > 0)
+            lines.Add("Não importados:\n" + string.Join("\n", refused.Select(i => $"• {i.Domain}: {i.Reason}")));
         return string.Join("\n\n", lines);
+
+        static string? Count(int n, string one, string many) => n switch { 0 => null, 1 => $"1 {one}", _ => $"{n} {many}" };
     }
 
     // Like saving a route in the form: imported HTTPS routes outside the CA need a new one.
