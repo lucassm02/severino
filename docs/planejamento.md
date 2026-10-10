@@ -8,6 +8,8 @@ Ficam de fora, de propósito: expor serviços na rede ou na internet, Let's Encr
 
 A primeira versão do plano deixava o WSL inteiro de fora. Em 2026-10-09 isso mudou: a Fase 4 traz os serviços do Kubernetes e os containers do Docker para a máquina pelos nomes que eles têm no cluster ou no Compose, descobertos no Windows ou dentro das distros do WSL, e atende apps rodando no WSL (veja o [spec da Fase 4](specs/fase-4-servicos.md)).
 
+Em 2026-10-10 o roadmap ganhou uma Fase 5 de site e publicação (site, deploy pelo GitHub Actions e release com o instalador). Os extras passaram para a Fase 6.
+
 ## 1. Arquitetura
 
 ```
@@ -232,7 +234,7 @@ Edge e Chrome usam o repositório do Windows. O Firefox pode precisar de `securi
 O desinstalador faz três coisas, nesta ordem:
 
 1. Pede ao serviço para remover o bloco do hosts.
-2. Roda `Severino.exe --cleanup` como o usuário original (flag `runasoriginaluser` do Inno Setup), para tirar a CA do repositório do seu usuário.
+2. Roda `Severino.exe --cleanup`, para tirar a CA do repositório do usuário. O Inno Setup não aceita `runasoriginaluser` na desinstalação, então ele roda com a conta que aprovou o UAC, que no caso comum é o próprio usuário. Quando a instalação foi de outra conta, o desinstalador avisa antes e sugere "Limpar tudo" com aquele usuário (confirmado na [Fase 3](specs/fase-3-polimento.md)).
 3. Remove o serviço.
 
 ## 5. Modelo de dados
@@ -295,7 +297,8 @@ O `Contracts` existe para que app e serviço usem exatamente o mesmo validador. 
 | 2. HTTPS | CA com Name Constraints nos domínios cadastrados e reemissão, emissão por SNI, redirecionamento, exportar CA | `https://callfred.sev` abre no Edge e no Chrome sem aviso |
 | 3. Polimento | Assistente de primeira execução, aba de requisições, combo de portas com processo, detector de proxy do sistema, iniciar com Windows, importar e exportar, "Limpar tudo", instalador | Alguém que nunca viu a ferramenta instala e cria uma rota sem ajuda |
 | 4. Serviços | Rotas de serviço com encaminhamento TCP e loopback dedicado; descoberta de services do Kubernetes e containers do Docker, no Windows e no WSL, ou colando a saída dos comandos; nomes no `/etc/hosts` das distros | Um app no Windows ou no WSL chama `pedidos:8080` e chega ao serviço no cluster, pelo gateway, com o nome original |
-| 5. Extras | Curinga via DNS embutido + regra NRPT para os domínios das rotas (a validar), rotas por caminho (`/api`), importar entradas 127.0.0.1 já existentes no hosts, grupos de rotas, módulo PowerShell opcional, `kubectl port-forward` gerenciado, acompanhar mudanças do cluster e do Docker sozinho | Conforme a necessidade |
+| 5. Site e publicação | Site do Severino; pipeline do GitHub Actions que publica o site; pipeline de build que gera a versão e cria a release no GitHub com o instalador `.exe` anexado | O site está no ar e uma tag gera a release com o `.exe` sem passo manual |
+| 6. Extras | Curinga via DNS embutido + regra NRPT para os domínios das rotas (a validar), rotas por caminho (`/api`), importar entradas 127.0.0.1 já existentes no hosts, grupos de rotas, módulo PowerShell opcional, `kubectl port-forward` gerenciado, acompanhar mudanças do cluster e do Docker sozinho | Conforme a necessidade |
 
 ## 8. Riscos restantes
 
@@ -307,7 +310,7 @@ O `Contracts` existe para que app e serviço usem exatamente o mesmo validador. 
 | DNS-over-HTTPS no navegador | Os navegadores consultam o hosts antes do DoH; se algo falhar, o diagnóstico sugere testar com `.localhost` |
 | SmartScreen em executável sem assinatura | Aceitável para uso próprio; certificado de assinatura só se for distribuir |
 | Containers não enxergam `.sev` | Fora do escopo, documentado. Apps no WSL passam a enxergar as rotas de serviço na Fase 4 |
-| Porta 53 ocupada no DNS da Fase 4 | Validar antes de implementar o curinga |
+| Porta 53 ocupada no DNS da Fase 6 | Validar antes de implementar o curinga |
 
 ## 9. Testes
 

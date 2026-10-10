@@ -136,7 +136,7 @@ A rota web atual não muda.
     - `algarbffapi:80` vira `192.168.203.100:32359`;
     - `postgres.database:5432` vira `192.168.203.100:30711`.
   - **LoadBalancer:** o IP em `status.loadBalancer.ingress`, na porta do serviço.
-  - **Só ClusterIP:** aparece como "sem acesso de fora", com a dica do `port-forward` da Fase 5.
+  - **Só ClusterIP:** aparece como "sem acesso de fora", com a dica do `port-forward` da Fase 6.
 - **Pods prontos:** a lista mostra quais services não têm nenhum pod pronto agora. No cluster de referência, eram 30 dos 105 do `staging`. Importar continua permitido, mas a rota nasce avisando.
 - **Nome público pelo gateway interno (Ingress, opcional):** os hosts dos Ingress, como `staging.pagtel.com.br`, podem virar **rotas web** comuns apontando para o IP do controlador de Ingress (`192.168.203.100`, por `externalIPs`). Assim o nome público, que pela internet passa pelo F5 Distributed Cloud, vai direto ao gateway pela VPN. É o mesmo tipo de rota que o Severino já tem; o aviso de "domínio existe na internet" continua valendo.
 
@@ -192,8 +192,8 @@ Na importação, as caixas **Kubernetes** e **Docker** escolhem o que perguntar 
 
 ## Fora do escopo
 
-- **Fase 5:** `kubectl port-forward` gerenciado pelo Severino, para services só `ClusterIP` e sem gateway.
-- **Fase 5:** acompanhar mudanças sozinho (watch do `kubectl`, eventos do Docker). Nesta fase, atualizar é um clique.
+- **Fase 6:** `kubectl port-forward` gerenciado pelo Severino, para services só `ClusterIP` e sem gateway.
+- **Fase 6:** acompanhar mudanças sozinho (watch do `kubectl`, eventos do Docker). Nesta fase, atualizar é um clique.
 - **Sem planos (decidido em 2026-10-10):** containers chamando os serviços pelos nomes do Severino, pelo DNS interno do Docker ou por `extra_hosts`. Só as portas publicadas no host contam.
 - **Sem planos:** Podman, Rancher Desktop com `nerdctl` e clusters que exijam VPN aberta pelo próprio Severino.
 
@@ -242,7 +242,7 @@ Nenhum. O `kubectl` e o `docker` rodam como processos, e as saídas são lidas c
 5. **Hosts dos Ingress podem virar rotas web para o gateway interno.** *Padrão: sim, opcional na importação.* Leva `staging.pagtel.com.br` direto ao `ingress-nginx` pela VPN, sem passar pelo F5.
 6. **Distros paradas não são iniciadas sem pedir.** *Padrão: sim.*
 7. **Chamadores no WSL por `/etc/hosts` mais regras de `iptables` na distro.** *Padrão: sim.* Validado no cluster de referência e com o Docker da distro. A alternativa é exigir o modo de rede espelhado do WSL (`networkingMode=mirrored`), que compartilha o loopback com o Windows, mas muda a rede da distro inteira e exige Windows 11 22H2 ou mais novo. O custo do padrão: o Severino liga o `route_localnet` da distro, que deixa pacotes destinados a `127/8` saírem dela. Ele só faz isso enquanto houver rotas de serviço para aquela distro.
-8. **Atualizar é manual.** *Padrão: sim.* Acompanhar sozinho fica para a Fase 5.
+8. **Atualizar é manual.** *Padrão: sim.* Acompanhar sozinho fica para a Fase 6.
 
 ## Perguntas em aberto
 
