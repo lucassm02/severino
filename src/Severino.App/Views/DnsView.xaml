@@ -107,7 +107,7 @@
             </ui:Card>
         </StackPanel>
 
-        <ScrollViewer Grid.Row="2" VerticalScrollBarVisibility="Auto">
+        <ScrollViewer Grid.Row="2" Style="{StaticResource PageScroll}">
             <StackPanel>
                 <!-- Severino's own entries -->
                 <!-- No hint here: the lead above already says these work with the app closed. -->

@@ -9,7 +9,7 @@
     xmlns:vm="clr-namespace:Severino.App.ViewModels"
     mc:Ignorable="d"
     d:DataContext="{d:DesignInstance Type=vm:SettingsViewModel}">
-    <ScrollViewer VerticalScrollBarVisibility="Auto">
+    <ScrollViewer Style="{StaticResource PageScroll}">
         <StackPanel Margin="0,16,0,0">
             <ui:TextBlock Margin="0,0,0,8" FontTypography="BodyStrong" Text="{x:Static res:Strings.Settings_Network}" />
             <ui:CardControl Margin="0,0,0,4" Icon="{ui:SymbolIcon PlugConnected24}">

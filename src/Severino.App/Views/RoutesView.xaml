@@ -66,7 +66,7 @@
                 Command="{Binding NewRouteCommand}" />
         </Grid>
 
-        <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" Visibility="{Binding HasRoutes, Converter={StaticResource TrueToVisible}}">
+        <ScrollViewer Grid.Row="1" Style="{StaticResource PageScroll}" Visibility="{Binding HasRoutes, Converter={StaticResource TrueToVisible}}">
             <StackPanel>
                 <ui:Card Margin="0,0,0,8" Padding="16,10" Visibility="{Binding WildcardPendingText, Converter={StaticResource NullToCollapsed}}">
                     <DockPanel>
@@ -214,7 +214,7 @@
             </StackPanel>
         </ScrollViewer>
 
-        <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" Visibility="{Binding IsEmpty, Converter={StaticResource TrueToVisible}}">
+        <ScrollViewer Grid.Row="1" Style="{StaticResource PageScroll}" Visibility="{Binding IsEmpty, Converter={StaticResource TrueToVisible}}">
             <StackPanel MaxWidth="520" Margin="0,8" HorizontalAlignment="Center" VerticalAlignment="Center">
                 <Image
                     Width="96"

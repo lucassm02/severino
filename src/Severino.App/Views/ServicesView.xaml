@@ -75,7 +75,7 @@
                 Command="{Binding ImportServicesCommand}" />
         </Grid>
 
-        <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" Visibility="{Binding HasServices, Converter={StaticResource TrueToVisible}}">
+        <ScrollViewer Grid.Row="1" Style="{StaticResource PageScroll}" Visibility="{Binding HasServices, Converter={StaticResource TrueToVisible}}">
             <ItemsControl ItemsSource="{Binding ServiceGroups}">
                 <ItemsControl.ItemTemplate>
                     <DataTemplate DataType="{x:Type vm:ServiceGroupViewModel}">
@@ -196,7 +196,7 @@
             </ItemsControl>
         </ScrollViewer>
 
-        <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" Visibility="{Binding IsEmpty, Converter={StaticResource TrueToVisible}}">
+        <ScrollViewer Grid.Row="1" Style="{StaticResource PageScroll}" Visibility="{Binding IsEmpty, Converter={StaticResource TrueToVisible}}">
             <StackPanel MaxWidth="520" Margin="0,8" HorizontalAlignment="Center" VerticalAlignment="Center">
                 <ui:TextBlock
                     Margin="0,0,0,4"

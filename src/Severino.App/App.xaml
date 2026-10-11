@@ -11,6 +11,7 @@
                 <ui:ThemesDictionary Theme="Light" />
                 <ui:ControlsDictionary />
                 <ResourceDictionary Source="Tray/TrayIconResources.xaml" />
+                <ResourceDictionary Source="Views/PageStyles.xaml" />
             </ResourceDictionary.MergedDictionaries>
             <BooleanToVisibilityConverter x:Key="TrueToVisible" />
             <views:FalseToVisibleConverter x:Key="FalseToVisible" />
