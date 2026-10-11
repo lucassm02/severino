@@ -1,6 +1,7 @@
 using System.Net;
 using Severino.Contracts;
 using Severino.Core.Configuration;
+using Severino.Core.Resources;
 
 namespace Severino.Core.Routes;
 
@@ -27,19 +28,19 @@ public static class RouteRules
         if (!TryNormalize(route.Domain, out var domain, out var reason))
             domainError = reason;
         else if (path is not null && routes.Any(r => r.Id != route.Id && Normalize(r.Domain) == domain && NormalizePath(r.Path) == path))
-            domainError = path.Length == 0 ? "Já existe uma rota para este domínio." : $"Já existe uma rota para {domain}{path}.";
+            domainError = path.Length == 0 ? Strings.Route_DomainTaken : string.Format(Strings.Route_PathTaken, domain + path);
         else if (services?.Any(s => s.Names.Contains(domain)) == true)
-            domainError = "Já existe uma rota de serviço com este nome.";
+            domainError = Strings.Route_IsService;
         else if (dnsNames?.Contains(domain) == true)
-            domainError = "Já existe uma entrada DNS com este nome.";
+            domainError = Strings.Route_IsDns;
         else if (external?.Contains(domain) == true)
-            domainError = $"Este nome {Dns.DnsRules.ExternalClash}";
+            domainError = string.Format(Dns.DnsRules.ExternalClash, Strings.Route_ExternalClash);
 
         string? targetError = null;
         if (!TryParseTarget(route.Target, out var target, out var targetReason))
             targetError = targetReason;
         else if (IsLoop(target, domain, routes, proxyPort, httpsPort))
-            targetError = "O destino aponta para o próprio Severino e criaria um loop.";
+            targetError = Strings.Route_Loop;
 
         return new RouteErrors(domainError, targetError, pathError);
     }
@@ -49,17 +50,17 @@ public static class RouteRules
         target = null!;
         if (!Uri.TryCreate(value, UriKind.Absolute, out var uri) || uri.HostNameType == UriHostNameType.Unknown || uri.Host.Length == 0)
         {
-            error = "Informe um destino como http://127.0.0.1:3000.";
+            error = Strings.Route_TargetRequired;
             return false;
         }
         if (uri.Scheme != Uri.UriSchemeHttp && uri.Scheme != Uri.UriSchemeHttps)
         {
-            error = "O destino deve começar com http:// ou https://.";
+            error = Strings.Route_TargetScheme;
             return false;
         }
         if (uri.Query.Length > 0 || uri.Fragment.Length > 0 || uri.UserInfo.Length > 0)
         {
-            error = "O destino não pode ter usuário, query ou fragmento.";
+            error = Strings.Route_TargetExtras;
             return false;
         }
 
@@ -128,7 +129,7 @@ public static class RouteRules
         var segments = value[1..].Split('/');
         if (segments.Any(s => s.Length == 0 || !s.All(c => char.IsAsciiLetterOrDigit(c) || c is '-' or '.' or '_' or '~')))
         {
-            error = "Use um caminho como /api ou /v1/pedidos: letras, números, - . _ e ~.";
+            error = Strings.Route_BadPath;
             return false;
         }
         normalized = value;

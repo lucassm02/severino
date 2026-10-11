@@ -1,3 +1,5 @@
+using Severino.Core.Resources;
+
 namespace Severino.Core.Domains;
 
 public enum DomainWarningKind
@@ -37,11 +39,11 @@ public sealed class DomainInspector(IDnsResolver dns)
 
         if (HstsPreloadedTlds.Contains(tld))
             warnings.Add(new(DomainWarningKind.HstsPreload,
-                $"Domínios .{tld} só abrem com HTTPS nos navegadores (HSTS preload). Ative o HTTPS em Configurações para usar esta rota."));
+                string.Format(Strings.Domain_HstsPreload, tld)));
 
         if (tld == "local")
             warnings.Add(new(DomainWarningKind.Mdns,
-                ".local é usado pelo mDNS e costuma deixar a resolução lenta. Prefira .sev, .test ou .localhost."));
+                Strings.Domain_Local));
 
         return warnings;
     }
@@ -55,9 +57,9 @@ public sealed class DomainInspector(IDnsResolver dns)
         return result.Outcome switch
         {
             DnsLookupOutcome.Exists => new(DomainWarningKind.ExistsOnInternet,
-                $"{domain} existe na internet (resolve para {result.Address}). Enquanto esta rota estiver ativa, esta máquina não acessa o site real."),
+                string.Format(Strings.Domain_ExistsOnline, domain, result.Address)),
             DnsLookupOutcome.Failed => new(DomainWarningKind.LookupFailed,
-                "Não foi possível verificar se este domínio existe na internet."),
+                Strings.Domain_CheckFailed),
             _ => null,
         };
     }

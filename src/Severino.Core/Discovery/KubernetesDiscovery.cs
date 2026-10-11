@@ -1,6 +1,7 @@
 using System.Text.Json;
 using Severino.Contracts;
 using Severino.Core.Configuration;
+using Severino.Core.Resources;
 
 namespace Severino.Core.Discovery;
 
@@ -162,9 +163,9 @@ public static class KubernetesDiscovery
             }
 
             var unreachable = ports.Count > 0 ? null
-                : type == "ExternalName" ? "ExternalName: aponta para fora do cluster."
-                : type is "NodePort" or "LoadBalancer" && nodeAddress is null ? "Escolha um nó para usar a NodePort."
-                : "Só ClusterIP: não tem acesso de fora do cluster.";
+                : type == "ExternalName" ? Strings.Kube_ExternalName
+                : type is "NodePort" or "LoadBalancer" && nodeAddress is null ? Strings.Kube_PickNode
+                : Strings.Kube_ClusterIpOnly;
             // ClusterIP only: a kubectl port-forward that Severino keeps running reaches it.
             var forwardable = ports.Count == 0 && type == "ClusterIP" && clusterPorts.Count > 0 ? clusterPorts : null;
             result.Add(new(ServiceKind.Kubernetes, @namespace, name, NameVariants(name, @namespace), ports, isReady, kind, unreachable, forwardable));

@@ -2,13 +2,14 @@
     x:Class="Severino.App.Views.ImportServicesWindow"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:res="clr-namespace:Severino.App.Resources"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
     xmlns:vm="clr-namespace:Severino.App.ViewModels"
     mc:Ignorable="d"
     d:DataContext="{d:DesignInstance Type=vm:ImportServicesViewModel}"
-    Title="Importar serviços"
+    Title="{x:Static res:Strings.Import_Title}"
     Width="860"
     Height="680"
     MinWidth="640"
@@ -34,7 +35,7 @@
             <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
-        <ui:TitleBar Grid.Row="0" Title="Importar serviços" ShowMaximize="False" ShowMinimize="False" />
+        <ui:TitleBar Grid.Row="0" Title="{x:Static res:Strings.Import_Title}" ShowMaximize="False" ShowMinimize="False" />
 
         <Grid Grid.Row="1" Margin="24,8,24,24">
             <Grid.RowDefinitions>
@@ -49,27 +50,27 @@
 
             <!-- Where to look -->
             <DockPanel Grid.Row="0" LastChildFill="False">
-                <TextBlock DockPanel.Dock="Left" Margin="0,0,8,0" VerticalAlignment="Center" Text="Procurar em" />
+                <TextBlock DockPanel.Dock="Left" Margin="0,0,8,0" VerticalAlignment="Center" Text="{x:Static res:Strings.Import_LookIn}" />
                 <ComboBox
                     DockPanel.Dock="Left"
                     MinWidth="240"
                     ItemsSource="{Binding Sources}"
                     SelectedItem="{Binding SelectedSource}"
                     DisplayMemberPath="Label"
-                    AutomationProperties.Name="Onde procurar" />
+                    AutomationProperties.Name="{x:Static res:Strings.Import_WhereName}" />
                 <StackPanel
                     DockPanel.Dock="Left"
                     Margin="16,0,0,0"
                     Orientation="Horizontal"
                     Visibility="{Binding HasNodes, Converter={StaticResource TrueToVisible}}">
-                    <TextBlock Margin="0,0,8,0" VerticalAlignment="Center" Text="Endereço do cluster" ToolTip="O nó por onde as NodePorts entram: um IP, ou o nome dele na aba DNS" />
-                    <ComboBox MinWidth="150" ItemsSource="{Binding Nodes}" SelectedItem="{Binding SelectedNode}" ToolTip="O nó por onde as NodePorts entram: um IP, ou o nome dele na aba DNS" AutomationProperties.Name="Endereço do cluster" />
+                    <TextBlock Margin="0,0,8,0" VerticalAlignment="Center" Text="{x:Static res:Strings.Import_ClusterAddress}" ToolTip="{x:Static res:Strings.Import_ClusterAddressTip}" />
+                    <ComboBox MinWidth="150" ItemsSource="{Binding Nodes}" SelectedItem="{Binding SelectedNode}" ToolTip="{x:Static res:Strings.Import_ClusterAddressTip}" AutomationProperties.Name="{x:Static res:Strings.Import_ClusterAddress}" />
                 </StackPanel>
                 <ui:Button
                     DockPanel.Dock="Right"
                     Icon="{ui:SymbolIcon ArrowClockwise24}"
-                    Content="Procurar de novo"
-                    ToolTip="Pergunta de novo ao kubectl e ao docker desta fonte"
+                    Content="{x:Static res:Strings.Import_LookAgain}"
+                    ToolTip="{x:Static res:Strings.Import_LookAgainTip}"
                     Command="{Binding ReloadCommand}"
                     Visibility="{Binding IsDiscovery, Converter={StaticResource TrueToVisible}}" />
                 <ui:ProgressRing
@@ -99,7 +100,7 @@
                     Margin="0,0,12,0"
                     Content="Kubernetes"
                     IsChecked="{Binding UseKubernetes}"
-                    ToolTip="Perguntar ao kubectl e mostrar os services" />
+                    ToolTip="{x:Static res:Strings.Import_KubernetesTip}" />
                 <CheckBox
                     Grid.Row="1"
                     Grid.Column="0"
@@ -107,13 +108,13 @@
                     Margin="0,0,12,0"
                     Content="Docker"
                     IsChecked="{Binding UseDocker}"
-                    ToolTip="Perguntar ao docker e mostrar os containers com portas publicadas" />
+                    ToolTip="{x:Static res:Strings.Import_DockerTip}" />
                 <TextBlock
                     Grid.Row="2"
                     Grid.Column="0"
                     Grid.ColumnSpan="2"
                     Style="{StaticResource StatusText}"
-                    Text="Marque Kubernetes, Docker ou os dois para procurar."
+                    Text="{x:Static res:Strings.Import_NoTool}"
                     Visibility="{Binding NoTool, Converter={StaticResource TrueToVisible}}" />
                 <TextBlock Grid.Row="0" Grid.Column="1" VerticalAlignment="Center" Text="{Binding KubernetesStatus}" Visibility="{Binding KubernetesStatus, Converter={StaticResource NullToCollapsed}}">
                     <TextBlock.Style>
@@ -143,7 +144,7 @@
             <StackPanel Grid.Row="2" Margin="0,10,0,0" Visibility="{Binding IsPaste, Converter={StaticResource TrueToVisible}}">
                 <TextBlock
                     Style="{StaticResource StatusText}"
-                    Text="Cole a saída de kubectl get svc -A -o json ou de docker ps --format json." />
+                    Text="{x:Static res:Strings.Import_PasteHint}" />
                 <ui:TextBox
                     Height="110"
                     Margin="0,6,0,0"
@@ -154,13 +155,13 @@
                     FontFamily="Cascadia Mono, Consolas"
                     FontSize="12"
                     PlaceholderText="{}{ &quot;apiVersion&quot;: &quot;v1&quot;, &quot;items&quot;: [ … ] }"
-                    AutomationProperties.Name="Saída colada"
+                    AutomationProperties.Name="{x:Static res:Strings.Import_PastedName}"
                     Text="{Binding PasteText, UpdateSourceTrigger=PropertyChanged}" />
                 <DockPanel Margin="0,8,0,0">
-                    <ui:Button DockPanel.Dock="Right" Margin="8,0,0,0" Content="Ler" Command="{Binding ReadPasteCommand}" />
+                    <ui:Button DockPanel.Dock="Right" Margin="8,0,0,0" Content="{x:Static res:Strings.Import_Read}" Command="{Binding ReadPasteCommand}" />
                     <ui:TextBox
-                        PlaceholderText="IP de um nó do cluster, para as NodePorts"
-                        AutomationProperties.Name="IP de um nó"
+                        PlaceholderText="{x:Static res:Strings.Import_NodePlaceholder}"
+                        AutomationProperties.Name="{x:Static res:Strings.Import_NodeName}"
                         Text="{Binding PasteNode, UpdateSourceTrigger=PropertyChanged}" />
                 </DockPanel>
                 <TextBlock Margin="0,6,0,0" Style="{StaticResource Caution}" Text="{Binding PasteError}" Visibility="{Binding PasteError, Converter={StaticResource NullToCollapsed}}" />
@@ -175,9 +176,9 @@
                 </Grid.ColumnDefinitions>
                 <ui:TextBox
                     Grid.Column="0"
-                    PlaceholderText="Buscar por nome ou namespace"
+                    PlaceholderText="{x:Static res:Strings.Import_SearchPlaceholder}"
                     Icon="{ui:SymbolIcon Search24}"
-                    AutomationProperties.Name="Buscar serviços"
+                    AutomationProperties.Name="{x:Static res:Strings.Services_SearchName}"
                     Text="{Binding Search, UpdateSourceTrigger=PropertyChanged}" />
                 <ComboBox
                     Grid.Column="1"
@@ -208,7 +209,7 @@
                     VirtualizingPanel.IsVirtualizing="True"
                     VirtualizingPanel.ScrollUnit="Pixel"
                     ScrollViewer.HorizontalScrollBarVisibility="Disabled"
-                    AutomationProperties.Name="Serviços encontrados">
+                    AutomationProperties.Name="{x:Static res:Strings.Import_FoundName}">
                     <ListBox.ItemContainerStyle>
                         <Style TargetType="ListBoxItem">
                             <Setter Property="Focusable" Value="False" />
@@ -245,7 +246,7 @@
                                         VerticalAlignment="Top"
                                         IsChecked="{Binding IsSelected}"
                                         IsEnabled="{Binding CanImport}"
-                                        AutomationProperties.Name="{Binding Name, StringFormat='Importar {0}'}" />
+                                        AutomationProperties.Name="{Binding Name, StringFormat={x:Static res:Strings.Import_ImportOne}}" />
                                     <StackPanel Grid.Column="1">
                                         <TextBlock TextTrimming="CharacterEllipsis">
                                             <Run FontWeight="SemiBold" Text="{Binding Name, Mode=OneWay}" />
@@ -262,12 +263,12 @@
                                             Visibility="{Binding CanImport, Converter={StaticResource TrueToVisible}}" />
                                         <TextBlock
                                             Style="{StaticResource Caution}"
-                                            Text="Nenhum pod pronto agora: a rota nasce, mas não vai responder."
+                                            Text="{x:Static res:Strings.Import_NoReadyPods}"
                                             Visibility="{Binding NoReadyPods, Converter={StaticResource TrueToVisible}}" />
                                         <TextBlock
                                             Style="{StaticResource StatusText}"
                                             Foreground="{DynamicResource AccentTextFillColorPrimaryBrush}"
-                                            Text="Já importado: importar de novo atualiza as portas."
+                                            Text="{x:Static res:Strings.Import_AlreadyImported}"
                                             Visibility="{Binding IsUpdate, Converter={StaticResource TrueToVisible}}" />
                                         <TextBlock Style="{StaticResource Caution}" Text="{Binding Warning}" Visibility="{Binding Warning, Converter={StaticResource NullToCollapsed}}" />
                                     </StackPanel>
@@ -300,7 +301,7 @@
                                             VerticalAlignment="Top"
                                             IsChecked="{Binding IsSelected}"
                                             IsEnabled="{Binding CanImport}"
-                                            AutomationProperties.Name="{Binding Host, StringFormat='Criar rota para {0}'}" />
+                                            AutomationProperties.Name="{Binding Host, StringFormat={x:Static res:Strings.Import_CreateRouteFor}}" />
                                         <StackPanel>
                                             <TextBlock>
                                                 <Run FontWeight="SemiBold" Text="{Binding Host, Mode=OneWay}" />
@@ -318,7 +319,7 @@
 
             <DockPanel Grid.Row="6" Margin="0,16,0,0">
                 <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
-                    <ui:Button MinWidth="96" Content="Cancelar" IsCancel="True" Command="{Binding CancelCommand}" />
+                    <ui:Button MinWidth="96" Content="{x:Static res:Strings.Common_Cancel}" IsCancel="True" Command="{Binding CancelCommand}" />
                     <ui:Button
                         MinWidth="120"
                         Margin="8,0,0,0"

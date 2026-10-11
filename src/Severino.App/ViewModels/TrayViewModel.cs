@@ -5,6 +5,7 @@ using System.Windows.Input;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Microsoft.Extensions.Logging;
+using Severino.App.Resources;
 using Severino.App.Services;
 using Severino.Core.Configuration;
 
@@ -63,7 +64,7 @@ public sealed partial class TrayViewModel : ObservableObject
     public partial string ToolTip { get; set; } = "Severino";
 
     [ObservableProperty]
-    public partial string PauseLabel { get; set; } = "Pausar";
+    public partial string PauseLabel { get; set; } = Strings.Requests_Pause;
 
     [RelayCommand]
     private void ShowWindow() => _shell.ShowMainWindow();
@@ -92,7 +93,7 @@ public sealed partial class TrayViewModel : ObservableObject
     {
         IconState = _status.IsPaused ? TrayIconState.Paused : _status.HasProblem ? TrayIconState.Problem : TrayIconState.Normal;
         ToolTip = $"Severino · {_status.Summary}";
-        PauseLabel = _status.IsPaused ? "Retomar" : "Pausar";
+        PauseLabel = _status.IsPaused ? Strings.Requests_Resume : Strings.Requests_Pause;
     }
 
     private void RefreshRoutes()

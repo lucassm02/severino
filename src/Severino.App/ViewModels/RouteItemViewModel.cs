@@ -1,4 +1,5 @@
 using CommunityToolkit.Mvvm.ComponentModel;
+using Severino.App.Resources;
 using Severino.Core.Configuration;
 
 namespace Severino.App.ViewModels;
@@ -36,7 +37,7 @@ public sealed partial class RouteGroupViewModel(string name, IReadOnlyList<Route
         get
         {
             var on = Items.Count(i => i.Enabled);
-            return $"{Items.Count} {(Items.Count == 1 ? "rota" : "rotas")} · {on} {(on == 1 ? "ligada" : "ligadas")}";
+            return $"{(Items.Count == 1 ? Strings.Count_Route : string.Format(Strings.Count_Routes, Items.Count))} · {(on == 1 ? Strings.Routes_EnabledOne : string.Format(Strings.Routes_EnabledMany, on))}";
         }
     }
 
@@ -83,7 +84,7 @@ public sealed partial class RouteItemViewModel : ObservableObject
     public partial Severino.Core.Dns.DnsDestination? Destination { get; set; }
 
     /// <summary>"gateway.k8s é 192.168.203.100".</summary>
-    public string? DestinationText => Destination is { } d ? $"{d.Name} é {d.Address}" : null;
+    public string? DestinationText => Destination is { } d ? string.Format(Strings.Routes_DestinationIs, d.Name, d.Address) : null;
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(HasHttpsBadge), nameof(HttpsBadgeText), nameof(HttpsBadgeTooltip))]
@@ -94,8 +95,8 @@ public sealed partial class RouteItemViewModel : ObservableObject
     public string HttpsBadgeText => HttpsState == RouteHttpsState.Uncovered ? "https ⚠" : "https";
 
     public string HttpsBadgeTooltip => HttpsState == RouteHttpsState.Uncovered
-        ? "Fora da CA: reemita em Configurações › HTTPS"
-        : Route.RedirectToHttps ? "HTTPS, com http:// redirecionando" : "HTTPS, e http:// também atende";
+        ? Strings.Routes_HttpsUncoveredTip
+        : Route.RedirectToHttps ? Strings.Routes_HttpsRedirectTip : Strings.Routes_HttpsBothTip;
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(HealthText))]
@@ -104,10 +105,10 @@ public sealed partial class RouteItemViewModel : ObservableObject
     /// <summary>Spelled out next to the dot, so the state does not rely on colour alone.</summary>
     public string HealthText => Health switch
     {
-        RouteHealthState.Up => "Respondendo",
-        RouteHealthState.Down => "Fora do ar",
-        RouteHealthState.Disabled => "Desligada",
-        _ => "Verificando…",
+        RouteHealthState.Up => Strings.Health_Up,
+        RouteHealthState.Down => Strings.Health_Down,
+        RouteHealthState.Disabled => Strings.Routes_HealthOff,
+        _ => Strings.Health_Checking,
     };
 
     public bool Enabled

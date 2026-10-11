@@ -1,5 +1,6 @@
 using System.Text.Encodings.Web;
 using System.Text.Unicode;
+using Severino.Proxy.Resources;
 
 namespace Severino.Proxy;
 
@@ -31,33 +32,36 @@ public static class ErrorPages
         }).ToList();
 
         var list = links.Count > 0
-            ? $"<section><h2>Rotas ativas</h2><ul>{string.Concat(links)}</ul></section>"
-            : "<p class=\"hint\">Nenhuma rota ativa no momento.</p>";
+            ? $"<section><h2>{Html.Encode(Strings.Error_ActiveRoutes)}</h2><ul>{string.Concat(links)}</ul></section>"
+            : $"<p class=\"hint\">{Html.Encode(Strings.Error_NoActiveRoutes)}</p>";
         var name = $"<strong>{Html.Encode(host)}</strong>";
 
         return routeDisabled
-            ? Page("Rota desligada", 404,
-                $"<p class=\"lead\">{name} está cadastrada, mas desligada.</p><p>Ligue a rota no Severino para ela voltar a responder.</p>{list}")
-            : Page("Rota não encontrada", 404,
-                $"<p class=\"lead\">Ninguém avisou a portaria sobre {name}.</p><p>Crie uma rota para este domínio no Severino.</p>{list}");
+            ? Page(Strings.Error_DisabledTitle, 404,
+                $"<p class=\"lead\">{Format(Strings.Error_DisabledLead, name)}</p><p>{Html.Encode(Strings.Error_DisabledText)}</p>{list}")
+            : Page(Strings.Error_NotFoundTitle, 404,
+                $"<p class=\"lead\">{Format(Strings.Error_NotFoundLead, name)}</p><p>{Html.Encode(Strings.Error_NotFoundText)}</p>{list}");
     }
 
     public static string BadGateway(string domain, string target) =>
-        Page("Destino fora do ar", 502,
-            $"<p class=\"lead\"><strong>{Html.Encode(domain)}</strong> → <code>{Html.Encode(Display(target))}</code> não respondeu.</p>" +
-            "<p>O Severino interfonou, mas ninguém atendeu. Seu servidor está rodando?</p>");
+        Page(Strings.Error_BadGatewayTitle, 502,
+            $"<p class=\"lead\">{Format(Strings.Error_BadGatewayLead, $"<strong>{Html.Encode(domain)}</strong>", $"<code>{Html.Encode(Display(target))}</code>")}</p>" +
+            $"<p>{Html.Encode(Strings.Error_BadGatewayText)}</p>");
 
     public static string GatewayTimeout(string domain, string target) =>
-        Page("Destino demorou demais", 504,
-            $"<p class=\"lead\"><strong>{Html.Encode(domain)}</strong> → <code>{Html.Encode(Display(target))}</code> não respondeu em {ProxyConfigMapper.ActivityTimeout.TotalMinutes:0} minutos.</p>" +
-            "<p>O Severino cansou de esperar na portaria.</p>");
+        Page(Strings.Error_TimeoutTitle, 504,
+            $"<p class=\"lead\">{Format(Strings.Error_TimeoutLead, $"<strong>{Html.Encode(domain)}</strong>", $"<code>{Html.Encode(Display(target))}</code>", ProxyConfigMapper.ActivityTimeout.TotalMinutes.ToString("0"))}</p>" +
+            $"<p>{Html.Encode(Strings.Error_TimeoutText)}</p>");
+
+    /// <summary>A resource sentence with markup already made for its placeholders; the sentence itself is encoded.</summary>
+    private static string Format(string sentence, params object[] markup) => string.Format(Html.Encode(sentence), markup);
 
     private static string Display(string target) =>
         Uri.TryCreate(target, UriKind.Absolute, out var uri) ? uri.Authority : target;
 
     private static string Page(string title, int status, string body) => $$"""
         <!doctype html>
-        <html lang="pt-BR">
+        <html lang="{{System.Globalization.CultureInfo.CurrentUICulture.Name}}">
         <head>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -130,15 +134,15 @@ public static class ErrorPages
         <body>
         <main>
           <div class="band">
-            <span class="desk">Portaria</span>
+            <span class="desk">{{Html.Encode(Strings.Error_FrontDesk)}}</span>
             <span class="code">{{status}}</span>
           </div>
-          <img class="face" src="{{Face.Value}}" alt="Severino, o porteiro" width="104" height="104">
+          <img class="face" src="{{Face.Value}}" alt="{{Html.Encode(Strings.Common_SeverinoDoorman)}}" width="104" height="104">
           <div class="content">
             <h1>{{Html.Encode(title)}}</h1>
             {{body}}
           </div>
-          <footer><span class="brand">severino<span>.sev</span></span><span>o porteiro dos seus domínios de desenvolvimento</span></footer>
+          <footer><span class="brand">severino<span>.sev</span></span><span>{{Html.Encode(Strings.Error_Tagline)}}</span></footer>
         </main>
         </body>
         </html>

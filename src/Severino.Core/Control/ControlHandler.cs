@@ -2,6 +2,7 @@ using System.Text.Json;
 using System.Text.Json.Nodes;
 using Severino.Core.Configuration;
 using Severino.Core.Dns;
+using Severino.Core.Resources;
 using Severino.Core.Routes;
 
 namespace Severino.Core.Control;
@@ -27,7 +28,7 @@ public sealed class ControlHandler(RouteService routes, DnsService dns, ServiceR
         }
         catch (Exception ex) when (ex is JsonException or InvalidOperationException or FormatException)
         {
-            return Fail("Pedido inválido.");
+            return Fail(Strings.Control_BadRequest);
         }
 
         try
@@ -74,7 +75,7 @@ public sealed class ControlHandler(RouteService routes, DnsService dns, ServiceR
         if (Text(args, "group") is { Length: > 0 } group)
         {
             if (!routes.Groups.Contains(group))
-                return Fail($"Nenhuma rota no grupo {group}.");
+                return Fail(string.Format(Strings.Control_NoGroup, group));
             routes.SetGroupEnabled(group, enabled);
             return Ok(new JsonArray([.. routes.Routes.Where(r => r.Group == group).Select(Route)]));
         }
@@ -92,10 +93,10 @@ public sealed class ControlHandler(RouteService routes, DnsService dns, ServiceR
 
     private RouteEntry FindRoute(JsonObject args)
     {
-        var domain = RouteRules.Normalize(Text(args, "domain")) ?? throw new ArgumentException("Informe o domínio da rota.");
-        var path = RouteRules.NormalizePath(Text(args, "path")) ?? throw new ArgumentException("Caminho inválido.");
+        var domain = RouteRules.Normalize(Text(args, "domain")) ?? throw new ArgumentException(Strings.Control_DomainRequired);
+        var path = RouteRules.NormalizePath(Text(args, "path")) ?? throw new ArgumentException(Strings.Control_BadPath);
         return routes.Routes.FirstOrDefault(r => r.Domain == domain && r.Path == path)
-            ?? throw new ArgumentException($"Nenhuma rota para {domain}{path}.");
+            ?? throw new ArgumentException(string.Format(Strings.Control_NoRoute, domain + path));
     }
 
     private JsonObject DnsList() => new()
@@ -122,7 +123,7 @@ public sealed class ControlHandler(RouteService routes, DnsService dns, ServiceR
     {
         var names = (args["names"] as JsonArray)?.Select(n => n?.GetValue<string>() ?? "").Where(n => n.Length > 0).ToList() ?? [];
         if (names.Count == 0)
-            return Fail("Informe pelo menos um nome.");
+            return Fail(Strings.Rules_NameRequired);
         var first = names[0].Trim().TrimEnd('.').ToLowerInvariant();
         var existing = dns.Entries.FirstOrDefault(e => e.Names.Contains(first));
         var saved = dns.Save((existing ?? new DnsEntry()) with
@@ -144,7 +145,7 @@ public sealed class ControlHandler(RouteService routes, DnsService dns, ServiceR
     private string RemoveDns(JsonObject args)
     {
         var name = Text(args, "name").Trim().TrimEnd('.').ToLowerInvariant();
-        var entry = dns.Entries.FirstOrDefault(e => e.Names.Contains(name)) ?? throw new ArgumentException($"Nenhuma entrada DNS do Severino com {name}.");
+        var entry = dns.Entries.FirstOrDefault(e => e.Names.Contains(name)) ?? throw new ArgumentException(string.Format(Strings.Control_NoDnsEntry, name));
         dns.Remove(entry.Id);
         return Ok(new JsonObject { ["names"] = new JsonArray([.. entry.Names.Select(n => JsonValue.Create(n))]), ["address"] = entry.Address });
     }

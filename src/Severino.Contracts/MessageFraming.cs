@@ -1,3 +1,5 @@
+using Severino.Contracts.Resources;
+
 namespace Severino.Contracts;
 
 /// <summary>Newline-terminated messages with a size cap, shared by the pipe client and server.</summary>
@@ -23,12 +25,12 @@ public static class MessageFraming
         {
             var read = await stream.ReadAsync(chunk, cancellationToken);
             if (read == 0)
-                throw new InvalidDataException("A conexão terminou antes do fim da mensagem.");
+                throw new InvalidDataException(Strings.Framing_Truncated);
 
             var newline = Array.IndexOf(chunk, (byte)'\n', 0, read);
             var take = newline >= 0 ? newline : read;
             if (buffer.Length + take > maxBytes)
-                throw new InvalidDataException($"A mensagem passa de {maxBytes} bytes.");
+                throw new InvalidDataException(string.Format(Strings.Framing_TooLong, maxBytes));
 
             buffer.Write(chunk, 0, take);
             if (newline >= 0)

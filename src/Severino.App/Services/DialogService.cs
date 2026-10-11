@@ -2,6 +2,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
 using Microsoft.Win32;
+using Severino.App.Resources;
 using Severino.App.ViewModels;
 using Severino.App.Views;
 using Severino.Core.Configuration;
@@ -45,10 +46,10 @@ public sealed class DialogService(RouteService routes, ServiceRouteService servi
     {
         var content = new StackPanel { MaxWidth = 560 };
         content.Children.Add(Paragraph(
-            "Esta linha não foi criada pelo Severino. Ele vai alterar o hosts mesmo assim, porque você pediu, e deixar um comentário acima dela."));
-        content.Children.Add(new TextBlock { Text = "Como está:", FontWeight = FontWeights.SemiBold });
+            Strings.Dialog_OutsideChange));
+        content.Children.Add(new TextBlock { Text = Strings.Dialog_Before, FontWeight = FontWeights.SemiBold });
         content.Children.Add(Code(before.Trim()));
-        content.Children.Add(new TextBlock { Text = "Como vai ficar:", FontWeight = FontWeights.SemiBold });
+        content.Children.Add(new TextBlock { Text = Strings.Dialog_After, FontWeight = FontWeights.SemiBold });
         content.Children.Add(Code(after.Trim()));
         return ShowAsync(title, content, confirmText);
     }
@@ -148,20 +149,19 @@ public sealed class DialogService(RouteService routes, ServiceRouteService servi
         if (lead is not null)
             content.Children.Add(Paragraph(lead));
         content.Children.Add(Paragraph(
-            "Em seguida o Windows mostra um Aviso de Segurança pedindo para confiar na CA do Severino. " +
-            "É o aviso padrão do Windows para qualquer CA, por isso o tom alarmante. Confira se ele mostra:"));
+            Strings.Dialog_TrustIntro));
         content.Children.Add(new TextBlock { Text = prompt.Name, FontWeight = FontWeights.SemiBold, TextWrapping = TextWrapping.Wrap });
         content.Children.Add(new TextBlock
         {
-            Text = $"Impressão digital (sha1): {prompt.Thumbprint}",
+            Text = string.Format(Strings.Dialog_Thumbprint, prompt.Thumbprint),
             FontFamily = new FontFamily("Cascadia Mono, Consolas"),
             Margin = new Thickness(0, 2, 0, 12),
             TextWrapping = TextWrapping.Wrap,
         });
-        content.Children.Add(Paragraph($"Esta CA só consegue assinar: {HttpsService.DescribeNames(prompt.Names)}."));
+        content.Children.Add(Paragraph(string.Format(Strings.Dialog_CaSignsOnly, HttpsService.DescribeNames(prompt.Names))));
         if (prompt.ReplacesCurrent)
-            content.Children.Add(Paragraph("Depois o Windows pede para remover a CA antiga. Clique em Sim também: sem a chave, ela não serve para mais nada."));
-        return ShowAsync(title, content, "Continuar");
+            content.Children.Add(Paragraph(Strings.Dialog_RemoveOldCa));
+        return ShowAsync(title, content, Strings.FirstRun_Continue);
     }
 
     /// <summary>An information box in the app's own style.</summary>
@@ -178,17 +178,16 @@ public sealed class DialogService(RouteService routes, ServiceRouteService servi
         await box.ShowDialogAsync();
     }
 
-    /// <summary>"Limpar tudo": confirmed, and whether to delete the routes and settings too.</summary>
+    /// <summary>Strings.Settings_CleanUp: confirmed, and whether to delete the routes and settings too.</summary>
     public static async Task<(bool Confirmed, bool DeleteData)> ConfirmCleanupAsync()
     {
-        var deleteData = new CheckBox { Content = "Apagar também rotas, serviços, entradas DNS e configurações", Margin = new Thickness(0, 0, 0, 4) };
+        var deleteData = new CheckBox { Content = Strings.Dialog_CleanUpDeleteData, Margin = new Thickness(0, 0, 0, 4) };
         var content = new StackPanel { MaxWidth = 460 };
         content.Children.Add(Paragraph(
-            "O Severino tira do Windows tudo o que colocou: os blocos do arquivo hosts (rotas e DNS), as regras de DNS dos curingas, a CA local, a inicialização automática, as exceções de proxy que ele adicionou e os nomes nas distros do WSL que estão rodando. Linhas do hosts que não são dele ficam como estão. " +
-            "Depois, o app fecha. O Windows pede confirmação para remover a CA."));
-        content.Children.Add(Paragraph("Sem a caixa abaixo, o que você cadastrou fica guardado para quando abrir o Severino de novo. Para levar a outra máquina, use Backup antes."));
+            Strings.Dialog_CleanUpText));
+        content.Children.Add(Paragraph(Strings.Dialog_CleanUpKeep));
         content.Children.Add(deleteData);
-        var confirmed = await ShowAsync("Limpar tudo", content, "Limpar e fechar");
+        var confirmed = await ShowAsync(Strings.Settings_CleanUp, content, Strings.Dialog_CleanUpButton);
         return (confirmed, deleteData.IsChecked == true);
     }
 
@@ -222,7 +221,7 @@ public sealed class DialogService(RouteService routes, ServiceRouteService servi
             Title = title,
             Content = content,
             PrimaryButtonText = confirmText,
-            CloseButtonText = "Cancelar",
+            CloseButtonText = Strings.Common_Cancel,
             Owner = Application.Current.MainWindow,
             WindowStartupLocation = WindowStartupLocation.CenterOwner,
         };

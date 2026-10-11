@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="Domain_BadChars" xml:space="preserve">
+    <value>The domain has invalid characters.</value>
+  </data>
+  <data name="Domain_EndsInNumber" xml:space="preserve">
+    <value>The domain cannot end in a number; IP addresses need no route.</value>
+  </data>
+  <data name="Domain_Hyphen" xml:space="preserve">
+    <value>A part of the domain cannot start or end with a hyphen.</value>
+  </data>
+  <data name="Domain_LabelLength" xml:space="preserve">
+    <value>Each part of the domain must have 1 to {0} characters.</value>
+  </data>
+  <data name="Domain_Letters" xml:space="preserve">
+    <value>Use only letters, numbers and hyphens.</value>
+  </data>
+  <data name="Domain_Localhost" xml:space="preserve">
+    <value>localhost already points to this machine.</value>
+  </data>
+  <data name="Domain_Required" xml:space="preserve">
+    <value>Give a domain.</value>
+  </data>
+  <data name="Domain_TooLong" xml:space="preserve">
+    <value>The domain is longer than {0} characters.</value>
+  </data>
+  <data name="Domain_TwoLabels" xml:space="preserve">
+    <value>Use at least two parts, like meuapp.sev.</value>
+  </data>
+  <data name="Domain_Whitespace" xml:space="preserve">
+    <value>The domain cannot have spaces, line breaks or '#'.</value>
+  </data>
+  <data name="Domain_WildcardStart" xml:space="preserve">
+    <value>A wildcard starts with *., like *.meuapp.sev.</value>
+  </data>
+  <data name="Framing_TooLong" xml:space="preserve">
+    <value>The message is longer than {0} bytes.</value>
+  </data>
+  <data name="Framing_Truncated" xml:space="preserve">
+    <value>The connection ended before the end of the message.</value>
+  </data>
+  <data name="Protocol_BadAddress" xml:space="preserve">
+    <value>Invalid address for '{0}': {1}.</value>
+  </data>
+  <data name="Protocol_BadDomain" xml:space="preserve">
+    <value>Invalid domain '{0}': {1}</value>
+  </data>
+  <data name="Protocol_EntriesRequired" xml:space="preserve">
+    <value>The entry list is required.</value>
+  </data>
+  <data name="Protocol_NotLoopback" xml:space="preserve">
+    <value>Address not allowed for '{0}': {1}. Loopback addresses only.</value>
+  </data>
+  <data name="Protocol_TooMany" xml:space="preserve">
+    <value>At most {0} entries.</value>
+  </data>
+</root>

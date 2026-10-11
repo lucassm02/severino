@@ -1,5 +1,6 @@
 ﻿; Severino installer. Built by scripts/build-installer.ps1, which passes AppVersion and PublishDir.
 ; Kept as UTF-8 with BOM: Inno Setup reads the Portuguese accents right only with it.
+; English and Portuguese: Setup picks by the Windows display language and asks only when neither fits.
 
 #ifndef AppVersion
   #define AppVersion "0.0.0"
@@ -38,9 +39,23 @@ SolidCompression=yes
 ; Asks to close a running Severino before installing over it or removing it.
 AppMutex=Local\Severino.SingleInstance
 CloseApplications=yes
+ShowLanguageDialog=auto
 
 [Languages]
-Name: "ptbr"; MessagesFile: "compiler:Languages\BrazilianPortuguese.isl"
+Name: "english"; MessagesFile: "compiler:Default.isl"
+Name: "brazilianportuguese"; MessagesFile: "compiler:Languages\BrazilianPortuguese.isl"
+
+[CustomMessages]
+english.OpenSeverino=Open Severino
+brazilianportuguese.OpenSeverino=Abrir o Severino
+english.UnknownUser=Could not identify your Windows user, which the helper service needs to know.
+brazilianportuguese.UnknownUser=Não foi possível identificar o seu usuário do Windows, que o serviço auxiliar precisa conhecer.
+english.ServiceFailed=Could not register the helper service (code %1). Severino opens, but does not write the hosts file until you reinstall it.
+brazilianportuguese.ServiceFailed=Não foi possível registrar o serviço auxiliar (código %1). O Severino abre, mas não grava o arquivo hosts até você reinstalar.
+english.OtherUser=Severino was installed for another Windows user. Uninstalling removes the helper service and the hosts file block, but cannot take out that user's local CA, start with Windows and proxy exceptions.%n%nTo remove them too, cancel, sign in as that user, open Severino and use Settings > Clean up everything.%n%nUninstall anyway?
+brazilianportuguese.OtherUser=O Severino foi instalado para outro usuário do Windows. A desinstalação remove o serviço auxiliar e o bloco do arquivo hosts, mas não consegue tirar a CA local, a inicialização automática e as exceções de proxy daquele usuário.%n%nPara removê-las também, cancele, entre com aquele usuário, abra o Severino e use Configurações > Limpar tudo.%n%nDesinstalar mesmo assim?
+english.DeleteData=Also delete your routes and settings?%n%nThey are in %1. If you reinstall Severino, they come back as they were.
+brazilianportuguese.DeleteData=Apagar também as suas rotas e configurações?%n%nFicam em %1. Se você reinstalar o Severino, elas voltam como estavam.
 
 [Tasks]
 Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{cm:AdditionalIcons}"; Flags: unchecked
@@ -67,7 +82,7 @@ Root: HKLM; Subkey: "{#HelperKey}"; ValueType: string; ValueName: "AllowedUserSi
 
 [Run]
 ; As the user who started the installer, not as the admin who approved the UAC.
-Filename: "{app}\Severino.exe"; Description: "Abrir o Severino"; Flags: postinstall nowait skipifsilent runasoriginaluser
+Filename: "{app}\Severino.exe"; Description: "{cm:OpenSeverino}"; Flags: postinstall nowait skipifsilent runasoriginaluser
 ; An update started from the app (/SILENT /RELAUNCH=1): the app closed itself to be replaced, so it opens again.
 Filename: "{app}\Severino.exe"; Flags: nowait runasoriginaluser; Check: RelaunchRequested
 
@@ -149,7 +164,7 @@ begin
   UserSid := SidOf(True);
   if UserSid = '' then
   begin
-    Result := 'Não foi possível identificar o seu usuário do Windows, que o serviço auxiliar precisa conhecer.';
+    Result := CustomMessage('UnknownUser');
     exit;
   end;
   { An update: stop and remove the old service so its files can be replaced; it comes back below. }
@@ -170,11 +185,10 @@ begin
       'create {#ServiceName} binPath= "\"' + Exe + '\"" start= auto DisplayName= "Severino Helper"',
       '', SW_HIDE, ewWaitUntilTerminated, ResultCode) or (ResultCode <> 0) then
   begin
-    SuppressibleMsgBox('Não foi possível registrar o serviço auxiliar (código ' + IntToStr(ResultCode) + '). '
-      + 'O Severino abre, mas não grava o arquivo hosts até você reinstalar.', mbError, MB_OK, IDOK);
+    SuppressibleMsgBox(FmtMessage(CustomMessage('ServiceFailed'), [IntToStr(ResultCode)]), mbError, MB_OK, IDOK);
     exit;
   end;
-  Run(ExpandConstant('{sys}\sc.exe'), 'description {#ServiceName} "Mantém o bloco do Severino no arquivo hosts."');
+  Run(ExpandConstant('{sys}\sc.exe'), 'description {#ServiceName} "Keeps the Severino block in the hosts file."');
   { If it ever crashes, Windows starts it again. }
   Run(ExpandConstant('{sys}\sc.exe'), 'failure {#ServiceName} reset= 86400 actions= restart/5000/restart/5000/restart/30000');
   Run(ExpandConstant('{sys}\net.exe'), 'start {#ServiceName}');
@@ -188,11 +202,7 @@ begin
   if not RegQueryStringValue(HKLM, '{#HelperKey}', 'AllowedUserSid', Installed) then
     exit;
   if CompareText(Installed, SidOf(False)) <> 0 then
-    Result := SuppressibleMsgBox(
-      'O Severino foi instalado para outro usuário do Windows. A desinstalação remove o serviço auxiliar e o bloco do arquivo hosts, '
-      + 'mas não consegue tirar a CA local, a inicialização automática e as exceções de proxy daquele usuário.' + #13#10#13#10
-      + 'Para removê-las também, cancele, entre com aquele usuário, abra o Severino e use Configurações > Limpar tudo.' + #13#10#13#10
-      + 'Desinstalar mesmo assim?', mbConfirmation, MB_YESNO, IDYES) = IDYES;
+    Result := SuppressibleMsgBox(CustomMessage('OtherUser'), mbConfirmation, MB_YESNO, IDYES) = IDYES;
 end;
 
 procedure CurUninstallStepChanged(CurUninstallStep: TUninstallStep);
@@ -202,9 +212,7 @@ begin
   if CurUninstallStep <> usPostUninstall then
     exit;
   Data := ExpandConstant('{localappdata}\Severino');
-  if DirExists(Data) and (SuppressibleMsgBox(
-      'Apagar também as suas rotas e configurações?' + #13#10#13#10
-      + 'Ficam em ' + Data + '. Se você reinstalar o Severino, elas voltam como estavam.',
+  if DirExists(Data) and (SuppressibleMsgBox(FmtMessage(CustomMessage('DeleteData'), [Data]),
       mbConfirmation, MB_YESNO or MB_DEFBUTTON2, IDNO) = IDYES) then
     DelTree(Data, True, True, True);
 end;

@@ -96,7 +96,8 @@ public abstract partial class ListPageViewModel : ObservableObject
         _toastAction = null;
     }
 
-    protected static string Plural(int count, string one, string many) => count == 1 ? $"1 {one}" : $"{count} {many}";
+    /// <summary>"1 rota" or "3 rotas": <paramref name="many"/> has a {0} for the count.</summary>
+    protected static string Plural(int count, string one, string many) => count == 1 ? one : string.Format(many, count);
 
     protected static void Dispatch(Action action) => Application.Current?.Dispatcher.BeginInvoke(action);
 }

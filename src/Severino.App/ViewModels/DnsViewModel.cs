@@ -2,6 +2,7 @@ using System.Collections.ObjectModel;
 using System.Windows;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using Severino.App.Resources;
 using Severino.App.Services;
 using Severino.Contracts;
 using Severino.Core.Configuration;
@@ -62,7 +63,7 @@ public sealed partial class DnsViewModel : ListPageViewModel
     private async Task NewEntryAsync()
     {
         if (await _dialogs.EditDnsAsync(null) is { } saved)
-            ShowToast($"{saved.Names[0]} pronto");
+            ShowToast(string.Format(Strings.Routes_Ready, saved.Names[0]));
     }
 
     [RelayCommand]
@@ -71,7 +72,7 @@ public sealed partial class DnsViewModel : ListPageViewModel
         if (row.Entry is { } entry)
             await _dialogs.EditDnsAsync(entry);
         else if (row.Line is { Removed: false } line && await _dialogs.EditOutsideLineAsync(line))
-            ShowToast("Linha alterada no hosts, com um comentário acima dela.");
+            ShowToast(Strings.Dns_LineChanged);
     }
 
     [RelayCommand]
@@ -80,24 +81,24 @@ public sealed partial class DnsViewModel : ListPageViewModel
         if (row.Entry is { } entry)
         {
             var (routes, services) = DnsRules.UsedBy(entry.Names, _config.Current);
-            if (routes.Count + services.Count > 0 && !await DialogService.ConfirmAsync("Remover entrada em uso",
-                    $"{entry.Names[0]} é o destino de {UsedBy(routes.Count, services.Count)}. Sem ela, esses destinos deixam de resolver:\n\n" +
-                    string.Join("\n", routes.Select(r => r.Domain).Concat(services.Select(s => s.Names[0]))),
-                    "Remover mesmo assim"))
+            if (routes.Count + services.Count > 0 && !await DialogService.ConfirmAsync(Strings.Dns_RemoveInUse,
+                    string.Format(Strings.Dns_RemoveInUseConfirm, entry.Names[0], UsedBy(routes.Count, services.Count),
+                        string.Join("\n", routes.Select(r => r.Domain).Concat(services.Select(s => s.Names[0])))),
+                    Strings.Dns_RemoveAnyway))
                 return;
             if (_dns.Remove(entry.Id) is not { } removed)
                 return;
-            ShowUndo($"{entry.Names[0]} removido", () => _dns.Restore(removed) ? null : "Não deu para desfazer: os nomes já estão em outra entrada.");
+            ShowUndo(string.Format(Strings.Common_Removed, entry.Names[0]), () => _dns.Restore(removed) ? null : Strings.Dns_UndoTaken);
             return;
         }
 
         if (row.Line is not { Removed: false } line)
             return;
         var after = $"{HostsText.NotePrefix} esta linha nao foi criada pelo Severino; removida em {DateTime.Now:yyyy-MM-dd HH:mm}. Antes: {line.Text.Trim()}\n# {line.Text.Trim()}";
-        if (!await DialogService.ConfirmOutsideChangeAsync("Remover linha que não é do Severino", line.Text, after, "Comentar a linha"))
+        if (!await DialogService.ConfirmOutsideChangeAsync(Strings.Dns_RemoveOutside, line.Text, after, Strings.Dns_CommentLine))
             return;
         var result = await _dns.RemoveOutsideAsync(line, CancellationToken.None);
-        ShowToast(result.Ok ? "Linha comentada no hosts. Para trazê-la de volta, edite o hosts." : result.Error ?? "Não deu para alterar o hosts.");
+        ShowToast(result.Ok ? Strings.Dns_LineCommented : result.Error ?? Strings.Dns_CouldNotChangeHosts);
     }
 
     /// <summary>
@@ -111,7 +112,7 @@ public sealed partial class DnsViewModel : ListPageViewModel
             return;
         if (entry.Names.FirstOrDefault(n => n.Contains('.')) is not { } name)
         {
-            ShowToast("Uma rota precisa de um nome com ponto, como api.interno.");
+            ShowToast(Strings.Dns_RouteNeedsDot);
             return;
         }
 
@@ -128,7 +129,7 @@ public sealed partial class DnsViewModel : ListPageViewModel
         var rest = entry.Names.Where(n => n != name).ToList();
         if (rest.Count > 0)
             _dns.Save(entry with { Names = rest });
-        ShowToast($"{name} agora é uma rota.", "Ver em Rotas", () => _navigation?.Show(AppTab.Routes, name));
+        ShowToast(string.Format(Strings.Dns_NowRoute, name), Strings.Common_SeeInRoutes, () => _navigation?.Show(AppTab.Routes, name));
     }
 
     /// <summary>The routes that go to this name, in the Rotas tab.</summary>
@@ -143,7 +144,7 @@ public sealed partial class DnsViewModel : ListPageViewModel
     private void CopyName(DnsRowViewModel row)
     {
         Clipboard.SetText(row.Name);
-        ShowToast("Nome copiado");
+        ShowToast(Strings.Services_NameCopied);
     }
 
     /// <summary>Approves every public address waiting, behind one UAC prompt.</summary>
@@ -159,7 +160,7 @@ public sealed partial class DnsViewModel : ListPageViewModel
             return;
         }
         await _sync.SyncAsync();
-        ShowToast(pending.Count == 1 ? "Aprovado: já está no hosts." : "Aprovados: já estão no hosts.");
+        ShowToast(pending.Count == 1 ? Strings.Dns_ApprovedOne : Strings.Dns_ApprovedMany);
     }
 
     [RelayCommand]
@@ -213,29 +214,29 @@ public sealed partial class DnsViewModel : ListPageViewModel
         HasOutside = _external.Lines.Count > 0;
         var ownCount = config.DnsEntries.Count;
         var outsideCount = _external.Lines.Count(l => !l.Removed);
-        Summary = $"{Plural(ownCount, "entrada do Severino", "entradas do Severino")} · {Plural(outsideCount, "linha de fora", "linhas de fora")}";
+        Summary = $"{Plural(ownCount, Strings.Dns_OwnCountOne, Strings.Dns_OwnCountMany)} · {Plural(outsideCount, Strings.Dns_OutsideCountOne, Strings.Dns_OutsideCountMany)}";
 
         var status = _sync.Status;
         Problem = status.State switch
         {
-            HostsSyncState.HelperUnavailable => "O serviço auxiliar não está respondendo: as entradas do Severino não estão sendo gravadas no hosts.",
-            HostsSyncState.Failed => $"O hosts não foi atualizado: {status.Detail}",
+            HostsSyncState.HelperUnavailable => Strings.Dns_HelperDown,
+            HostsSyncState.Failed => string.Format(Strings.Dns_HostsFailed, status.Detail),
             _ => null,
         };
         var pendingNames = pending.Select(p => p.Name).Distinct().ToList();
         PendingText = pendingNames.Count switch
         {
             0 => null,
-            1 => $"{pendingNames[0]} só vale depois de aprovado, por ser um IP público ou um curinga. O Windows pede confirmação de administrador.",
-            var n => $"{n} nomes só valem depois de aprovados, por serem IPs públicos ou curingas. O Windows pede confirmação de administrador uma vez.",
+            1 => string.Format(Strings.Dns_PendingOne, pendingNames[0]),
+            var n => string.Format(Strings.Dns_PendingMany, n),
         };
     }
 
     private static string UsedBy(int routes, int services) =>
-        string.Join(" e ", new[]
+        string.Join(Strings.Common_And, new[]
         {
-            routes == 0 ? null : Plural(routes, "rota", "rotas"),
-            services == 0 ? null : Plural(services, "serviço", "serviços"),
+            routes == 0 ? null : Plural(routes, Strings.Count_Route, Strings.Count_Routes),
+            services == 0 ? null : Plural(services, Strings.Count_Service, Strings.Count_Services),
         }.OfType<string>());
 
 }

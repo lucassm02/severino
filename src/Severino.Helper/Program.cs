@@ -3,6 +3,10 @@ using Serilog;
 using Severino.Contracts;
 using Severino.Helper;
 
+// A service has no user, so no user language: its messages, and the shared validation's, are English.
+System.Globalization.CultureInfo.DefaultThreadCurrentUICulture = System.Globalization.CultureInfo.InvariantCulture;
+System.Globalization.CultureInfo.CurrentUICulture = System.Globalization.CultureInfo.InvariantCulture;
+
 // Used by uninstall (elevated): drop both blocks and the approvals without going through the pipe.
 // Lines outside Severino's blocks, edited or not, stay as they are.
 if (args.Contains("--clear-hosts"))

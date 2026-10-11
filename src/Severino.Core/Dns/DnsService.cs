@@ -1,6 +1,7 @@
 using Severino.Contracts;
 using Severino.Core.Configuration;
 using Severino.Core.Helper;
+using Severino.Core.Resources;
 using Severino.Core.Routes;
 
 namespace Severino.Core.Dns;
@@ -9,7 +10,7 @@ namespace Severino.Core.Dns;
 /// <param name="Outside">From a hosts line outside Severino.</param>
 public sealed record DnsDestination(string Name, string Address, bool Outside)
 {
-    public string Detail => Outside ? $"{Address}, no hosts fora do Severino" : Address;
+    public string Detail => Outside ? string.Format(Strings.Dns_OutsideDetail, Address) : Address;
 
     public override string ToString() => Name;
 }
@@ -122,13 +123,13 @@ public sealed class DnsService(ConfigService config, ExternalHosts external, IHe
         foreach (var raw in names.Where(n => !string.IsNullOrWhiteSpace(n)))
         {
             if (!DomainName.TryNormalize(raw, out var name, out var reason, allowSingleLabel: true))
-                return $"Nome inválido '{raw}': {reason}";
+                return string.Format(Strings.Rules_BadName, raw, reason);
             normalizedNames.Add(name);
         }
         if (normalizedNames.Count == 0)
-            return "Informe pelo menos um nome.";
+            return Strings.Rules_NameRequired;
         if (!DnsAddress.TryClassify(address?.Trim(), out _, out _))
-            return "Informe um IPv4 ou IPv6 de um computador, como 10.0.0.8.";
+            return Strings.Rules_IpRequired;
 
         var own = line.Names.Select(n => n.ToLowerInvariant()).ToHashSet(StringComparer.Ordinal);
         var others = external.Lines.Where(l => l != line && !l.Removed).SelectMany(l => l.Names).Select(n => n.ToLowerInvariant()).ToHashSet(StringComparer.Ordinal);
@@ -136,10 +137,10 @@ public sealed class DnsService(ConfigService config, ExternalHosts external, IHe
         foreach (var name in normalizedNames.Where(n => !own.Contains(n)))
         {
             if (others.Contains(name))
-                return $"{name} já está em outra linha do hosts.";
+                return string.Format(Strings.Dns_NameInOtherLine, name);
             if (DnsRules.Names(c.DnsEntries).Contains(name) || c.Services.Any(s => s.Names.Contains(name))
                 || c.Routes.Any(r => RouteRules.Normalize(r.Domain) == name))
-                return $"{name} já é do Severino (rota, serviço ou entrada DNS).";
+                return string.Format(Strings.Dns_NameIsSeverinos, name);
         }
         return null;
     }
@@ -150,13 +151,13 @@ public sealed class DnsService(ConfigService config, ExternalHosts external, IHe
         {
             var response = await helper.SendAsync(request, cancellationToken);
             if (response.ProtocolVersion != HelperProtocol.Version)
-                return new(false, $"O serviço auxiliar é de outra versão ({response.HelperVersion}). Reinstale o Severino.");
+                return new(false, string.Format(Strings.Helper_OtherVersion, response.HelperVersion));
             external.Refresh();
             return response.Ok ? new(true) : new(false, response.Error, response.Pending);
         }
         catch (HelperUnavailableException ex)
         {
-            return new(false, $"O serviço auxiliar não respondeu: {ex.Message}");
+            return new(false, string.Format(Strings.Helper_NoAnswer, ex.Message));
         }
     }
 }

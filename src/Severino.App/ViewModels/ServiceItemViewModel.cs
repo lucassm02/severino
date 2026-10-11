@@ -1,5 +1,6 @@
 using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
+using Severino.App.Resources;
 using Severino.Core.Configuration;
 using Severino.Core.Discovery;
 using Severino.Core.Routes;
@@ -12,7 +13,7 @@ public sealed partial class ServiceGroupViewModel(ServiceOrigin? origin) : Obser
     /// <summary>The source part of the routes' origin; null for routes made by hand.</summary>
     public ServiceOrigin? Origin { get; } = origin;
 
-    public string Title => Origin is null ? "Criados à mão" : Describe(Origin);
+    public string Title => Origin is null ? Strings.Services_ByHand : Describe(Origin);
 
     /// <summary>Pasted services cannot be asked again.</summary>
     public bool CanRefresh => Origin is not null && Origin.Source != ImportServicesViewModel.PastedSource;
@@ -28,7 +29,7 @@ public sealed partial class ServiceGroupViewModel(ServiceOrigin? origin) : Obser
     /// <summary>"Kubernetes · dev-cluster · WSL · Ubuntu-22.04", "Docker · Windows".</summary>
     public static string Describe(ServiceOrigin origin)
     {
-        var where = origin.Source == ImportServicesViewModel.PastedSource ? "colado" : CommandSource.FromId(origin.Source).ToString();
+        var where = origin.Source == ImportServicesViewModel.PastedSource ? Strings.Services_Pasted : CommandSource.FromId(origin.Source).ToString();
         return origin.Kind == ServiceKind.Kubernetes && origin.Context.Length > 0
             ? $"Kubernetes · {origin.Context} · {where}"
             : $"{(origin.Kind == ServiceKind.Kubernetes ? "Kubernetes" : "Docker")} · {where}";
@@ -52,13 +53,13 @@ public sealed partial class ServiceItemViewModel : ObservableObject
     public Guid Id => Route.Id;
 
     /// <summary>The shortest name, the one apps usually call.</summary>
-    public string Name => Route.Names.Count > 0 ? Route.Names[0] : "(sem nome)";
+    public string Name => Route.Names.Count > 0 ? Route.Names[0] : Strings.Services_NoName;
 
     public string? MoreNames => Route.Names.Count switch
     {
         <= 1 => null,
-        2 => "+1 nome",
-        var n => $"+{n - 1} nomes",
+        2 => Strings.Services_OneMoreName,
+        var n => string.Format(Strings.Services_MoreNames, n - 1),
     };
 
     public string AllNames => string.Join(Environment.NewLine, Route.Names);
@@ -72,8 +73,8 @@ public sealed partial class ServiceItemViewModel : ObservableObject
     /// </summary>
     public string Detail => string.Join("   ", Route.Ports.Select(p => Route.PortForward ? $"{p.Port} → port-forward" : p.ToString()));
 
-    public string DetailTooltip => $"Os nomes apontam para {Route.Address}, onde o Severino escuta "
-        + (Route.Ports.Count == 1 ? "a porta" : "as portas") + ".\n" + string.Join("\n", Route.Ports);
+    public string DetailTooltip => string.Format(Strings.Services_DetailTip, Route.Address,
+        Route.Ports.Count == 1 ? Strings.Services_ThePort : Strings.Services_ThePorts) + "\n" + string.Join("\n", Route.Ports);
 
     /// <summary>The DNS name a port goes to, when it goes by one: shown with its IP, linking to the DNS tab.</summary>
     [ObservableProperty]
@@ -81,7 +82,7 @@ public sealed partial class ServiceItemViewModel : ObservableObject
     public partial Severino.Core.Dns.DnsDestination? Destination { get; set; }
 
     /// <summary>"gateway.k8s é 192.168.203.100".</summary>
-    public string? DestinationText => Destination is { } d ? $"{d.Name} é {d.Address}" : null;
+    public string? DestinationText => Destination is { } d ? string.Format(Strings.Routes_DestinationIs, d.Name, d.Address) : null;
 
     /// <summary>"Port-forward rodando", or why it is starting over; null for a route without one.</summary>
     [ObservableProperty]
@@ -95,10 +96,10 @@ public sealed partial class ServiceItemViewModel : ObservableObject
         ForwardProblem = status?.State == Severino.Core.Discovery.PortForwardState.Restarting;
         ForwardText = !Route.PortForward ? null : status?.State switch
         {
-            Severino.Core.Discovery.PortForwardState.Running => "kubectl port-forward rodando",
-            Severino.Core.Discovery.PortForwardState.Restarting => $"port-forward reiniciando: {status.Detail}",
-            Severino.Core.Discovery.PortForwardState.Starting => "port-forward iniciando…",
-            _ => Route.Enabled ? "port-forward parado" : null,
+            Severino.Core.Discovery.PortForwardState.Running => Strings.Services_PfRunning,
+            Severino.Core.Discovery.PortForwardState.Restarting => string.Format(Strings.Services_PfRestarting, status.Detail),
+            Severino.Core.Discovery.PortForwardState.Starting => Strings.Services_PfStarting,
+            _ => Route.Enabled ? Strings.Services_PfStopped : null,
         };
     }
 
@@ -108,10 +109,10 @@ public sealed partial class ServiceItemViewModel : ObservableObject
 
     public string HealthText => Health switch
     {
-        RouteHealthState.Up => "Respondendo",
-        RouteHealthState.Down => "Fora do ar",
-        RouteHealthState.Disabled => "Desligado",
-        _ => "Verificando…",
+        RouteHealthState.Up => Strings.Health_Up,
+        RouteHealthState.Down => Strings.Health_Down,
+        RouteHealthState.Disabled => Strings.Services_HealthOff,
+        _ => Strings.Health_Checking,
     };
 
     public bool Enabled

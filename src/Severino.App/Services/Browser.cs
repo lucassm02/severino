@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using Severino.App.Resources;
 
 namespace Severino.App.Services;
 
@@ -9,7 +10,7 @@ public static class Browser
     /// A wildcard opens one example name below it; a path route opens its path.
     /// </summary>
     public static string UrlFor(string domain, int httpPort, int? httpsPort = null, string path = "") =>
-        UrlForHost(domain.StartsWith("*.", StringComparison.Ordinal) ? "exemplo" + domain[1..] : domain, httpPort, httpsPort)
+        UrlForHost(domain.StartsWith("*.", StringComparison.Ordinal) ? Strings.Browser_WildcardSample + domain[1..] : domain, httpPort, httpsPort)
         + (path.Length > 0 ? path.TrimStart('/') : "");
 
     private static string UrlForHost(string domain, int httpPort, int? httpsPort) => httpsPort switch

@@ -7,6 +7,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Serilog;
 using Serilog.Events;
+using Severino.App.Resources;
 using Severino.App.Services;
 using Severino.App.Tray;
 using Severino.App.ViewModels;
@@ -40,7 +41,7 @@ public partial class App : Application
             return;
         }
 
-        _singleInstance = SingleInstance.TryAcquire();
+        _singleInstance = SingleInstance.TryAcquire(e.Args.Contains(ShellService.RestartArgument) ? TimeSpan.FromSeconds(20) : default);
         if (_singleInstance is null)
         {
             // Another Severino is running and was asked to show its window.
@@ -62,11 +63,14 @@ public partial class App : Application
         catch (UnsupportedConfigVersionException ex)
         {
             MessageBox.Show(
-                $"{ex.Message}\n\nAtualize o Severino ou mova o arquivo:\n{config.Directory}",
+                string.Format(Strings.App_ConfigTooNew, ex.Message, config.Directory),
                 "Severino", MessageBoxButton.OK, MessageBoxImage.Error);
             Shutdown(1);
             return;
         }
+
+        // Before any window, view model or text: everything after this reads the chosen language.
+        UiLanguage.Apply(config.Current.Settings.Language);
 
         // "Iniciar com o Windows" lives in the Run key; the config only mirrors it.
         var autoStart = _host.Services.GetRequiredService<AutoStart>();
@@ -84,14 +88,20 @@ public partial class App : Application
 
         if (loaded.Status == ConfigLoadStatus.Recovered)
             tray.ShowWarning(
-                "Configuração inválida",
-                $"O config.json não pôde ser lido e foi guardado em {loaded.QuarantinedPath}. O Severino começou com a configuração padrão.");
+                Strings.App_ConfigInvalidTitle,
+                string.Format(Strings.App_ConfigInvalid, loaded.QuarantinedPath));
 
         var shell = _host.Services.GetRequiredService<ShellService>();
         _singleInstance.ActivationRequested += () => Dispatcher.BeginInvoke(shell.ShowMainWindow);
 
         // Started by Windows at logon: straight to the tray, whatever "Iniciar minimizado" says.
-        if (!config.Current.Settings.StartMinimized && !e.Args.Contains(AutoStart.Argument))
+        if (e.Args.Contains(ShellService.RestartArgument))
+        {
+            // Restarted from Settings (a new language): back where the person was.
+            _host.Services.GetRequiredService<Navigation>().ShowSettings();
+            shell.ShowMainWindow();
+        }
+        else if (!config.Current.Settings.StartMinimized && !e.Args.Contains(AutoStart.Argument))
         {
             shell.ShowMainWindow();
             OfferFirstRun(config);
@@ -265,7 +275,7 @@ public partial class App : Application
     private void OnDispatcherUnhandledException(object sender, DispatcherUnhandledExceptionEventArgs e)
     {
         _logger?.LogError(e.Exception, "Unhandled UI exception");
-        MessageBox.Show(e.Exception.ToString(), "Severino: erro inesperado", MessageBoxButton.OK, MessageBoxImage.Error);
+        MessageBox.Show(e.Exception.ToString(), Strings.App_UnexpectedError, MessageBoxButton.OK, MessageBoxImage.Error);
         e.Handled = true;
     }
 }

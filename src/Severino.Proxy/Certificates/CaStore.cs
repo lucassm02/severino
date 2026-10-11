@@ -1,5 +1,6 @@
 using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
+using Severino.Proxy.Resources;
 
 namespace Severino.Proxy.Certificates;
 
@@ -39,7 +40,7 @@ public sealed class CaStore(string directory)
         }
         catch (Exception ex) when (ex is CryptographicException or ArgumentException)
         {
-            throw new CaUnreadableException("Não foi possível ler a CA local.", ex);
+            throw new CaUnreadableException(Strings.Ca_Unreadable, ex);
         }
     }
 

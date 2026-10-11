@@ -2,6 +2,7 @@
     x:Class="Severino.App.Views.FirstRunWindow"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:res="clr-namespace:Severino.App.Resources"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
@@ -9,7 +10,7 @@
     xmlns:vm="clr-namespace:Severino.App.ViewModels"
     mc:Ignorable="d"
     d:DataContext="{d:DesignInstance Type=vm:FirstRunViewModel}"
-    Title="Bem-vindo ao Severino"
+    Title="{x:Static res:Strings.FirstRun_Title}"
     Width="600"
     SizeToContent="Height"
     ResizeMode="NoResize"
@@ -43,7 +44,7 @@
     </ui:FluentWindow.Resources>
 
     <StackPanel>
-        <ui:TitleBar Title="Bem-vindo ao Severino" ShowMaximize="False" ShowMinimize="False" />
+        <ui:TitleBar Title="{x:Static res:Strings.FirstRun_Title}" ShowMaximize="False" ShowMinimize="False" />
 
         <StackPanel Margin="24,8,24,24">
             <DockPanel>
@@ -56,7 +57,7 @@
                     AutomationProperties.Name="Severino" />
                 <StackPanel Margin="16,0,0,0" VerticalAlignment="Center">
                     <ui:TextBlock Foreground="{DynamicResource TextFillColorSecondaryBrush}" FontTypography="Caption" Text="{Binding StepText}" />
-                    <ui:TextBlock FontTypography="Subtitle" Text="O Severino está na portaria" />
+                    <ui:TextBlock FontTypography="Subtitle" Text="{x:Static res:Strings.Routes_EmptyTitle}" />
                     <ui:TextBlock Foreground="{DynamicResource TextFillColorSecondaryBrush}" TextWrapping="Wrap" Text="{Binding Subtitle}" />
                 </StackPanel>
             </DockPanel>
@@ -93,17 +94,17 @@
             <!-- Step 2: the first route. -->
             <StackPanel Margin="0,20,0,0" Visibility="{Binding IsRouteStep, Converter={StaticResource TrueToVisible}}">
                 <views:RouteForm x:Name="Form" DataContext="{Binding Route}" />
-                <CheckBox Margin="0,16,0,0" IsChecked="{Binding UseHttps}" Content="Usar HTTPS" />
+                <CheckBox Margin="0,16,0,0" IsChecked="{Binding UseHttps}" Content="{x:Static res:Strings.FirstRun_UseHttps}" />
                 <ui:TextBlock
                     Margin="28,0,0,0"
                     Foreground="{DynamicResource TextFillColorSecondaryBrush}"
                     FontTypography="Caption"
                     TextWrapping="Wrap"
-                    Text="O Severino cria uma CA local que só assina os seus domínios, e o Windows pede para confirmar a instalação. Dá para ativar depois, em Configurações." />
+                    Text="{x:Static res:Strings.FirstRun_HttpsHint}" />
             </StackPanel>
 
             <DockPanel Margin="0,24,0,0">
-                <ui:Button DockPanel.Dock="Left" Appearance="Transparent" Content="Pular" Command="{Binding SkipCommand}" />
+                <ui:Button DockPanel.Dock="Left" Appearance="Transparent" Content="{x:Static res:Strings.FirstRun_Skip}" Command="{Binding SkipCommand}" />
                 <StackPanel HorizontalAlignment="Right" Orientation="Horizontal">
                     <ui:ProgressRing
                         Width="20"
@@ -114,7 +115,7 @@
                     <ui:Button
                         MinWidth="120"
                         Appearance="Primary"
-                        Content="Continuar"
+                        Content="{x:Static res:Strings.FirstRun_Continue}"
                         Command="{Binding ContinueCommand}"
                         Visibility="{Binding IsCheckStep, Converter={StaticResource TrueToVisible}}" />
                     <ui:Button

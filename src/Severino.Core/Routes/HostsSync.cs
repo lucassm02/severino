@@ -2,6 +2,7 @@ using Microsoft.Extensions.Logging;
 using Severino.Contracts;
 using Severino.Core.Configuration;
 using Severino.Core.Helper;
+using Severino.Core.Resources;
 
 namespace Severino.Core.Routes;
 
@@ -161,7 +162,7 @@ public sealed class HostsSync : IDisposable
         {
             var response = await _helper.SendAsync(request, cancellationToken);
             if (response.ProtocolVersion != HelperProtocol.Version)
-                return new(HostsSyncState.Failed, $"O serviço auxiliar é de outra versão ({response.HelperVersion}). Reinstale o Severino.");
+                return new(HostsSyncState.Failed, string.Format(Strings.Helper_OtherVersion, response.HelperVersion));
             if (!response.Ok)
                 return new(HostsSyncState.Failed, response.Error);
 

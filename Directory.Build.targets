@@ -1,0 +1,25 @@
+<Project>
+  <!-- UI text: Resources/Strings.resx (English) and Strings.pt-BR.resx, read through the generated
+       Strings class of the project's own Resources namespace. Here and not in Directory.Build.props
+       because the SDK adds the .resx files after the .props are read. -->
+  <ItemGroup>
+    <EmbeddedResource Update="Resources\Strings.resx"
+                      StronglyTypedLanguage="C#"
+                      StronglyTypedClassName="Strings"
+                      StronglyTypedNamespace="$(RootNamespace).Resources"
+                      StronglyTypedFileName="$(IntermediateOutputPath)Strings.g.cs"
+                      PublicClass="true" />
+  </ItemGroup>
+
+  <!-- WPF compiles the XAML against a temporary assembly built before the regular resource step,
+       so {x:Static res:Strings.Key} would not find the generated class. Generate it first and hand
+       it to that temporary build, the way WPF does with its own generated code. -->
+  <Target Name="SeverinoStringsBeforeXaml"
+          BeforeTargets="MarkupCompilePass1"
+          DependsOnTargets="PrepareResourceNames;ResGen"
+          Condition="'$(UseWPF)' == 'true'">
+    <ItemGroup>
+      <_GeneratedCodeFiles Include="@(EmbeddedResource->'%(StronglyTypedFileName)')" Condition="'%(EmbeddedResource.StronglyTypedFileName)' != ''" />
+    </ItemGroup>
+  </Target>
+</Project>

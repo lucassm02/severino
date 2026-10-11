@@ -2,6 +2,7 @@ using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
 using Microsoft.Win32;
+using Severino.App.Resources;
 using Severino.Contracts;
 
 namespace Severino.App.Services;
@@ -23,7 +24,7 @@ public static class HelperApproval
     public static async Task<string?> ApproveAsync(IReadOnlyList<HostEntry> entries)
     {
         if (HelperPath() is not { } helper)
-            return "O serviço auxiliar não está instalado.";
+            return Strings.Approval_NotInstalled;
         try
         {
             using var process = Process.Start(new ProcessStartInfo(helper, $"--approve-dns {HelperProtocol.EncodeApproval(entries)}")
@@ -33,13 +34,13 @@ public static class HelperApproval
                 WindowStyle = ProcessWindowStyle.Hidden,
             });
             if (process is null)
-                return "O Windows não abriu o serviço auxiliar.";
+                return Strings.Approval_NotOpened;
             await process.WaitForExitAsync();
-            return process.ExitCode == 0 ? null : $"A aprovação falhou (código {process.ExitCode}).";
+            return process.ExitCode == 0 ? null : string.Format(Strings.Approval_Failed, process.ExitCode);
         }
         catch (Win32Exception ex) when (ex.NativeErrorCode == Cancelled)
         {
-            return "A aprovação foi cancelada no aviso do Windows.";
+            return Strings.Approval_Cancelled;
         }
     }
 

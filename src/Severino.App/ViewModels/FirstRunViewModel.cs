@@ -2,6 +2,7 @@ using System.Windows;
 using System.Windows.Input;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using Severino.App.Resources;
 using Severino.App.Services;
 using Severino.Core.Configuration;
 using Severino.Core.Domains;
@@ -29,7 +30,7 @@ public sealed partial class SetupCheck(string title) : ObservableObject
     public partial CheckState State { get; set; }
 
     [ObservableProperty]
-    public partial string Detail { get; set; } = "Verificando…";
+    public partial string Detail { get; set; } = Strings.Health_Checking;
 
     /// <summary>Null hides the fix button.</summary>
     [ObservableProperty]
@@ -96,9 +97,9 @@ public sealed partial class FirstRunViewModel : ObservableObject
         Evaluate();
     }
 
-    public SetupCheck Helper { get; } = new("Serviço auxiliar");
-    public SetupCheck Port { get; } = new("Porta do proxy");
-    public SetupCheck SystemProxyCheck { get; } = new("Proxy do sistema");
+    public SetupCheck Helper { get; } = new(Strings.Status_HelperTitle);
+    public SetupCheck Port { get; } = new(Strings.FirstRun_ProxyPort);
+    public SetupCheck SystemProxyCheck { get; } = new(Strings.Status_SystemProxyTitle);
 
     public IReadOnlyList<SetupCheck> Checks => [Helper, Port, SystemProxyCheck];
 
@@ -113,11 +114,11 @@ public sealed partial class FirstRunViewModel : ObservableObject
 
     public bool IsRouteStep => !IsCheckStep;
 
-    public string StepText => IsCheckStep ? "Passo 1 de 2" : "Passo 2 de 2";
+    public string StepText => IsCheckStep ? Strings.FirstRun_Step1 : Strings.FirstRun_Step2;
 
     public string Subtitle => IsCheckStep
-        ? "Antes de começar, uma checagem rápida do que o Severino precisa."
-        : "Agora diga qual domínio leva a qual servidor. Dá para mudar tudo depois.";
+        ? Strings.FirstRun_CheckSubtitle
+        : Strings.FirstRun_RouteSubtitle;
 
     /// <summary>HTTPS for the first route. Off by default: Windows asks to trust the CA, and http already works.</summary>
     [ObservableProperty]
@@ -127,7 +128,7 @@ public sealed partial class FirstRunViewModel : ObservableObject
     public partial bool IsBusy { get; set; }
 
     /// <summary>"Criar e abrir", or the form's "Criar mesmo assim" when the name exists on the internet.</summary>
-    public string CreateLabel => Route.SaveLabel == "Criar" ? "Criar e abrir" : Route.SaveLabel;
+    public string CreateLabel => Route.SaveLabel == Strings.Common_Create ? Strings.FirstRun_CreateAndOpen : Route.SaveLabel;
 
     [RelayCommand]
     private void Continue() => IsCheckStep = false;
@@ -147,7 +148,7 @@ public sealed partial class FirstRunViewModel : ObservableObject
             var https = false;
             if (UseHttps)
             {
-                var result = await _https.ActivateAsync(prompt => DialogService.ConfirmTrustAsync("Ativar HTTPS", prompt));
+                var result = await _https.ActivateAsync(prompt => DialogService.ConfirmTrustAsync(Strings.Settings_HttpsActivate, prompt));
                 https = result is HttpsActionResult.Done or HttpsActionResult.DoneOldRootKept;
             }
             var settings = _config.Current.Settings;
@@ -186,18 +187,18 @@ public sealed partial class FirstRunViewModel : ObservableObject
         switch (status.State)
         {
             case HostsSyncState.Synced:
-                Helper.Set(CheckState.Ok, "Respondendo. O Severino consegue gravar o arquivo hosts.");
+                Helper.Set(CheckState.Ok, Strings.FirstRun_HelperOk);
                 break;
             case HostsSyncState.HelperUnavailable:
                 Helper.Set(CheckState.Problem,
-                    "Não respondeu. Sem ele, os domínios não chegam ao Severino. Reinstalar o Severino instala o serviço de novo.",
-                    "Tentar de novo", retry);
+                    Strings.FirstRun_HelperDown,
+                    Strings.Common_TryAgain, retry);
                 break;
             case HostsSyncState.Failed:
-                Helper.Set(CheckState.Problem, $"Respondeu, mas não conseguiu gravar o hosts: {status.Detail}", "Tentar de novo", retry);
+                Helper.Set(CheckState.Problem, string.Format(Strings.FirstRun_HelperFailed, status.Detail), Strings.Common_TryAgain, retry);
                 break;
             default:
-                Helper.Set(CheckState.Pending, "Verificando…");
+                Helper.Set(CheckState.Pending, Strings.Health_Checking);
                 break;
         }
     }
@@ -209,18 +210,18 @@ public sealed partial class FirstRunViewModel : ObservableObject
         {
             case ProxyState.Running:
                 Port.Set(CheckState.Ok, status.Port == 80
-                    ? "O Severino está escutando na porta 80."
-                    : $"O Severino está escutando na porta {status.Port}. As URLs levam :{status.Port}, como http://meuapp.sev:{status.Port}.");
+                    ? Strings.FirstRun_Port80
+                    : string.Format(Strings.FirstRun_PortOther, status.Port));
                 break;
             case ProxyState.PortInUse when status.Port == 80:
-                Port.Set(CheckState.Problem, $"{status.Detail} Dá para liberar a porta ou usar a 8080, e aí as URLs levam :8080.",
-                    "Usar a porta 8080", new RelayCommand(() => _config.Update(c => c with { Settings = c.Settings with { HttpPort = 8080 } })));
+                Port.Set(CheckState.Problem, string.Format(Strings.FirstRun_Port80Taken, status.Detail),
+                    Strings.FirstRun_Use8080, new RelayCommand(() => _config.Update(c => c with { Settings = c.Settings with { HttpPort = 8080 } })));
                 break;
             case ProxyState.PortInUse or ProxyState.Failed:
-                Port.Set(CheckState.Problem, status.Detail ?? "O proxy não subiu.", "Tentar de novo", new AsyncRelayCommand(_coordinator.RetryAsync));
+                Port.Set(CheckState.Problem, status.Detail ?? Strings.FirstRun_ProxyDidNotStart, Strings.Common_TryAgain, new AsyncRelayCommand(_coordinator.RetryAsync));
                 break;
             default:
-                Port.Set(CheckState.Pending, "Verificando…");
+                Port.Set(CheckState.Pending, Strings.Health_Checking);
                 break;
         }
     }
@@ -234,8 +235,8 @@ public sealed partial class FirstRunViewModel : ObservableObject
         if (taken.Count > 0)
         {
             SystemProxyCheck.Set(CheckState.Problem,
-                $"O Windows usa o proxy {settings.Server}, e o Edge e o Chrome mandariam os domínios do Severino para ele. Uma exceção resolve.",
-                taken.All(d => d.EndsWith(".sev", StringComparison.Ordinal)) ? "Adicionar exceção para .sev" : "Adicionar exceções",
+                string.Format(Strings.FirstRun_SystemProxy, settings.Server),
+                taken.All(d => d.EndsWith(".sev", StringComparison.Ordinal)) ? Strings.FirstRun_AddSevException : Strings.Status_AddExceptions,
                 new AsyncRelayCommand(async () =>
                 {
                     await _systemProxy.AddExceptionsForAsync(domains);
@@ -245,13 +246,13 @@ public sealed partial class FirstRunViewModel : ObservableObject
         else if (settings.HasScript)
         {
             SystemProxyCheck.Set(CheckState.Warning,
-                "O Windows usa um script de proxy, que decide sozinho para onde cada endereço vai. Se uma rota não abrir, a barra inferior do Severino ajuda.");
+                Strings.FirstRun_Pac);
         }
         else
         {
             SystemProxyCheck.Set(CheckState.Ok, settings.HasFixedProxy
-                ? "Há um proxy, mas os domínios do Severino já estão nas exceções."
-                : "Nenhum proxy no caminho.");
+                ? Strings.FirstRun_ProxyExcepted
+                : Strings.FirstRun_NoProxy);
         }
     }
 }

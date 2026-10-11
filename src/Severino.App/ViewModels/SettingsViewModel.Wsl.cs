@@ -1,6 +1,7 @@
 using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using Severino.App.Resources;
 using Severino.App.Services;
 using Severino.Core.Discovery;
 
@@ -102,11 +103,11 @@ public sealed partial class WslDistroItem(string name, Action<string, bool> setC
         IsProblem = status?.State is WslCallerState.Failed or WslCallerState.Partial;
         StatusText = !chosen ? null : status?.State switch
         {
-            null => "Aplicando…",
-            WslCallerState.Stopped => "Parada. Recebe os nomes quando iniciar.",
-            WslCallerState.Applied when status.Count == 0 => "Ligada. Nenhum serviço a levar ainda.",
-            WslCallerState.Applied => status.Count == 1 ? "1 serviço pelo nome." : $"{status.Count} serviços pelo nome.",
-            WslCallerState.Partial => $"{status.Count} serviços, com falhas: {status.Detail}",
+            null => Strings.Wsl_Applying,
+            WslCallerState.Stopped => Strings.Wsl_Stopped,
+            WslCallerState.Applied when status.Count == 0 => Strings.Wsl_AppliedNone,
+            WslCallerState.Applied => status.Count == 1 ? Strings.Wsl_AppliedOne : string.Format(Strings.Wsl_AppliedMany, status.Count),
+            WslCallerState.Partial => string.Format(Strings.Wsl_Partial, status.Count, status.Detail),
             _ => status.Detail,
         };
     }

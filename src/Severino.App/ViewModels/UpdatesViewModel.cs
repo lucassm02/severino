@@ -7,6 +7,7 @@ using System.Windows;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Microsoft.Extensions.Logging;
+using Severino.App.Resources;
 using Severino.App.Services;
 using Severino.App.Tray;
 using Severino.Core.Configuration;
@@ -54,10 +55,10 @@ public sealed partial class UpdatesViewModel : ObservableObject
     [ObservableProperty]
     public partial bool IsBannerOpen { get; set; }
 
-    public string BannerTitle => Available is { } r ? $"Severino {r.Version.ToString(3)} saiu" : "";
+    public string BannerTitle => Available is { } r ? string.Format(Strings.Updates_BannerTitle, r.Version.ToString(3)) : "";
 
-    /// <summary>"Atualizar agora", or, without a setup GitHub can vouch for, the release page.</summary>
-    public string InstallText => Available?.Installer?.Sha256 is null ? "Baixar no GitHub" : "Atualizar agora";
+    /// <summary>Strings.Updates_UpdateNow, or, without a setup GitHub can vouch for, the release page.</summary>
+    public string InstallText => Available?.Installer?.Sha256 is null ? Strings.Updates_DownloadOnGitHub : Strings.Updates_UpdateNow;
 
     /// <summary>Under the title: the installed version, the download, or what went wrong.</summary>
     [ObservableProperty]
@@ -120,7 +121,7 @@ public sealed partial class UpdatesViewModel : ObservableObject
         if (IsChecking || IsDownloading)
             return;
         IsChecking = true;
-        StatusText = "Consultando o GitHub…";
+        StatusText = Strings.Updates_Checking;
         try
         {
             var latest = await _checker.GetLatestAsync();
@@ -132,7 +133,7 @@ public sealed partial class UpdatesViewModel : ObservableObject
         {
             _logger.LogInformation("Update check failed: {Error}", ex.Message);
             // Offline is normal: only someone who pressed the button hears about it.
-            StatusText = manual ? $"Não deu para consultar o GitHub: {ex.Message}" : Describe(Available);
+            StatusText = manual ? string.Format(Strings.Updates_CheckFailed, ex.Message) : Describe(Available);
         }
         finally
         {
@@ -151,7 +152,7 @@ public sealed partial class UpdatesViewModel : ObservableObject
         if (Available is not { } release)
             return;
 
-        BannerMessage = $"Você está na {CurrentVersion}. A atualização mantém rotas, serviços e configurações.";
+        BannerMessage = string.Format(Strings.Updates_BannerMessage, CurrentVersion);
         IsBannerOpen = true;
 
         var version = release.Version.ToString(3);
@@ -159,13 +160,13 @@ public sealed partial class UpdatesViewModel : ObservableObject
             return;
         // The window shows the notice already; the tray speaks only when it is hidden.
         if (Application.Current?.MainWindow is not { IsVisible: true })
-            _tray.ShowInfo($"Severino {version} saiu", "Abra o Severino e clique em Atualizar agora.");
+            _tray.ShowInfo(string.Format(Strings.Updates_BannerTitle, version), Strings.Updates_TrayMessage);
         _config.Update(c => c with { State = c.State with { NotifiedVersion = version } });
     }
 
     private string Describe(ReleaseInfo? available) => available is { } r
-        ? $"A versão {r.Version.ToString(3)} saiu. Você está na {CurrentVersion}."
-        : _config.Current.State.LastUpdateCheck is null ? "" : "Você está na versão mais recente.";
+        ? string.Format(Strings.Updates_Available, r.Version.ToString(3), CurrentVersion)
+        : _config.Current.State.LastUpdateCheck is null ? "" : Strings.Updates_UpToDate;
 
     private void UpdateLastCheckText()
     {
@@ -175,10 +176,10 @@ public sealed partial class UpdatesViewModel : ObservableObject
             return;
         }
         var local = last.ToLocalTime();
-        var day = local.Date == DateTime.Today ? "hoje"
-            : local.Date == DateTime.Today.AddDays(-1) ? "ontem"
+        var day = local.Date == DateTime.Today ? Strings.Updates_Today
+            : local.Date == DateTime.Today.AddDays(-1) ? Strings.Updates_Yesterday
             : local.ToString("d", CultureInfo.CurrentCulture);
-        LastCheckText = $"Última consulta: {day}, às {local:HH:mm}";
+        LastCheckText = string.Format(Strings.Updates_LastCheck, day, local.ToString("t", CultureInfo.CurrentCulture));
     }
 
     private bool HasUpdateIdle() => Available is not null && !IsDownloading;
@@ -195,17 +196,16 @@ public sealed partial class UpdatesViewModel : ObservableObject
         }
 
         var version = release.Version.ToString(3);
-        var size = installer.Size > 0 ? $" ({installer.Size / (1024 * 1024)} MB)" : "";
-        if (!await DialogService.ConfirmAsync("Atualizar o Severino",
-                $"O Severino baixa a versão {version}{size}, fecha, instala e abre de novo. O Windows vai pedir permissão de administrador. " +
-                "Rotas, serviços e configurações ficam como estão.",
-                "Atualizar"))
+        var size = installer.Size > 0 ? string.Format(Strings.Updates_Size, installer.Size / (1024 * 1024)) : "";
+        if (!await DialogService.ConfirmAsync(Strings.Updates_ConfirmTitle,
+                string.Format(Strings.Updates_Confirm, version, size),
+                Strings.Updates_ConfirmButton))
             return;
 
         IsBannerOpen = true;
         IsDownloading = true;
         DownloadProgress = 0;
-        BannerMessage = $"Baixando a versão {version}…";
+        BannerMessage = string.Format(Strings.Updates_Downloading, version);
         string setup;
         try
         {
@@ -215,7 +215,7 @@ public sealed partial class UpdatesViewModel : ObservableObject
         catch (Exception ex) when (ex is HttpRequestException or TaskCanceledException or UpdateDownloadException or IOException or UnauthorizedAccessException)
         {
             _logger.LogWarning(ex, "Update download failed");
-            BannerMessage = ex is UpdateDownloadException ? ex.Message : $"O download falhou: {ex.Message}";
+            BannerMessage = ex is UpdateDownloadException ? ex.Message : string.Format(Strings.Updates_DownloadFailed, ex.Message);
             return;
         }
         finally
@@ -232,7 +232,7 @@ public sealed partial class UpdatesViewModel : ObservableObject
         catch (Win32Exception ex)
         {
             _logger.LogWarning(ex, "Could not start the setup");
-            BannerMessage = $"Não deu para abrir o instalador: {ex.Message}";
+            BannerMessage = string.Format(Strings.Updates_SetupFailed, ex.Message);
             return;
         }
         _logger.LogInformation("Installing {Version}; exiting", version);
@@ -259,6 +259,6 @@ public sealed partial class UpdatesViewModel : ObservableObject
         _config.Update(c => c with { State = c.State with { SkippedVersion = release.Version.ToString(3) } });
         Available = null;
         IsBannerOpen = false;
-        StatusText = $"A versão {release.Version.ToString(3)} foi pulada. Procurar agora mostra ela de novo.";
+        StatusText = string.Format(Strings.Updates_Skipped, release.Version.ToString(3));
     }
 }

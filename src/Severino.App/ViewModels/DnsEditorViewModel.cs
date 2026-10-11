@@ -1,5 +1,6 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using Severino.App.Resources;
 using Severino.App.Services;
 using Severino.Contracts;
 using Severino.Core.Configuration;
@@ -34,16 +35,16 @@ public sealed partial class DnsEditorViewModel : ObservableObject
     public bool IsOutside => _line is not null;
     public bool IsOwn => !IsOutside;
 
-    public string Title => IsOutside ? "Editar linha que não é do Severino" : _entry is null ? "Nova entrada DNS" : "Editar entrada DNS";
-    public string SaveLabel => IsOutside ? "Revisar e alterar o hosts" : _entry is null ? "Criar" : "Salvar";
+    public string Title => IsOutside ? Strings.DnsEditor_EditOutside : _entry is null ? Strings.DnsEditor_New : Strings.DnsEditor_Edit;
+    public string SaveLabel => IsOutside ? Strings.DnsEditor_ReviewAndChange : _entry is null ? Strings.Common_Create : Strings.Common_Save;
 
     /// <summary>Fixed at the top of the form for a line from outside.</summary>
     public string OutsideWarning =>
-        "Ela não foi criada pelo Severino. Ao salvar, ele altera o arquivo e deixa um comentário acima dela, dizendo que ela não era dele, o que mudou e quando.";
+        Strings.DnsEditor_OutsideWarning;
 
-    public string? OriginText => _line?.Origin is { } origin ? $"No hosts, perto de: {origin}" : null;
+    public string? OriginText => _line?.Origin is { } origin ? string.Format(Strings.DnsEditor_Near, origin) : null;
 
-    public string? LineText => _line is null ? null : $"Linha atual: {_line.Text.Trim()}";
+    public string? LineText => _line is null ? null : string.Format(Strings.DnsEditor_CurrentLine, _line.Text.Trim());
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(ScopeHint))]
@@ -66,14 +67,14 @@ public sealed partial class DnsEditorViewModel : ObservableObject
     public string? ScopeHint => !DnsAddress.TryClassify(Address?.Trim(), out _, out var scope) ? null
         : scope switch
         {
-            AddressScope.Loopback => "Esta máquina.",
-            AddressScope.Private => "Rede privada: vai para o hosts na hora.",
-            _ => "IP público: depois de salvar, o Windows pede confirmação de administrador para aprovar este nome neste IP.",
+            AddressScope.Loopback => Strings.DnsEditor_ScopeLoopback,
+            AddressScope.Private => Strings.DnsEditor_ScopePrivate,
+            _ => Strings.DnsEditor_ScopePublic,
         };
 
     /// <summary>Said when a name is a wildcard, since it needs an approval too.</summary>
     public string? WildcardHint => IsOwn && Names.Any(DomainName.IsWildcard)
-        ? "Curinga: vale para todo nome abaixo dele, respondido pelo serviço auxiliar. Depois de salvar, o Windows pede confirmação de administrador."
+        ? Strings.DnsEditor_Wildcard
         : null;
 
     partial void OnNamesTextChanged(string value) => OnPropertyChanged(nameof(WildcardHint));
@@ -124,7 +125,7 @@ public sealed partial class DnsEditorViewModel : ObservableObject
             if (await HelperApproval.ApproveAsync(entries) is { } approvalError)
             {
                 // Saved anyway: the DNS tab keeps offering the approval.
-                Error = $"{approvalError} A entrada foi salva e fica aguardando aprovação.";
+                Error = string.Format(Strings.DnsEditor_SavedPending, approvalError);
                 await Task.Delay(1500);
             }
             await _sync.SyncAsync();
@@ -142,7 +143,7 @@ public sealed partial class DnsEditorViewModel : ObservableObject
         DnsAddress.TryClassify(Address.Trim(), out var address, out _);
         var after = $"{HostsText.NotePrefix} esta linha nao foi criada pelo Severino; editada em {DateTime.Now:yyyy-MM-dd HH:mm}. Antes: {line.Text.Trim()}\n" +
             HostsText.Render(address!, Names);
-        if (!await DialogService.ConfirmOutsideChangeAsync("Alterar linha que não é do Severino", line.Text, after, "Alterar o hosts"))
+        if (!await DialogService.ConfirmOutsideChangeAsync(Strings.DnsEditor_ChangeOutside, line.Text, after, Strings.DnsEditor_ChangeHosts))
             return;
 
         var result = await _dns.EditOutsideAsync(line, Names, Address, CancellationToken.None);

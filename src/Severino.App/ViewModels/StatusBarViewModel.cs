@@ -2,6 +2,7 @@ using System.IO;
 using System.Windows;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using Severino.App.Resources;
 using Severino.App.Services;
 using Severino.Core.Configuration;
 using Severino.Core.Routes;
@@ -109,32 +110,29 @@ public sealed partial class StatusBarViewModel : ObservableObject
         var taken = _systemProxy.Uncovered();
         if (taken.Count == 0)
         {
-            await DialogService.ShowInfoAsync("Proxy do sistema",
-                "O Windows usa um script de proxy (PAC), que decide sozinho para onde cada endereço vai. O Severino não consegue saber se ele desvia as suas rotas.\n\n" +
-                "Se uma rota não abrir no navegador, peça para o script ignorar esses domínios, ou teste com a VPN desligada.\n\n" +
-                $"Script: {settings.AutoConfigUrl}");
+            await DialogService.ShowInfoAsync(Strings.Status_SystemProxyTitle,
+                string.Format(Strings.Status_PacInfo, settings.AutoConfigUrl));
             return;
         }
 
-        if (!await DialogService.ConfirmAsync("Proxy do sistema",
-                $"O Windows está configurado para usar o proxy {settings.Server}. O Edge e o Chrome mandariam {string.Join(", ", taken)} para ele, e não para o Severino.\n\n" +
-                "Adicionar esses domínios às exceções do proxy? Eles entram na mesma lista de Opções da Internet, e o Severino tira só o que adicionou quando você usar \"Limpar tudo\".",
-                "Adicionar exceções"))
+        if (!await DialogService.ConfirmAsync(Strings.Status_SystemProxyTitle,
+                string.Format(Strings.Status_ProxyConfirm, settings.Server, string.Join(", ", taken)),
+                Strings.Status_AddExceptions))
             return;
 
         try
         {
             var added = await _systemProxy.AddExceptionsAsync();
             Refresh();
-            await DialogService.ShowInfoAsync("Proxy do sistema", added.Count == 0
-                ? "As exceções já estavam lá."
-                : $"Exceções adicionadas: {string.Join(", ", added)}. Recarregue a página no navegador.");
+            await DialogService.ShowInfoAsync(Strings.Status_SystemProxyTitle, added.Count == 0
+                ? Strings.Status_ExceptionsThere
+                : string.Format(Strings.Status_ExceptionsAdded, string.Join(", ", added)));
         }
         catch (Exception ex) when (ex is UnauthorizedAccessException or System.Security.SecurityException or IOException)
         {
             // Company policy can lock the proxy settings.
-            await DialogService.ShowInfoAsync("Proxy do sistema",
-                $"O Windows não deixou alterar as exceções, talvez por uma política da empresa. Peça para incluir {string.Join(", ", taken)} nas exceções do proxy.\n\nDetalhe: {ex.Message}");
+            await DialogService.ShowInfoAsync(Strings.Status_SystemProxyTitle,
+                string.Format(Strings.Status_ExceptionsLocked, string.Join(", ", taken), ex.Message));
         }
     }
 
@@ -145,21 +143,18 @@ public sealed partial class StatusBarViewModel : ObservableObject
         if (failing.Count == 0)
             return;
         var lines = string.Join("\n", failing.Select(s => $"• {s.Name} ({s.Address}:{s.Port}): {s.Detail}"));
-        if (await DialogService.ConfirmAsync("Serviços",
-                $"Estas portas não abriram:\n\n{lines}\n\nFeche o programa que está usando a porta e tente de novo.",
-                "Tentar de novo"))
+        if (await DialogService.ConfirmAsync(Strings.Tab_Services,
+                string.Format(Strings.Status_PortsDidNotOpen, lines),
+                Strings.Common_TryAgain))
             await _coordinator.RetryAsync();
     }
 
     [RelayCommand]
     private void FixHosts() => DialogService.ShowMessage(
-        "Serviço auxiliar",
+        Strings.Status_HelperTitle,
         _hosts.Status.State == HostsSyncState.HelperUnavailable
-            ? "O Severino precisa do serviço auxiliar para gravar o arquivo hosts.\n\n" +
-              "Enquanto não há instalador, rode num terminal como administrador, na pasta do projeto:\n\n" +
-              "    ./scripts/dev-helper.ps1 install\n\n" +
-              $"Detalhe: {_hosts.Status.Detail}"
-            : $"O serviço auxiliar não conseguiu atualizar o hosts.\n\nDetalhe: {_hosts.Status.Detail}");
+            ? string.Format(Strings.Status_HelperMissing, _hosts.Status.Detail)
+            : string.Format(Strings.Status_HelperFailed, _hosts.Status.Detail));
 
     private void Refresh()
     {
@@ -168,65 +163,65 @@ public sealed partial class StatusBarViewModel : ObservableObject
         (ProxyText, ProxyHasProblem) = proxy.State switch
         {
             // A link, so it reads as something to undo; it is not counted as a problem below.
-            _ when IsPaused => ("Severino pausado. Retomar", true),
-            ProxyState.Running when _proxy.HttpsStatus.State == ProxyState.Running => ($"Proxy ativo :{proxy.Port} :{_proxy.HttpsStatus.Port}", false),
-            ProxyState.Running => ($"Proxy ativo :{proxy.Port}", false),
-            ProxyState.PortInUse => ($"{proxy.Detail} Trocar porta", true),
-            ProxyState.Failed => ($"Proxy parado: {proxy.Detail} Tentar de novo", true),
-            _ => ("Proxy iniciando…", false),
+            _ when IsPaused => (Strings.Status_PausedResume, true),
+            ProxyState.Running when _proxy.HttpsStatus.State == ProxyState.Running => (string.Format(Strings.Status_ProxyOnBoth, proxy.Port, _proxy.HttpsStatus.Port), false),
+            ProxyState.Running => (string.Format(Strings.Status_ProxyOn, proxy.Port), false),
+            ProxyState.PortInUse => (string.Format(Strings.Status_ChangePort, proxy.Detail), true),
+            ProxyState.Failed => (string.Format(Strings.Status_ProxyStopped, proxy.Detail), true),
+            _ => (Strings.Status_ProxyStarting, false),
         };
 
         var https = _proxy.HttpsStatus;
         var uncovered = _https.Uncovered().Count;
         (HttpsText, HttpsHasProblem) = _https.Status.State switch
         {
-            LocalCaState.Disabled => ("HTTPS desativado", false),
-            _ when IsPaused => ("HTTPS pausado", false),
-            LocalCaState.NotTrusted or LocalCaState.Unreadable => ("HTTPS: CA inválida", true),
+            LocalCaState.Disabled => (Strings.Status_HttpsOff, false),
+            _ when IsPaused => (Strings.Status_HttpsPaused, false),
+            LocalCaState.NotTrusted or LocalCaState.Unreadable => (Strings.Status_HttpsInvalidCa, true),
             _ => https.State switch
             {
-                ProxyState.PortInUse => ($"HTTPS: {https.Detail} Trocar porta", true),
-                ProxyState.Failed => ($"HTTPS parado: {https.Detail} Tentar de novo", true),
-                ProxyState.Running when uncovered > 0 => (uncovered == 1 ? "HTTPS: 1 domínio fora da CA" : $"HTTPS: {uncovered} domínios fora da CA", true),
-                ProxyState.Running => ("HTTPS ok", false),
-                _ => ("HTTPS iniciando…", false),
+                ProxyState.PortInUse => (string.Format(Strings.Status_HttpsChangePort, https.Detail), true),
+                ProxyState.Failed => (string.Format(Strings.Status_HttpsStopped, https.Detail), true),
+                ProxyState.Running when uncovered > 0 => (uncovered == 1 ? Strings.Status_HttpsUncoveredOne : string.Format(Strings.Status_HttpsUncoveredMany, uncovered), true),
+                ProxyState.Running => (Strings.Status_HttpsOk, false),
+                _ => (Strings.Status_HttpsStarting, false),
             },
         };
 
         var hosts = _hosts.Status;
         (HostsText, HostsHasProblem) = hosts.State switch
         {
-            HostsSyncState.Synced when IsPaused => ("hosts sem as rotas", false),
-            HostsSyncState.Synced => ("hosts ok", false),
-            HostsSyncState.HelperUnavailable => ("hosts: serviço auxiliar indisponível", true),
-            HostsSyncState.Failed => ("hosts: falha ao gravar", true),
-            _ => ("hosts: sincronizando…", false),
+            HostsSyncState.Synced when IsPaused => (Strings.Status_HostsWithoutRoutes, false),
+            HostsSyncState.Synced => (Strings.Status_HostsOk, false),
+            HostsSyncState.HelperUnavailable => (Strings.Status_HostsHelperUnavailable, true),
+            HostsSyncState.Failed => (Strings.Status_HostsFailed, true),
+            _ => (Strings.Status_HostsSyncing, false),
         };
 
         var failing = _services.Statuses.Where(s => s.State != ProxyState.Running).ToList();
         ServicesText = failing switch
         {
             [] => null,
-            [var one] => $"serviço {one.Name}: porta {one.Port} indisponível",
-            _ => $"{failing.Count} portas de serviço indisponíveis",
+            [var one] => string.Format(Strings.Status_ServicePortDown, one.Name, one.Port),
+            _ => string.Format(Strings.Status_ServicePortsDown, failing.Count),
         };
 
         var systemProxy = _systemProxy.Read();
         var taken = _systemProxy.Uncovered().Count;
         (SystemProxyText, SystemProxyHasProblem) = (taken, systemProxy.HasScript) switch
         {
-            ( > 0, _) => (taken == 1 ? "proxy do sistema no caminho de 1 domínio" : $"proxy do sistema no caminho de {taken} domínios", true),
-            (_, true) => ("proxy por script ativo", false),
+            ( > 0, _) => (taken == 1 ? Strings.Status_SystemProxyInWayOne : string.Format(Strings.Status_SystemProxyInWayMany, taken), true),
+            (_, true) => (Strings.Status_PacActive, false),
             _ => ((string?)null, false),
         };
 
         HasProblem = !IsPaused && (ProxyHasProblem || HttpsHasProblem || HostsHasProblem || SystemProxyHasProblem || ServicesText is not null);
-        Summary = IsPaused ? "pausado"
+        Summary = IsPaused ? Strings.Status_Paused
             : ProxyHasProblem ? ProxyText
             : HttpsHasProblem ? HttpsText
             : HostsHasProblem ? HostsText
             : SystemProxyHasProblem ? SystemProxyText!
-            : ServicesText ?? "tudo certo";
+            : ServicesText ?? Strings.Status_AllGood;
     }
 
     private static void Dispatch(Action action) => Application.Current?.Dispatcher.BeginInvoke(action);

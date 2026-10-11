@@ -1,6 +1,7 @@
 using System.Diagnostics;
 using System.Globalization;
 using System.Text.Json;
+using Severino.Core.Resources;
 
 namespace Severino.Core.Configuration;
 
@@ -17,7 +18,7 @@ public sealed record ConfigLoadResult(SeverinoConfig Config, ConfigLoadStatus St
 
 /// <summary>Thrown when the file was written by a newer Severino; it is left untouched.</summary>
 public sealed class UnsupportedConfigVersionException(int version)
-    : Exception($"config.json está na versão {version}, mais nova que a suportada ({SeverinoConfig.CurrentVersion}).")
+    : Exception(string.Format(Strings.Config_TooNew, version, SeverinoConfig.CurrentVersion))
 {
     public int Version { get; } = version;
 }
@@ -89,7 +90,7 @@ public sealed class ConfigStore(string directory, TimeProvider? time = null)
     private static SeverinoConfig Migrate(SeverinoConfig config) => config.Version switch
     {
         SeverinoConfig.CurrentVersion => config,
-        _ => throw new UnreachableException($"Sem migração da versão {config.Version}."),
+        _ => throw new UnreachableException($"No migration from version {config.Version}."),
     };
 
     private void BackUpCurrentFile()

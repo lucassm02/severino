@@ -2,6 +2,7 @@
     x:Class="Severino.App.Views.SettingsView"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:res="clr-namespace:Severino.App.Resources"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
@@ -10,12 +11,12 @@
     d:DataContext="{d:DesignInstance Type=vm:SettingsViewModel}">
     <ScrollViewer VerticalScrollBarVisibility="Auto">
         <StackPanel Margin="0,16,0,0">
-            <ui:TextBlock Margin="0,0,0,8" FontTypography="BodyStrong" Text="Rede" />
+            <ui:TextBlock Margin="0,0,0,8" FontTypography="BodyStrong" Text="{x:Static res:Strings.Settings_Network}" />
             <ui:CardControl Margin="0,0,0,4" Icon="{ui:SymbolIcon PlugConnected24}">
                 <ui:CardControl.Header>
                     <StackPanel>
-                        <ui:TextBlock Text="Porta HTTP do proxy" />
-                        <ui:TextBlock Foreground="{DynamicResource TextFillColorSecondaryBrush}" FontTypography="Caption" Text="Fora da 80, as URLs passam a levar a porta (ex.: :8080)" />
+                        <ui:TextBlock Text="{x:Static res:Strings.Settings_HttpPort}" />
+                        <ui:TextBlock Foreground="{DynamicResource TextFillColorSecondaryBrush}" FontTypography="Caption" Text="{x:Static res:Strings.Settings_HttpPortHint}" />
                         <ui:TextBlock
                             FontTypography="Caption"
                             Foreground="{DynamicResource SystemFillColorCriticalBrush}"
@@ -27,19 +28,19 @@
                     <ui:TextBox
                         Width="96"
                         Text="{Binding HttpPort, UpdateSourceTrigger=PropertyChanged}"
-                        AutomationProperties.Name="Porta HTTP">
+                        AutomationProperties.Name="{x:Static res:Strings.Settings_HttpPortName}">
                         <ui:TextBox.InputBindings>
                             <KeyBinding Key="Enter" Command="{Binding ApplyHttpPortCommand}" />
                         </ui:TextBox.InputBindings>
                     </ui:TextBox>
-                    <ui:Button Margin="8,0,0,0" Content="Aplicar" Command="{Binding ApplyHttpPortCommand}" />
+                    <ui:Button Margin="8,0,0,0" Content="{x:Static res:Strings.Common_Apply}" Command="{Binding ApplyHttpPortCommand}" />
                 </StackPanel>
             </ui:CardControl>
             <ui:CardControl Margin="0,0,0,4" Icon="{ui:SymbolIcon PlugConnected24}">
                 <ui:CardControl.Header>
                     <StackPanel>
-                        <ui:TextBlock Text="Porta HTTPS do proxy" />
-                        <ui:TextBlock Foreground="{DynamicResource TextFillColorSecondaryBrush}" FontTypography="Caption" Text="Fora da 443, as URLs https:// passam a levar a porta" />
+                        <ui:TextBlock Text="{x:Static res:Strings.Settings_HttpsPort}" />
+                        <ui:TextBlock Foreground="{DynamicResource TextFillColorSecondaryBrush}" FontTypography="Caption" Text="{x:Static res:Strings.Settings_HttpsPortHint}" />
                         <ui:TextBlock
                             FontTypography="Caption"
                             Foreground="{DynamicResource SystemFillColorCriticalBrush}"
@@ -51,12 +52,12 @@
                     <ui:TextBox
                         Width="96"
                         Text="{Binding HttpsPort, UpdateSourceTrigger=PropertyChanged}"
-                        AutomationProperties.Name="Porta HTTPS">
+                        AutomationProperties.Name="{x:Static res:Strings.Settings_HttpsPortName}">
                         <ui:TextBox.InputBindings>
                             <KeyBinding Key="Enter" Command="{Binding ApplyHttpsPortCommand}" />
                         </ui:TextBox.InputBindings>
                     </ui:TextBox>
-                    <ui:Button Margin="8,0,0,0" Content="Aplicar" Command="{Binding ApplyHttpsPortCommand}" />
+                    <ui:Button Margin="8,0,0,0" Content="{x:Static res:Strings.Common_Apply}" Command="{Binding ApplyHttpsPortCommand}" />
                 </StackPanel>
             </ui:CardControl>
 
@@ -74,16 +75,16 @@
                                 Visibility="{Binding HttpsBusy, Converter={StaticResource TrueToVisible}}" />
                             <ui:Button
                                 Appearance="Primary"
-                                Content="Ativar HTTPS"
+                                Content="{x:Static res:Strings.Settings_HttpsActivate}"
                                 Command="{Binding ActivateHttpsCommand}"
                                 Visibility="{Binding HttpsActive, Converter={StaticResource FalseToVisible}}" />
                             <ui:Button
-                                Content="Exportar CA (PEM)"
+                                Content="{x:Static res:Strings.Settings_ExportCa}"
                                 Command="{Binding ExportCaCommand}"
                                 Visibility="{Binding HttpsActive, Converter={StaticResource TrueToVisible}}" />
                         </StackPanel>
                         <StackPanel>
-                            <ui:TextBlock Text="Certificados locais" />
+                            <ui:TextBlock Text="{x:Static res:Strings.Settings_LocalCertificates}" />
                             <ui:TextBlock Foreground="{DynamicResource TextFillColorSecondaryBrush}" FontTypography="Caption" TextWrapping="Wrap" Text="{Binding HttpsStateText}" />
                             <ui:TextBlock
                                 Foreground="{DynamicResource TextFillColorSecondaryBrush}"
@@ -127,21 +128,21 @@
                         AutomationProperties.LiveSetting="Polite" />
 
                     <StackPanel Margin="40,12,0,0" Visibility="{Binding NodeCommand, Converter={StaticResource NullToCollapsed}}">
-                        <ui:TextBlock FontTypography="Caption" TextWrapping="Wrap" Text="Para o Node.js confiar na CA, rode uma vez e abra um terminal novo:" />
+                        <ui:TextBlock FontTypography="Caption" TextWrapping="Wrap" Text="{x:Static res:Strings.Settings_NodeHint}" />
                         <DockPanel Margin="0,6,0,0">
-                            <ui:Button DockPanel.Dock="Right" Margin="8,0,0,0" Icon="{ui:SymbolIcon Copy24}" Content="Copiar" Command="{Binding CopyNodeCommandCommand}" />
-                            <ui:TextBox IsReadOnly="True" FontFamily="Cascadia Mono, Consolas" Text="{Binding NodeCommand, Mode=OneWay}" AutomationProperties.Name="Comando do Node.js" />
+                            <ui:Button DockPanel.Dock="Right" Margin="8,0,0,0" Icon="{ui:SymbolIcon Copy24}" Content="{x:Static res:Strings.Common_Copy}" Command="{Binding CopyNodeCommandCommand}" />
+                            <ui:TextBox IsReadOnly="True" FontFamily="Cascadia Mono, Consolas" Text="{Binding NodeCommand, Mode=OneWay}" AutomationProperties.Name="{x:Static res:Strings.Settings_NodeCommandName}" />
                         </DockPanel>
                     </StackPanel>
 
                     <StackPanel Margin="40,12,0,0" Orientation="Horizontal" Visibility="{Binding HttpsActive, Converter={StaticResource TrueToVisible}}">
-                        <ui:Button Content="Reemitir" Command="{Binding ReissueHttpsCommand}" ToolTip="Cria uma CA nova para os domínios das rotas com HTTPS de hoje" />
-                        <ui:Button Margin="8,0,0,0" Content="Remover CA" Command="{Binding RemoveHttpsCommand}" />
+                        <ui:Button Content="{x:Static res:Strings.Settings_Reissue}" Command="{Binding ReissueHttpsCommand}" ToolTip="{x:Static res:Strings.Settings_ReissueTip}" />
+                        <ui:Button Margin="8,0,0,0" Content="{x:Static res:Strings.Settings_RemoveCa}" Command="{Binding RemoveHttpsCommand}" />
                     </StackPanel>
                     <ui:Button
                         Margin="40,12,0,0"
                         HorizontalAlignment="Left"
-                        Content="Remover CA"
+                        Content="{x:Static res:Strings.Settings_RemoveCa}"
                         Command="{Binding RemoveHttpsCommand}"
                         Visibility="{Binding HttpsBroken, Converter={StaticResource TrueToVisible}}" />
 
@@ -150,35 +151,35 @@
                         Foreground="{DynamicResource TextFillColorSecondaryBrush}"
                         FontTypography="Caption"
                         TextWrapping="Wrap"
-                        Text="Ao ativar, o Windows pede para confirmar a instalação da CA. Ela só assina os domínios das rotas." />
+                        Text="{x:Static res:Strings.Settings_HttpsNote}" />
                 </StackPanel>
             </ui:Card>
 
-            <ui:TextBlock Margin="0,16,0,8" FontTypography="BodyStrong" Text="Serviços" />
+            <ui:TextBlock Margin="0,16,0,8" FontTypography="BodyStrong" Text="{x:Static res:Strings.Settings_Services}" />
             <ui:CardControl Margin="0,0,0,4" Icon="{ui:SymbolIcon ArrowSync24}">
                 <ui:CardControl.Header>
                     <StackPanel>
-                        <ui:TextBlock Text="Acompanhar serviços importados" />
+                        <ui:TextBlock Text="{x:Static res:Strings.Settings_WatchServices}" />
                         <ui:TextBlock
                             Foreground="{DynamicResource TextFillColorSecondaryBrush}"
                             FontTypography="Caption"
                             TextWrapping="Wrap"
-                            Text="Com o app aberto, faz o Atualizar sozinho: quando um container do Docker sobe ou cai, e no Kubernetes a cada 30 s." />
+                            Text="{x:Static res:Strings.Settings_WatchServicesHint}" />
                     </StackPanel>
                 </ui:CardControl.Header>
-                <ui:ToggleSwitch IsChecked="{Binding WatchServices}" AutomationProperties.Name="Acompanhar serviços importados" />
+                <ui:ToggleSwitch IsChecked="{Binding WatchServices}" AutomationProperties.Name="{x:Static res:Strings.Settings_WatchServices}" />
             </ui:CardControl>
             <ui:Card Margin="0,0,0,4" Padding="16">
                 <StackPanel>
                     <DockPanel>
-                        <ui:Button DockPanel.Dock="Right" Margin="16,0,0,0" VerticalAlignment="Top" Content="Aplicar de novo" Command="{Binding RetryWslCommand}" />
+                        <ui:Button DockPanel.Dock="Right" Margin="16,0,0,0" VerticalAlignment="Top" Content="{x:Static res:Strings.Settings_WslApplyAgain}" Command="{Binding RetryWslCommand}" />
                         <StackPanel>
-                            <ui:TextBlock Text="Apps no WSL chamam os serviços pelo nome" />
+                            <ui:TextBlock Text="{x:Static res:Strings.Settings_WslTitle}" />
                             <ui:TextBlock
                                 Foreground="{DynamicResource TextFillColorSecondaryBrush}"
                                 FontTypography="Caption"
                                 TextWrapping="Wrap"
-                                Text="Nas distros ligadas, o Severino grava os nomes no /etc/hosts e regras de iptables que levam cada porta ao destino, como root na distro, sem pedir administrador. Distros paradas recebem tudo quando iniciam. Containers do Docker no Windows ficam de fora: a distro não vê o loopback do Windows." />
+                                Text="{x:Static res:Strings.Settings_WslHint}" />
                         </StackPanel>
                     </DockPanel>
                     <ItemsControl Margin="0,8,0,0" ItemsSource="{Binding WslDistros}">
@@ -189,7 +190,7 @@
                                         DockPanel.Dock="Right"
                                         VerticalAlignment="Center"
                                         IsChecked="{Binding IsChosen}"
-                                        AutomationProperties.Name="{Binding Name, StringFormat='Serviços pelo nome em {0}'}" />
+                                        AutomationProperties.Name="{Binding Name, StringFormat={x:Static res:Strings.Settings_WslDistroName}}" />
                                     <StackPanel VerticalAlignment="Center">
                                         <TextBlock Text="{Binding Name}" />
                                         <TextBlock FontSize="12" TextWrapping="Wrap" Text="{Binding StatusText}" Visibility="{Binding StatusText, Converter={StaticResource NullToCollapsed}}">
@@ -213,24 +214,24 @@
                         Margin="0,8,0,0"
                         Foreground="{DynamicResource TextFillColorSecondaryBrush}"
                         FontTypography="Caption"
-                        Text="Nenhuma distro do WSL instalada."
+                        Text="{x:Static res:Strings.Settings_NoWsl}"
                         Visibility="{Binding HasNoWsl, Converter={StaticResource TrueToVisible}}" />
                 </StackPanel>
             </ui:Card>
 
-            <ui:TextBlock Margin="0,16,0,8" FontTypography="BodyStrong" Text="Terminal" />
+            <ui:TextBlock Margin="0,16,0,8" FontTypography="BodyStrong" Text="{x:Static res:Strings.Settings_Terminal}" />
             <ui:Card Margin="0,0,0,4" Padding="16">
                 <StackPanel>
                     <DockPanel>
                         <ui:SymbolIcon DockPanel.Dock="Left" Margin="0,2,16,0" VerticalAlignment="Top" FontSize="24" Symbol="WindowConsole20" />
                         <StackPanel>
-                            <ui:TextBlock Text="Comandos no PowerShell" />
+                            <ui:TextBlock Text="{x:Static res:Strings.Settings_PowerShell}" />
                             <ui:TextBlock Foreground="{DynamicResource TextFillColorSecondaryBrush}" FontTypography="Caption" TextWrapping="Wrap" Text="{Binding TerminalStatus}" />
                         </StackPanel>
                     </DockPanel>
                     <DockPanel Margin="40,10,0,0">
                         <StackPanel DockPanel.Dock="Right" Margin="8,0,0,0" VerticalAlignment="Top">
-                            <ui:Button Icon="{ui:SymbolIcon Copy24}" Content="Copiar" Command="{Binding CopyTerminalExamplesCommand}" />
+                            <ui:Button Icon="{ui:SymbolIcon Copy24}" Content="{x:Static res:Strings.Common_Copy}" Command="{Binding CopyTerminalExamplesCommand}" />
                             <ui:TextBlock Margin="0,4,0,0" HorizontalAlignment="Center" FontTypography="Caption" Text="{Binding TerminalCopied}" />
                         </StackPanel>
                         <ui:TextBox
@@ -240,17 +241,17 @@
                             FontFamily="Cascadia Mono, Consolas"
                             FontSize="12"
                             Text="{Binding TerminalExamples, Mode=OneWay}"
-                            AutomationProperties.Name="Exemplos de comandos" />
+                            AutomationProperties.Name="{x:Static res:Strings.Settings_TerminalExamplesName}" />
                     </DockPanel>
                 </StackPanel>
             </ui:Card>
 
-            <ui:TextBlock Margin="0,16,0,8" FontTypography="BodyStrong" Text="Geral" />
+            <ui:TextBlock Margin="0,16,0,8" FontTypography="BodyStrong" Text="{x:Static res:Strings.Settings_General}" />
             <ui:CardControl Margin="0,0,0,4" Icon="{ui:SymbolIcon DarkTheme24}">
                 <ui:CardControl.Header>
                     <StackPanel>
-                        <ui:TextBlock Text="Tema" />
-                        <ui:TextBlock Foreground="{DynamicResource TextFillColorSecondaryBrush}" FontTypography="Caption" Text="Claro, escuro ou igual ao Windows" />
+                        <ui:TextBlock Text="{x:Static res:Strings.Settings_Theme}" />
+                        <ui:TextBlock Foreground="{DynamicResource TextFillColorSecondaryBrush}" FontTypography="Caption" Text="{x:Static res:Strings.Settings_ThemeHint}" />
                     </StackPanel>
                 </ui:CardControl.Header>
                 <ComboBox
@@ -260,67 +261,95 @@
                     SelectedValuePath="Value"
                     SelectedValue="{Binding Theme}" />
             </ui:CardControl>
+            <ui:CardControl Margin="0,0,0,4" Icon="{ui:SymbolIcon LocalLanguage24}">
+                <ui:CardControl.Header>
+                    <StackPanel>
+                        <ui:TextBlock Text="{x:Static res:Strings.Settings_Language}" />
+                        <ui:TextBlock Foreground="{DynamicResource TextFillColorSecondaryBrush}" FontTypography="Caption" TextWrapping="Wrap" Text="{x:Static res:Strings.Settings_LanguageHint}" />
+                        <ui:TextBlock
+                            FontTypography="Caption"
+                            Foreground="{DynamicResource SystemFillColorCautionBrush}"
+                            TextWrapping="Wrap"
+                            Text="{x:Static res:Strings.Settings_LanguageRestart}"
+                            Visibility="{Binding LanguageNeedsRestart, Converter={StaticResource TrueToVisible}}" />
+                    </StackPanel>
+                </ui:CardControl.Header>
+                <StackPanel Orientation="Horizontal">
+                    <ui:Button
+                        Margin="0,0,8,0"
+                        Content="{x:Static res:Strings.Settings_RestartNow}"
+                        Command="{Binding RestartCommand}"
+                        Visibility="{Binding LanguageNeedsRestart, Converter={StaticResource TrueToVisible}}" />
+                    <ComboBox
+                        MinWidth="180"
+                        ItemsSource="{Binding Languages}"
+                        DisplayMemberPath="Label"
+                        SelectedValuePath="Value"
+                        SelectedValue="{Binding Language}"
+                        AutomationProperties.Name="{x:Static res:Strings.Settings_Language}" />
+                </StackPanel>
+            </ui:CardControl>
             <ui:CardControl Margin="0,0,0,4" Icon="{ui:SymbolIcon Power24}">
                 <ui:CardControl.Header>
                     <StackPanel>
-                        <ui:TextBlock Text="Iniciar com o Windows" />
-                        <ui:TextBlock Foreground="{DynamicResource TextFillColorSecondaryBrush}" FontTypography="Caption" Text="Abre na bandeja quando você entra no Windows" />
+                        <ui:TextBlock Text="{x:Static res:Strings.Settings_StartWithWindows}" />
+                        <ui:TextBlock Foreground="{DynamicResource TextFillColorSecondaryBrush}" FontTypography="Caption" Text="{x:Static res:Strings.Settings_StartWithWindowsHint}" />
                     </StackPanel>
                 </ui:CardControl.Header>
-                <ui:ToggleSwitch IsChecked="{Binding StartWithWindows}" AutomationProperties.Name="Iniciar com o Windows" />
+                <ui:ToggleSwitch IsChecked="{Binding StartWithWindows}" AutomationProperties.Name="{x:Static res:Strings.Settings_StartWithWindows}" />
             </ui:CardControl>
             <ui:CardControl Margin="0,0,0,4" Icon="{ui:SymbolIcon ArrowMinimize24}">
                 <ui:CardControl.Header>
                     <StackPanel>
-                        <ui:TextBlock Text="Iniciar minimizado" />
-                        <ui:TextBlock Foreground="{DynamicResource TextFillColorSecondaryBrush}" FontTypography="Caption" Text="Ao abrir pelo atalho, vai direto para a bandeja, sem mostrar a janela" />
+                        <ui:TextBlock Text="{x:Static res:Strings.Settings_StartMinimized}" />
+                        <ui:TextBlock Foreground="{DynamicResource TextFillColorSecondaryBrush}" FontTypography="Caption" Text="{x:Static res:Strings.Settings_StartMinimizedHint}" />
                     </StackPanel>
                 </ui:CardControl.Header>
-                <ui:ToggleSwitch IsChecked="{Binding StartMinimized}" AutomationProperties.Name="Iniciar minimizado" />
+                <ui:ToggleSwitch IsChecked="{Binding StartMinimized}" AutomationProperties.Name="{x:Static res:Strings.Settings_StartMinimized}" />
             </ui:CardControl>
 
-            <ui:TextBlock Margin="0,16,0,8" FontTypography="BodyStrong" Text="Manutenção" />
+            <ui:TextBlock Margin="0,16,0,8" FontTypography="BodyStrong" Text="{x:Static res:Strings.Settings_Maintenance}" />
             <ui:CardControl Margin="0,0,0,4" Icon="{ui:SymbolIcon Folder24}">
                 <ui:CardControl.Header>
                     <StackPanel>
-                        <ui:TextBlock Text="Pasta de configuração" />
+                        <ui:TextBlock Text="{x:Static res:Strings.Settings_ConfigFolder}" />
                         <ui:TextBlock Foreground="{DynamicResource TextFillColorSecondaryBrush}" FontTypography="Caption" Text="{Binding ConfigDirectory}" TextTrimming="CharacterEllipsis" />
                     </StackPanel>
                 </ui:CardControl.Header>
-                <ui:Button Content="Abrir pasta" Command="{Binding OpenConfigFolderCommand}" />
+                <ui:Button Content="{x:Static res:Strings.Settings_OpenFolder}" Command="{Binding OpenConfigFolderCommand}" />
             </ui:CardControl>
             <ui:CardControl Margin="0,0,0,4" Icon="{ui:SymbolIcon CheckmarkCircle24}">
                 <ui:CardControl.Header>
                     <StackPanel>
-                        <ui:TextBlock Text="Rever checagem" />
-                        <ui:TextBlock Foreground="{DynamicResource TextFillColorSecondaryBrush}" FontTypography="Caption" TextWrapping="Wrap" Text="Abre de novo o assistente do primeiro uso: serviço auxiliar, porta e proxy do sistema" />
+                        <ui:TextBlock Text="{x:Static res:Strings.Settings_ReviewSetup}" />
+                        <ui:TextBlock Foreground="{DynamicResource TextFillColorSecondaryBrush}" FontTypography="Caption" TextWrapping="Wrap" Text="{x:Static res:Strings.Settings_ReviewSetupHint}" />
                     </StackPanel>
                 </ui:CardControl.Header>
-                <ui:Button Content="Abrir" Command="{Binding ReviewSetupCommand}" />
+                <ui:Button Content="{x:Static res:Strings.Common_Open}" Command="{Binding ReviewSetupCommand}" />
             </ui:CardControl>
             <ui:CardControl Margin="0,0,0,4" Icon="{ui:SymbolIcon ArrowSwap24}">
                 <ui:CardControl.Header>
                     <StackPanel>
-                        <ui:TextBlock Text="Backup" />
-                        <ui:TextBlock Foreground="{DynamicResource TextFillColorSecondaryBrush}" FontTypography="Caption" TextWrapping="Wrap" Text="Rotas, serviços e entradas DNS num arquivo JSON, para outra máquina. Importar só acrescenta: o que já existe aqui fica como está." />
+                        <ui:TextBlock Text="{x:Static res:Strings.Settings_Backup}" />
+                        <ui:TextBlock Foreground="{DynamicResource TextFillColorSecondaryBrush}" FontTypography="Caption" TextWrapping="Wrap" Text="{x:Static res:Strings.Settings_BackupHint}" />
                     </StackPanel>
                 </ui:CardControl.Header>
                 <StackPanel Orientation="Horizontal">
-                    <ui:Button Content="Exportar" Command="{Binding ExportBackupCommand}" />
-                    <ui:Button Margin="8,0,0,0" Content="Importar" Command="{Binding ImportBackupCommand}" />
+                    <ui:Button Content="{x:Static res:Strings.Common_Export}" Command="{Binding ExportBackupCommand}" />
+                    <ui:Button Margin="8,0,0,0" Content="{x:Static res:Strings.Common_Import}" Command="{Binding ImportBackupCommand}" />
                 </StackPanel>
             </ui:CardControl>
             <ui:CardControl Margin="0,0,0,4" Icon="{ui:SymbolIcon Broom24}">
                 <ui:CardControl.Header>
                     <StackPanel>
-                        <ui:TextBlock Text="Limpar tudo" />
-                        <ui:TextBlock Foreground="{DynamicResource TextFillColorSecondaryBrush}" FontTypography="Caption" TextWrapping="Wrap" Text="Tira do Windows o que o Severino pôs: os blocos do hosts (rotas e DNS), as regras de DNS dos curingas, a CA local, a inicialização automática, as exceções de proxy e os nomes nas distros do WSL. Depois fecha o app." />
+                        <ui:TextBlock Text="{x:Static res:Strings.Settings_CleanUp}" />
+                        <ui:TextBlock Foreground="{DynamicResource TextFillColorSecondaryBrush}" FontTypography="Caption" TextWrapping="Wrap" Text="{x:Static res:Strings.Settings_CleanUpHint}" />
                     </StackPanel>
                 </ui:CardControl.Header>
-                <ui:Button Content="Limpar tudo…" Command="{Binding CleanAllCommand}" />
+                <ui:Button Content="{x:Static res:Strings.Settings_CleanUpButton}" Command="{Binding CleanAllCommand}" />
             </ui:CardControl>
 
-            <ui:TextBlock Margin="0,16,0,8" FontTypography="BodyStrong" Text="Sobre" />
+            <ui:TextBlock Margin="0,16,0,8" FontTypography="BodyStrong" Text="{x:Static res:Strings.Settings_About}" />
             <ui:Card Margin="0,0,0,4" Padding="16" DataContext="{Binding Updates}">
                 <DockPanel>
                     <Image
@@ -344,13 +373,13 @@
                             Command="{Binding InstallCommand}"
                             Visibility="{Binding HasUpdate, Converter={StaticResource TrueToVisible}}" />
                         <ui:Button
-                            Content="Procurar agora"
+                            Content="{x:Static res:Strings.Updates_CheckNow}"
                             Command="{Binding CheckNowCommand}"
                             Visibility="{Binding HasUpdate, Converter={StaticResource FalseToVisible}}" />
                     </StackPanel>
                     <StackPanel Margin="16,0,0,0" VerticalAlignment="Center">
-                        <ui:TextBlock FontTypography="BodyStrong" Text="{Binding CurrentVersion, StringFormat='Severino {0}'}" />
-                        <ui:TextBlock Foreground="{DynamicResource TextFillColorSecondaryBrush}" TextWrapping="Wrap" Text="O porteiro dos seus domínios de desenvolvimento." />
+                        <ui:TextBlock FontTypography="BodyStrong" Text="{Binding CurrentVersion, StringFormat={x:Static res:Strings.Settings_AppVersion}}" />
+                        <ui:TextBlock Foreground="{DynamicResource TextFillColorSecondaryBrush}" TextWrapping="Wrap" Text="{x:Static res:Strings.Settings_Tagline}" />
                         <ui:TextBlock
                             Margin="0,8,0,0"
                             TextWrapping="Wrap"
@@ -367,15 +396,15 @@
             <ui:CardControl Margin="0,0,0,16" Icon="{ui:SymbolIcon ArrowDownload24}" DataContext="{Binding Updates}">
                 <ui:CardControl.Header>
                     <StackPanel>
-                        <ui:TextBlock Text="Procurar versões novas" />
+                        <ui:TextBlock Text="{x:Static res:Strings.Updates_AutoCheck}" />
                         <ui:TextBlock
                             Foreground="{DynamicResource TextFillColorSecondaryBrush}"
                             FontTypography="Caption"
                             TextWrapping="Wrap"
-                            Text="Uma vez por dia, pergunta ao GitHub qual é a última versão. Vão só o seu IP e a versão do app, como em qualquer visita a uma página." />
+                            Text="{x:Static res:Strings.Updates_AutoCheckHint}" />
                     </StackPanel>
                 </ui:CardControl.Header>
-                <ui:ToggleSwitch IsChecked="{Binding AutoCheck}" AutomationProperties.Name="Procurar versões novas" />
+                <ui:ToggleSwitch IsChecked="{Binding AutoCheck}" AutomationProperties.Name="{x:Static res:Strings.Updates_AutoCheck}" />
             </ui:CardControl>
         </StackPanel>
     </ScrollViewer>

@@ -4,6 +4,7 @@ using System.Net.Sockets;
 using Microsoft.Extensions.Logging;
 using Severino.Core.Configuration;
 using Severino.Core.Network;
+using Severino.Proxy.Resources;
 
 namespace Severino.Proxy;
 
@@ -113,8 +114,8 @@ public sealed class ServiceForwarder(ILoggerFactory loggerFactory, RequestLog? r
             socket.Dispose();
             var owner = PortOwner.Find(endpoint.Port);
             var detail = owner is null
-                ? $"A porta {endpoint.Port} não abriu em {endpoint.Address}: {ex.Message}"
-                : $"A porta {endpoint.Port} está em uso por {owner.Describe()}.";
+                ? string.Format(Strings.Forwarder_PortFailed, endpoint.Port, endpoint.Address, ex.Message)
+                : string.Format(Strings.Proxy_PortInUseBy, endpoint.Port, owner.Describe());
             _logger.LogWarning("Service port {Address}:{Port} unavailable: {Error}", endpoint.Address, endpoint.Port, ex.SocketErrorCode);
             failure = new(Guid.Empty, "", endpoint.Address, endpoint.Port, ProxyState.PortInUse, detail, owner);
             return false;

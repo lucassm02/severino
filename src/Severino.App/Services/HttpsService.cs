@@ -1,5 +1,6 @@
 using System.IO;
 using System.Security.Cryptography.X509Certificates;
+using Severino.App.Resources;
 using Severino.Core.Certificates;
 using Severino.Core.Configuration;
 using Severino.Core.Routes;
@@ -85,12 +86,12 @@ public sealed class HttpsService(ConfigService config, LocalCa ca, TldDirectory 
 
     /// <summary>"qualquer nome .sev, api.empresa.com": a whole TLD reads as such.</summary>
     public static string DescribeNames(IEnumerable<string> names) =>
-        string.Join(", ", names.Select(n => n.Contains('.') ? n : "qualquer nome ." + n));
+        string.Join(", ", names.Select(n => n.Contains('.') ? n : string.Format(Strings.Https_AnyName, n)));
 
     /// <summary>Writes the root, without its key, as PEM.</summary>
     public void ExportPem(string path)
     {
-        var pem = ca.ExportPem() ?? throw new InvalidOperationException("O HTTPS não está ativo.");
+        var pem = ca.ExportPem() ?? throw new InvalidOperationException(Strings.Https_NotActive);
         File.WriteAllText(path, pem);
     }
 

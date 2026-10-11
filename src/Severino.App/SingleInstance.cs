@@ -26,14 +26,18 @@ internal sealed partial class SingleInstance : IDisposable
     /// <summary>Raised on a thread-pool thread when another launch asks this one to show up.</summary>
     public event Action? ActivationRequested;
 
-    /// <summary>Returns the instance lock, or null after signaling the instance that already holds it.</summary>
-    public static SingleInstance? TryAcquire()
+    /// <summary>
+    /// Returns the instance lock, or null after signaling the instance that already holds it.
+    /// With <paramref name="wait"/>, a restart: the old instance is on its way out, so this one
+    /// waits for the lock instead of handing over.
+    /// </summary>
+    public static SingleInstance? TryAcquire(TimeSpan wait = default)
     {
         // Both sides create-or-open the event, so a signal sent before the first instance
         // starts waiting stays set until it does.
         var activate = new EventWaitHandle(false, EventResetMode.AutoReset, ActivateEventName);
         var mutex = new Mutex(initiallyOwned: true, MutexName, out var createdNew);
-        if (createdNew)
+        if (createdNew || (wait > TimeSpan.Zero && WaitFor(mutex, wait)))
             return new SingleInstance(mutex, activate);
 
         // Let the running instance take the foreground; Windows only allows it when the
@@ -43,6 +47,19 @@ internal sealed partial class SingleInstance : IDisposable
         activate.Dispose();
         mutex.Dispose();
         return null;
+    }
+
+    private static bool WaitFor(Mutex mutex, TimeSpan wait)
+    {
+        try
+        {
+            return mutex.WaitOne(wait);
+        }
+        catch (AbandonedMutexException)
+        {
+            // The old instance ended without letting go; the lock is ours anyway.
+            return true;
+        }
     }
 
     public void Dispose()

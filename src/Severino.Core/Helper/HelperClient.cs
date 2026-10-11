@@ -1,6 +1,7 @@
 using System.IO.Pipes;
 using System.Text.Json;
 using Severino.Contracts;
+using Severino.Core.Resources;
 
 namespace Severino.Core.Helper;
 
@@ -32,19 +33,19 @@ public sealed class HelperClient(string pipeName = HelperProtocol.PipeName) : IH
         }
         catch (OperationCanceledException ex) when (!cancellationToken.IsCancellationRequested)
         {
-            throw new HelperUnavailableException("O serviço auxiliar não respondeu a tempo.", ex);
+            throw new HelperUnavailableException(Strings.Helper_Timeout, ex);
         }
         catch (TimeoutException ex)
         {
-            throw new HelperUnavailableException("O serviço auxiliar não está rodando.", ex);
+            throw new HelperUnavailableException(Strings.Helper_NotRunning, ex);
         }
         catch (UnauthorizedAccessException ex)
         {
-            throw new HelperUnavailableException("O serviço auxiliar recusou a conexão deste usuário.", ex);
+            throw new HelperUnavailableException(Strings.Helper_Refused, ex);
         }
         catch (Exception ex) when (ex is IOException or InvalidDataException or JsonException)
         {
-            throw new HelperUnavailableException("A conversa com o serviço auxiliar falhou.", ex);
+            throw new HelperUnavailableException(Strings.Helper_Failed, ex);
         }
     }
 }

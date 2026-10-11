@@ -1,4 +1,5 @@
 using System.Text.Json;
+using Severino.Core.Resources;
 
 namespace Severino.Core.Discovery;
 
@@ -92,7 +93,7 @@ public sealed class ServiceDiscovery(ICommandRunner runner)
         }
         catch (JsonException ex)
         {
-            return KubernetesResult.Failed($"O kubectl respondeu algo que não é JSON: {ex.Message}") with { Context = contextName };
+            return KubernetesResult.Failed(string.Format(Strings.Discovery_NotJson, "kubectl", ex.Message)) with { Context = contextName };
         }
     }
 
@@ -110,7 +111,7 @@ public sealed class ServiceDiscovery(ICommandRunner runner)
         }
         catch (JsonException ex)
         {
-            return DockerResult.Failed($"O docker respondeu algo que não é JSON: {ex.Message}");
+            return DockerResult.Failed(string.Format(Strings.Discovery_NotJson, "docker", ex.Message));
         }
     }
 
@@ -148,17 +149,17 @@ public sealed class ServiceDiscovery(ICommandRunner runner)
         // 124 is Linux's timeout giving up first, inside the distro.
         if (result.TimedOut || (source.IsWsl && result.ExitCode == 124))
             return program == "kubectl"
-                ? $"O cluster não respondeu em {CommandRunner.DefaultTimeout.TotalSeconds:0} s. A VPN está conectada?"
-                : $"O {program} não respondeu em {CommandRunner.DefaultTimeout.TotalSeconds:0} s.";
+                ? string.Format(Strings.Discovery_ClusterTimeout, CommandRunner.DefaultTimeout.TotalSeconds.ToString("0"))
+                : string.Format(Strings.Discovery_Timeout, program, CommandRunner.DefaultTimeout.TotalSeconds.ToString("0"));
         var message = result.Error.Trim();
         // bash says "command not found" with 127; a missing exe on Windows never starts (-1).
         if (result.ExitCode is 127 or -1)
-            return $"O {program} não está instalado em {source}.";
+            return string.Format(Strings.Discovery_NotInstalled, program, source);
         if (program == "docker" && message.Contains("permission denied", StringComparison.OrdinalIgnoreCase))
-            return $"Sem permissão para falar com o Docker em {source}. O usuário precisa estar no grupo docker.";
+            return string.Format(Strings.Discovery_DockerPermission, source);
         if (program == "docker" && message.Contains("Cannot connect to the Docker daemon", StringComparison.OrdinalIgnoreCase))
-            return $"O Docker não está rodando em {source}.";
+            return string.Format(Strings.Discovery_DockerNotRunning, source);
         var firstLine = message.Split('\n', StringSplitOptions.RemoveEmptyEntries).LastOrDefault()?.Trim();
-        return string.IsNullOrEmpty(firstLine) ? $"O {program} terminou com o código {result.ExitCode}." : firstLine;
+        return string.IsNullOrEmpty(firstLine) ? string.Format(Strings.Discovery_ExitCode, program, result.ExitCode) : firstLine;
     }
 }

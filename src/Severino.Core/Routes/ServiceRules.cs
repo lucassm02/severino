@@ -1,6 +1,7 @@
 using System.Net;
 using Severino.Contracts;
 using Severino.Core.Configuration;
+using Severino.Core.Resources;
 
 namespace Severino.Core.Routes;
 
@@ -26,7 +27,7 @@ public static partial class ServiceRules
                     return address;
             }
         }
-        throw new InvalidOperationException("Os endereços de 127.77.0.0/16 acabaram.");
+        throw new InvalidOperationException(Strings.Service_AddressesExhausted);
     }
 
     /// <summary>
@@ -68,13 +69,13 @@ public static partial class ServiceRules
         IReadOnlySet<string>? dnsNames = null, IReadOnlySet<string>? external = null)
     {
         if (route.Names.Count == 0)
-            return (null, "Informe pelo menos um nome.");
+            return (null, Strings.Rules_NameRequired);
 
         var names = new List<string>();
         foreach (var raw in route.Names)
         {
             if (!DomainName.TryNormalize(raw, out var name, out var reason, allowSingleLabel: true))
-                return (null, $"Nome inválido '{raw}': {reason}");
+                return (null, string.Format(Strings.Rules_BadName, raw, reason));
             if (!names.Contains(name))
                 names.Add(name);
         }
@@ -83,28 +84,28 @@ public static partial class ServiceRules
             .Concat(webRoutes.Select(r => RouteRules.Normalize(r.Domain)).OfType<string>())
             .ToHashSet(StringComparer.Ordinal);
         if (names.FirstOrDefault(others.Contains) is { } taken)
-            return (null, $"{taken} já está em outra rota.");
+            return (null, string.Format(Strings.Service_NameTaken, taken));
         if (dnsNames is not null && names.FirstOrDefault(dnsNames.Contains) is { } entry)
-            return (null, $"{entry} já é uma entrada DNS.");
+            return (null, string.Format(Strings.Service_NameIsDns, entry));
         if (external is not null && names.FirstOrDefault(external.Contains) is { } line)
-            return (null, $"{line} {Dns.DnsRules.ExternalClash}");
+            return (null, string.Format(Dns.DnsRules.ExternalClash, line));
 
         if (!IsServiceAddress(route.Address))
-            return (null, "Endereço de loopback inválido.");
+            return (null, Strings.Service_BadLoopback);
 
         if (route.Ports.Count == 0)
-            return (null, "Informe pelo menos uma porta.");
+            return (null, Strings.Service_PortRequired);
         if (route.Ports.GroupBy(p => p.Port).FirstOrDefault(g => g.Count() > 1) is { } repeated)
-            return (null, $"A porta {repeated.Key} aparece duas vezes.");
+            return (null, string.Format(Strings.Service_PortTwice, repeated.Key));
         foreach (var port in route.Ports)
         {
             if (port.Port is < 1 or > 65535 || port.TargetPort is < 1 or > 65535)
-                return (null, "Use portas de 1 a 65535.");
+                return (null, Strings.Service_PortRange);
             if (string.IsNullOrWhiteSpace(port.TargetHost) || Uri.CheckHostName(port.TargetHost) == UriHostNameType.Unknown)
-                return (null, $"Destino inválido: {port.TargetHost}");
+                return (null, string.Format(Strings.Service_BadTarget, port.TargetHost));
             // A service forwarding to another service's address would loop through Severino.
             if (IsServiceAddress(port.TargetHost))
-                return (null, "O destino não pode ser um endereço de outra rota de serviço.");
+                return (null, Strings.Service_TargetIsService);
         }
 
         return (route with { Names = names }, null);

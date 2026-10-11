@@ -1,4 +1,5 @@
 using Microsoft.Extensions.Logging;
+using Severino.App.Resources;
 using Severino.Core.Configuration;
 using Severino.Core.Discovery;
 using Severino.Core.Wsl;
@@ -204,7 +205,7 @@ public sealed class WslCallers(ConfigService config, IWslShell shell, ServiceDis
     private async Task RunAsync(string distro, string script, int count, CancellationToken cancellationToken)
     {
         var result = await shell.RunAsRootAsync(distro, script, cancellationToken);
-        var detail = result.TimedOut ? "A distro não respondeu a tempo."
+        var detail = result.TimedOut ? Strings.Wsl_NoAnswer
             : string.Join(" ", result.Error.Split('\n', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries));
         var state = result.ExitCode switch
         {
@@ -218,7 +219,7 @@ public sealed class WslCallers(ConfigService config, IWslShell shell, ServiceDis
             _applied[distro] = script;
         if (state == WslCallerState.Failed)
             logger.LogWarning("WSL callers in {Distro} failed with {ExitCode}: {Error}", distro, result.ExitCode, detail);
-        SetStatus(new(distro, state, count, state == WslCallerState.Applied ? null : detail.Length > 0 ? detail : $"O script terminou com o código {result.ExitCode}."));
+        SetStatus(new(distro, state, count, state == WslCallerState.Applied ? null : detail.Length > 0 ? detail : string.Format(Strings.Wsl_ScriptExit, result.ExitCode)));
     }
 
     private void SetStatus(WslCallerStatus status)

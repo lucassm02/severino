@@ -12,6 +12,7 @@ using Microsoft.Extensions.Logging;
 using Severino.Core.Configuration;
 using Severino.Core.Network;
 using Severino.Core.Routes;
+using Severino.Proxy.Resources;
 using Yarp.ReverseProxy.Configuration;
 using Yarp.ReverseProxy.Forwarder;
 using Yarp.ReverseProxy.Model;
@@ -232,11 +233,11 @@ public sealed class ProxyServer(ILoggerFactory loggerFactory, Func<string, X509C
         var owner = PortOwner.Find(port);
         if (owner is not null || ex.InnerException is AddressInUseException)
             return new ProxyStatus(ProxyState.PortInUse, port,
-                owner is null ? $"A porta {port} está em uso." : $"A porta {port} está em uso por {owner.Describe()}.", owner);
+                owner is null ? string.Format(Strings.Proxy_PortInUse, port) : string.Format(Strings.Proxy_PortInUseBy, port, owner.Describe()), owner);
 
         if (ex.InnerException is SocketException { SocketErrorCode: SocketError.AccessDenied })
             return new ProxyStatus(ProxyState.Failed, port,
-                $"O Windows reservou a porta {port} (costuma ser o Hyper-V ou o WinNAT). Escolha outra porta.");
+                string.Format(Strings.Proxy_PortReserved, port));
 
         return new ProxyStatus(ProxyState.Failed, port, ex.Message);
     }

@@ -2,6 +2,7 @@ using Microsoft.Extensions.Logging;
 using Severino.Contracts;
 using Severino.Core.Configuration;
 using Severino.Core.Helper;
+using Severino.Core.Resources;
 using Severino.Core.Routes;
 
 namespace Severino.Core.Dns;
@@ -112,7 +113,7 @@ public sealed class DnsSync : IDisposable
         {
             var response = await _helper.SendAsync(HelperRequest.SyncDns(entries), cancellationToken);
             if (response.ProtocolVersion != HelperProtocol.Version)
-                return new(HostsSyncState.Failed, $"O serviço auxiliar é de outra versão ({response.HelperVersion}). Reinstale o Severino.");
+                return new(HostsSyncState.Failed, string.Format(Strings.Helper_OtherVersion, response.HelperVersion));
             if (!response.Ok)
                 return new(HostsSyncState.Failed, response.Error);
             _logger.LogInformation("DNS block synced with {Count} entries, {Pending} awaiting approval", entries.Count, response.Pending?.Count ?? 0);

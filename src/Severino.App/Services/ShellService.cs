@@ -1,4 +1,5 @@
 using System.Windows;
+using Severino.App.Resources;
 using Severino.App.Tray;
 using Severino.Core.Configuration;
 
@@ -55,8 +56,20 @@ public sealed class ShellService
         if (_config.Current.State.CloseToTrayHintShown)
             return;
 
-        _tray.ShowInfo("O Severino continua rodando", "Fechar a janela só esconde o Severino. Para sair, use o ícone na bandeja.");
+        _tray.ShowInfo(Strings.Shell_StillRunning, Strings.Shell_StillRunningText);
         _config.Update(c => c with { State = c.State with { CloseToTrayHintShown = true } });
+    }
+
+    /// <summary>Tells a new instance to wait for this one's lock instead of just showing it.</summary>
+    public const string RestartArgument = "--restart";
+
+    /// <summary>Exits and starts again, for changes read only at start, like the language.</summary>
+    public async Task RestartAsync()
+    {
+        if (Environment.ProcessPath is not { } exe)
+            return;
+        System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo(exe, RestartArgument) { UseShellExecute = false });
+        await ExitAsync();
     }
 
     /// <summary>Removes the hosts block and stops the proxy before shutting down.</summary>

@@ -1,0 +1,243 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="Common_NoName" xml:space="preserve">
+    <value>(sem nome)</value>
+  </data>
+  <data name="Config_TooNew" xml:space="preserve">
+    <value>config.json está na versão {0}, mais nova que a suportada ({1}).</value>
+  </data>
+  <data name="Control_BadPath" xml:space="preserve">
+    <value>Caminho inválido.</value>
+  </data>
+  <data name="Control_BadRequest" xml:space="preserve">
+    <value>Pedido inválido.</value>
+  </data>
+  <data name="Control_DomainRequired" xml:space="preserve">
+    <value>Informe o domínio da rota.</value>
+  </data>
+  <data name="Control_NoDnsEntry" xml:space="preserve">
+    <value>Nenhuma entrada DNS do Severino com {0}.</value>
+  </data>
+  <data name="Control_NoGroup" xml:space="preserve">
+    <value>Nenhuma rota no grupo {0}.</value>
+  </data>
+  <data name="Control_NoRoute" xml:space="preserve">
+    <value>Nenhuma rota para {0}.</value>
+  </data>
+  <data name="Discovery_ClusterTimeout" xml:space="preserve">
+    <value>O cluster não respondeu em {0} s. A VPN está conectada?</value>
+  </data>
+  <data name="Discovery_DockerNotRunning" xml:space="preserve">
+    <value>O Docker não está rodando em {0}.</value>
+  </data>
+  <data name="Discovery_DockerPermission" xml:space="preserve">
+    <value>Sem permissão para falar com o Docker em {0}. O usuário precisa estar no grupo docker.</value>
+  </data>
+  <data name="Discovery_ExitCode" xml:space="preserve">
+    <value>O {0} terminou com o código {1}.</value>
+  </data>
+  <data name="Discovery_NotInstalled" xml:space="preserve">
+    <value>O {0} não está instalado em {1}.</value>
+  </data>
+  <data name="Discovery_NotJson" xml:space="preserve">
+    <value>O {0} respondeu algo que não é JSON: {1}</value>
+  </data>
+  <data name="Discovery_Timeout" xml:space="preserve">
+    <value>O {0} não respondeu em {1} s.</value>
+  </data>
+  <data name="Dns_ExternalClash" xml:space="preserve">
+    <value>{0} já está no hosts, fora do Severino. Edite essa linha na aba DNS ou escolha outro nome.</value>
+  </data>
+  <data name="Dns_NameInOtherEntry" xml:space="preserve">
+    <value>{0} já está em outra entrada DNS.</value>
+  </data>
+  <data name="Dns_NameInOtherLine" xml:space="preserve">
+    <value>{0} já está em outra linha do hosts.</value>
+  </data>
+  <data name="Dns_NameIsRoute" xml:space="preserve">
+    <value>{0} já é uma rota.</value>
+  </data>
+  <data name="Dns_NameIsService" xml:space="preserve">
+    <value>{0} já é um serviço.</value>
+  </data>
+  <data name="Dns_NameIsSeverinos" xml:space="preserve">
+    <value>{0} já é do Severino (rota, serviço ou entrada DNS).</value>
+  </data>
+  <data name="Dns_OutsideDetail" xml:space="preserve">
+    <value>{0}, no hosts fora do Severino</value>
+  </data>
+  <data name="Docker_BadName" xml:space="preserve">
+    <value>O nome do container não serve como nome de host.</value>
+  </data>
+  <data name="Docker_NoPublishedPort" xml:space="preserve">
+    <value>Nenhuma porta publicada no host.</value>
+  </data>
+  <data name="Domain_CheckFailed" xml:space="preserve">
+    <value>Não foi possível verificar se este domínio existe na internet.</value>
+  </data>
+  <data name="Domain_ExistsOnline" xml:space="preserve">
+    <value>{0} existe na internet (resolve para {1}). Enquanto esta rota estiver ativa, esta máquina não acessa o site real.</value>
+  </data>
+  <data name="Domain_HstsPreload" xml:space="preserve">
+    <value>Domínios .{0} só abrem com HTTPS nos navegadores (HSTS preload). Ative o HTTPS em Configurações para usar esta rota.</value>
+  </data>
+  <data name="Domain_Local" xml:space="preserve">
+    <value>.local é usado pelo mDNS e costuma deixar a resolução lenta. Prefira .sev, .test ou .localhost.</value>
+  </data>
+  <data name="Helper_Failed" xml:space="preserve">
+    <value>A conversa com o serviço auxiliar falhou.</value>
+  </data>
+  <data name="Helper_NoAnswer" xml:space="preserve">
+    <value>O serviço auxiliar não respondeu: {0}</value>
+  </data>
+  <data name="Helper_NotRunning" xml:space="preserve">
+    <value>O serviço auxiliar não está rodando.</value>
+  </data>
+  <data name="Helper_OtherVersion" xml:space="preserve">
+    <value>O serviço auxiliar é de outra versão ({0}). Reinstale o Severino.</value>
+  </data>
+  <data name="Helper_Refused" xml:space="preserve">
+    <value>O serviço auxiliar recusou a conexão deste usuário.</value>
+  </data>
+  <data name="Helper_Timeout" xml:space="preserve">
+    <value>O serviço auxiliar não respondeu a tempo.</value>
+  </data>
+  <data name="Import_AllNamesTaken" xml:space="preserve">
+    <value>Todos os nomes já estão em outras rotas.</value>
+  </data>
+  <data name="Import_NameDropped" xml:space="preserve">
+    <value>{0} já está em outra rota e fica de fora.</value>
+  </data>
+  <data name="Import_NamesDropped" xml:space="preserve">
+    <value>{0} já estão em outras rotas e ficam de fora.</value>
+  </data>
+  <data name="Import_NoOutsideAccess" xml:space="preserve">
+    <value>Sem acesso de fora.</value>
+  </data>
+  <data name="Kube_ClusterIpOnly" xml:space="preserve">
+    <value>Só ClusterIP: não tem acesso de fora do cluster.</value>
+  </data>
+  <data name="Kube_ExternalName" xml:space="preserve">
+    <value>ExternalName: aponta para fora do cluster.</value>
+  </data>
+  <data name="Kube_PickNode" xml:space="preserve">
+    <value>Escolha um nó para usar a NodePort.</value>
+  </data>
+  <data name="Port_HttpSys" xml:space="preserve">
+    <value>o http.sys do Windows (PID 4), quase sempre o IIS ou outro serviço registrado nele</value>
+  </data>
+  <data name="Refresh_ManyNewPorts" xml:space="preserve">
+    <value>{0} serviços com portas novas</value>
+  </data>
+  <data name="Refresh_Missing" xml:space="preserve">
+    <value>não encontrados agora: {0}</value>
+  </data>
+  <data name="Refresh_NothingChanged" xml:space="preserve">
+    <value>Nada mudou</value>
+  </data>
+  <data name="Refresh_OneNewPorts" xml:space="preserve">
+    <value>1 serviço com portas novas</value>
+  </data>
+  <data name="Refresh_WrongContext" xml:space="preserve">
+    <value>O kubectl em {0} está no contexto {1}, não em {2}. Troque o contexto e atualize de novo.</value>
+  </data>
+  <data name="Route_BadPath" xml:space="preserve">
+    <value>Use um caminho como /api ou /v1/pedidos: letras, números, - . _ e ~.</value>
+  </data>
+  <data name="Route_DomainTaken" xml:space="preserve">
+    <value>Já existe uma rota para este domínio.</value>
+  </data>
+  <data name="Route_ExternalClash" xml:space="preserve">
+    <value>Este nome</value>
+  </data>
+  <data name="Route_IsDns" xml:space="preserve">
+    <value>Já existe uma entrada DNS com este nome.</value>
+  </data>
+  <data name="Route_IsService" xml:space="preserve">
+    <value>Já existe uma rota de serviço com este nome.</value>
+  </data>
+  <data name="Route_Loop" xml:space="preserve">
+    <value>O destino aponta para o próprio Severino e criaria um loop.</value>
+  </data>
+  <data name="Route_PathTaken" xml:space="preserve">
+    <value>Já existe uma rota para {0}.</value>
+  </data>
+  <data name="Route_TargetExtras" xml:space="preserve">
+    <value>O destino não pode ter usuário, query ou fragmento.</value>
+  </data>
+  <data name="Route_TargetRequired" xml:space="preserve">
+    <value>Informe um destino como http://127.0.0.1:3000.</value>
+  </data>
+  <data name="Route_TargetScheme" xml:space="preserve">
+    <value>O destino deve começar com http:// ou https://.</value>
+  </data>
+  <data name="Rules_BadName" xml:space="preserve">
+    <value>Nome inválido '{0}': {1}</value>
+  </data>
+  <data name="Rules_IpRequired" xml:space="preserve">
+    <value>Informe um IPv4 ou IPv6 de um computador, como 10.0.0.8.</value>
+  </data>
+  <data name="Rules_NameRequired" xml:space="preserve">
+    <value>Informe pelo menos um nome.</value>
+  </data>
+  <data name="Service_AddressesExhausted" xml:space="preserve">
+    <value>Os endereços de 127.77.0.0/16 acabaram.</value>
+  </data>
+  <data name="Service_BadLoopback" xml:space="preserve">
+    <value>Endereço de loopback inválido.</value>
+  </data>
+  <data name="Service_BadTarget" xml:space="preserve">
+    <value>Destino inválido: {0}</value>
+  </data>
+  <data name="Service_NameIsDns" xml:space="preserve">
+    <value>{0} já é uma entrada DNS.</value>
+  </data>
+  <data name="Service_NameTaken" xml:space="preserve">
+    <value>{0} já está em outra rota.</value>
+  </data>
+  <data name="Service_PortRange" xml:space="preserve">
+    <value>Use portas de 1 a 65535.</value>
+  </data>
+  <data name="Service_PortRequired" xml:space="preserve">
+    <value>Informe pelo menos uma porta.</value>
+  </data>
+  <data name="Service_PortTwice" xml:space="preserve">
+    <value>A porta {0} aparece duas vezes.</value>
+  </data>
+  <data name="Service_TargetIsService" xml:space="preserve">
+    <value>O destino não pode ser um endereço de outra rota de serviço.</value>
+  </data>
+  <data name="Transfer_NoDomain" xml:space="preserve">
+    <value>(sem domínio)</value>
+  </data>
+  <data name="Transfer_NotExport" xml:space="preserve">
+    <value>O arquivo não é uma exportação de rotas do Severino.</value>
+  </data>
+  <data name="Transfer_NotJson" xml:space="preserve">
+    <value>O arquivo não é um JSON válido.</value>
+  </data>
+  <data name="Transfer_TooNew" xml:space="preserve">
+    <value>O arquivo veio de uma versão mais nova do Severino. Atualize antes de importar.</value>
+  </data>
+  <data name="Update_DigestMismatch" xml:space="preserve">
+    <value>O instalador baixado não confere com o SHA-256 publicado na release e foi apagado.</value>
+  </data>
+  <data name="Update_NoDigest" xml:space="preserve">
+    <value>O GitHub não informou o SHA-256 deste instalador, então ele não pode ser conferido.</value>
+  </data>
+  <data name="Watcher_Updated" xml:space="preserve">
+    <value>{0} com portas novas, atualizado sozinho.</value>
+  </data>
+</root>

@@ -3,6 +3,7 @@ using System.Net;
 using System.Net.Sockets;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using Severino.App.Resources;
 using Severino.Core.Configuration;
 using Severino.Core.Routes;
 
@@ -42,7 +43,7 @@ public sealed partial class ServicePortRow : ObservableObject
     public bool IsEmpty => Port.Trim().Length == 0 && Host.Trim().Length == 0 && TargetPort.Trim().Length == 0;
 }
 
-/// <summary>The "Novo serviço" / "Editar serviço" form: names, one per line, and a row per port.</summary>
+/// <summary>The Strings.ServiceEditor_New / Strings.ServiceEditor_Edit form: names, one per line, and a row per port.</summary>
 public sealed partial class ServiceEditorViewModel : ObservableObject
 {
     private readonly ServiceRouteService _services;
@@ -60,7 +61,7 @@ public sealed partial class ServiceEditorViewModel : ObservableObject
         if (Ports.Count == 0)
             Ports.Add(new ServicePortRow());
         Notes = _original.Notes;
-        HostSuggestions = [new Core.Dns.DnsDestination("127.0.0.1", "esta máquina", Outside: false), .. destinations ?? []];
+        HostSuggestions = [new Core.Dns.DnsDestination("127.0.0.1", Strings.Common_ThisMachine, Outside: false), .. destinations ?? []];
     }
 
     /// <summary>
@@ -70,16 +71,15 @@ public sealed partial class ServiceEditorViewModel : ObservableObject
     public IReadOnlyList<Core.Dns.DnsDestination> HostSuggestions { get; }
 
     public bool IsNew { get; }
-    public string Title => IsNew ? "Novo serviço" : "Editar serviço";
-    public string SaveLabel => IsNew ? "Criar" : "Salvar";
+    public string Title => IsNew ? Strings.ServiceEditor_New : Strings.ServiceEditor_Edit;
+    public string SaveLabel => IsNew ? Strings.Common_Create : Strings.Common_Save;
 
     /// <summary>The loopback address the names point to; given once and kept.</summary>
-    public string AddressText => $"Os nomes apontam para {_original.Address}, onde o Severino escuta essas portas.";
+    public string AddressText => string.Format(Strings.ServiceEditor_Address, _original.Address);
 
     /// <summary>Where it was imported from, and what "Atualizar" will change.</summary>
     public string? OriginText => _original.Origin is { } origin
-        ? $"Importado de {ServiceGroupViewModel.Describe(origin)} ({(origin.Namespace.Length > 0 ? origin.Namespace + "/" : "")}{origin.Name}). " +
-          "\"Atualizar\" troca as portas pelas do momento e mantém os nomes."
+        ? string.Format(Strings.ServiceEditor_Origin, ServiceGroupViewModel.Describe(origin), (origin.Namespace.Length > 0 ? origin.Namespace + "/" : "") + origin.Name)
         : null;
 
     [ObservableProperty]
@@ -117,7 +117,7 @@ public sealed partial class ServiceEditorViewModel : ObservableObject
         {
             if (!ServiceRules.TryParsePort(row.Line, out var port))
             {
-                Error = $"A porta {row.Line} está incompleta: diga a porta que o app chama, o destino e a porta do destino.";
+                Error = string.Format(Strings.ServiceEditor_PortIncomplete, row.Line);
                 return;
             }
             ports.Add(port);

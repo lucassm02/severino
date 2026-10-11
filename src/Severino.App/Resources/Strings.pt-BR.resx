@@ -1,0 +1,1648 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="App_ConfigInvalid" xml:space="preserve">
+    <value>O config.json não pôde ser lido e foi guardado em {0}. O Severino começou com a configuração padrão.</value>
+  </data>
+  <data name="App_ConfigInvalidTitle" xml:space="preserve">
+    <value>Configuração inválida</value>
+  </data>
+  <data name="App_ConfigTooNew" xml:space="preserve">
+    <value>{0}
+
+Atualize o Severino ou mova o arquivo:
+{1}</value>
+  </data>
+  <data name="App_UnexpectedError" xml:space="preserve">
+    <value>Severino: erro inesperado</value>
+  </data>
+  <data name="Approval_Cancelled" xml:space="preserve">
+    <value>A aprovação foi cancelada no aviso do Windows.</value>
+  </data>
+  <data name="Approval_Failed" xml:space="preserve">
+    <value>A aprovação falhou (código {0}).</value>
+  </data>
+  <data name="Approval_NotInstalled" xml:space="preserve">
+    <value>O serviço auxiliar não está instalado.</value>
+  </data>
+  <data name="Approval_NotOpened" xml:space="preserve">
+    <value>O Windows não abriu o serviço auxiliar.</value>
+  </data>
+  <data name="Browser_WildcardSample" xml:space="preserve">
+    <value>exemplo</value>
+  </data>
+  <data name="Common_And" xml:space="preserve">
+    <value> e </value>
+  </data>
+  <data name="Common_Apply" xml:space="preserve">
+    <value>Aplicar</value>
+  </data>
+  <data name="Common_Approve" xml:space="preserve">
+    <value>Aprovar</value>
+  </data>
+  <data name="Common_Cancel" xml:space="preserve">
+    <value>Cancelar</value>
+  </data>
+  <data name="Common_Copied" xml:space="preserve">
+    <value>Copiado</value>
+  </data>
+  <data name="Common_Copy" xml:space="preserve">
+    <value>Copiar</value>
+  </data>
+  <data name="Common_CouldNotWriteFile" xml:space="preserve">
+    <value>Não deu para gravar o arquivo: {0}</value>
+  </data>
+  <data name="Common_Create" xml:space="preserve">
+    <value>Criar</value>
+  </data>
+  <data name="Common_Duplicate" xml:space="preserve">
+    <value>Duplicar</value>
+  </data>
+  <data name="Common_Edit" xml:space="preserve">
+    <value>Editar</value>
+  </data>
+  <data name="Common_Export" xml:space="preserve">
+    <value>Exportar</value>
+  </data>
+  <data name="Common_Import" xml:space="preserve">
+    <value>Importar</value>
+  </data>
+  <data name="Common_MoreOptions" xml:space="preserve">
+    <value>Mais opções de {0}</value>
+  </data>
+  <data name="Common_Notes" xml:space="preserve">
+    <value>Notas</value>
+  </data>
+  <data name="Common_Open" xml:space="preserve">
+    <value>Abrir</value>
+  </data>
+  <data name="Common_Refresh" xml:space="preserve">
+    <value>Atualizar</value>
+  </data>
+  <data name="Common_Remarks" xml:space="preserve">
+    <value>Observações</value>
+  </data>
+  <data name="Common_Remove" xml:space="preserve">
+    <value>Remover</value>
+  </data>
+  <data name="Common_Removed" xml:space="preserve">
+    <value>{0} removido</value>
+  </data>
+  <data name="Common_Rename" xml:space="preserve">
+    <value>Renomear</value>
+  </data>
+  <data name="Common_SameAsWindows" xml:space="preserve">
+    <value>Igual ao Windows</value>
+  </data>
+  <data name="Common_Save" xml:space="preserve">
+    <value>Salvar</value>
+  </data>
+  <data name="Common_SeeInDns" xml:space="preserve">
+    <value>Ver no DNS</value>
+  </data>
+  <data name="Common_SeeInRoutes" xml:space="preserve">
+    <value>Ver em Rotas</value>
+  </data>
+  <data name="Common_SeeInServices" xml:space="preserve">
+    <value>Ver em Serviços</value>
+  </data>
+  <data name="Common_SeverinoDoorman" xml:space="preserve">
+    <value>Severino, o porteiro</value>
+  </data>
+  <data name="Common_SomethingWentWrong" xml:space="preserve">
+    <value>Algo deu errado: {0}</value>
+  </data>
+  <data name="Common_SwitchOn" xml:space="preserve">
+    <value>Ligar {0}</value>
+  </data>
+  <data name="Common_ThisMachine" xml:space="preserve">
+    <value>esta máquina</value>
+  </data>
+  <data name="Common_TryAgain" xml:space="preserve">
+    <value>Tentar de novo</value>
+  </data>
+  <data name="Common_Undo" xml:space="preserve">
+    <value>Desfazer</value>
+  </data>
+  <data name="Count_DnsEntries" xml:space="preserve">
+    <value>{0} entradas DNS</value>
+  </data>
+  <data name="Count_DnsEntry" xml:space="preserve">
+    <value>1 entrada DNS</value>
+  </data>
+  <data name="Count_Route" xml:space="preserve">
+    <value>1 rota</value>
+  </data>
+  <data name="Count_Routes" xml:space="preserve">
+    <value>{0} rotas</value>
+  </data>
+  <data name="Count_Service" xml:space="preserve">
+    <value>1 serviço</value>
+  </data>
+  <data name="Count_Services" xml:space="preserve">
+    <value>{0} serviços</value>
+  </data>
+  <data name="Dialog_After" xml:space="preserve">
+    <value>Como vai ficar:</value>
+  </data>
+  <data name="Dialog_Before" xml:space="preserve">
+    <value>Como está:</value>
+  </data>
+  <data name="Dialog_CaSignsOnly" xml:space="preserve">
+    <value>Esta CA só consegue assinar: {0}.</value>
+  </data>
+  <data name="Dialog_CleanUpButton" xml:space="preserve">
+    <value>Limpar e fechar</value>
+  </data>
+  <data name="Dialog_CleanUpDeleteData" xml:space="preserve">
+    <value>Apagar também rotas, serviços, entradas DNS e configurações</value>
+  </data>
+  <data name="Dialog_CleanUpKeep" xml:space="preserve">
+    <value>Sem a caixa abaixo, o que você cadastrou fica guardado para quando abrir o Severino de novo. Para levar a outra máquina, use Backup antes.</value>
+  </data>
+  <data name="Dialog_CleanUpText" xml:space="preserve">
+    <value>O Severino tira do Windows tudo o que colocou: os blocos do arquivo hosts (rotas e DNS), as regras de DNS dos curingas, a CA local, a inicialização automática, as exceções de proxy que ele adicionou e os nomes nas distros do WSL que estão rodando. Linhas do hosts que não são dele ficam como estão. Depois, o app fecha. O Windows pede confirmação para remover a CA.</value>
+  </data>
+  <data name="Dialog_OutsideChange" xml:space="preserve">
+    <value>Esta linha não foi criada pelo Severino. Ele vai alterar o hosts mesmo assim, porque você pediu, e deixar um comentário acima dela.</value>
+  </data>
+  <data name="Dialog_RemoveOldCa" xml:space="preserve">
+    <value>Depois o Windows pede para remover a CA antiga. Clique em Sim também: sem a chave, ela não serve para mais nada.</value>
+  </data>
+  <data name="Dialog_Thumbprint" xml:space="preserve">
+    <value>Impressão digital (sha1): {0}</value>
+  </data>
+  <data name="Dialog_TrustIntro" xml:space="preserve">
+    <value>Em seguida o Windows mostra um Aviso de Segurança pedindo para confiar na CA do Severino. É o aviso padrão do Windows para qualquer CA, por isso o tom alarmante. Confira se ele mostra:</value>
+  </data>
+  <data name="Dns_ApprovedMany" xml:space="preserve">
+    <value>Aprovados: já estão no hosts.</value>
+  </data>
+  <data name="Dns_ApprovedOne" xml:space="preserve">
+    <value>Aprovado: já está no hosts.</value>
+  </data>
+  <data name="Dns_CommentedBySeverino" xml:space="preserve">
+    <value>comentada pelo Severino</value>
+  </data>
+  <data name="Dns_CommentLine" xml:space="preserve">
+    <value>Comentar a linha</value>
+  </data>
+  <data name="Dns_CouldNotChangeHosts" xml:space="preserve">
+    <value>Não deu para alterar o hosts.</value>
+  </data>
+  <data name="Dns_EditedBySeverino" xml:space="preserve">
+    <value>editada pelo Severino</value>
+  </data>
+  <data name="Dns_EditOutsideMenu" xml:space="preserve">
+    <value>Editar linha que não é do Severino…</value>
+  </data>
+  <data name="Dns_HelperDown" xml:space="preserve">
+    <value>O serviço auxiliar não está respondendo: as entradas do Severino não estão sendo gravadas no hosts.</value>
+  </data>
+  <data name="Dns_HostsFailed" xml:space="preserve">
+    <value>O hosts não foi atualizado: {0}</value>
+  </data>
+  <data name="Dns_InvalidAddress" xml:space="preserve">
+    <value>endereço inválido</value>
+  </data>
+  <data name="Dns_Lead" xml:space="preserve">
+    <value>Um nome direto para um IP, sem proxy. Vale com o app fechado.</value>
+  </data>
+  <data name="Dns_LineChanged" xml:space="preserve">
+    <value>Linha alterada no hosts, com um comentário acima dela.</value>
+  </data>
+  <data name="Dns_LineCommented" xml:space="preserve">
+    <value>Linha comentada no hosts. Para trazê-la de volta, edite o hosts.</value>
+  </data>
+  <data name="Dns_LineMore" xml:space="preserve">
+    <value>Mais opções da linha de {0}</value>
+  </data>
+  <data name="Dns_MakeRouteMenu" xml:space="preserve">
+    <value>Transformar em rota…</value>
+  </data>
+  <data name="Dns_MakeRouteTip" xml:space="preserve">
+    <value>Passa pelo proxy: ganha HTTPS da CA local e o log de requisições</value>
+  </data>
+  <data name="Dns_Near" xml:space="preserve">
+    <value>Perto de: {0}</value>
+  </data>
+  <data name="Dns_New" xml:space="preserve">
+    <value>Nova entrada</value>
+  </data>
+  <data name="Dns_NowRoute" xml:space="preserve">
+    <value>{0} agora é uma rota.</value>
+  </data>
+  <data name="Dns_OpenHosts" xml:space="preserve">
+    <value>Abrir o hosts</value>
+  </data>
+  <data name="Dns_OpenHostsTip" xml:space="preserve">
+    <value>Abre o arquivo hosts no Bloco de Notas, como administrador</value>
+  </data>
+  <data name="Dns_Outside" xml:space="preserve">
+    <value>No hosts, fora do Severino</value>
+  </data>
+  <data name="Dns_OutsideBadge" xml:space="preserve">
+    <value>fora do Severino</value>
+  </data>
+  <data name="Dns_OutsideBadgeTip" xml:space="preserve">
+    <value>Outra pessoa ou outro programa escreveu esta linha. O Severino só a altera se você pedir, com aviso.</value>
+  </data>
+  <data name="Dns_OutsideCountMany" xml:space="preserve">
+    <value>{0} linhas de fora</value>
+  </data>
+  <data name="Dns_OutsideCountOne" xml:space="preserve">
+    <value>1 linha de fora</value>
+  </data>
+  <data name="Dns_OutsideHint" xml:space="preserve">
+    <value>Linhas que outra pessoa ou outro programa escreveu. O Severino só as altera se você pedir, sempre com aviso, e deixa um comentário no hosts.</value>
+  </data>
+  <data name="Dns_Own" xml:space="preserve">
+    <value>Do Severino</value>
+  </data>
+  <data name="Dns_OwnCountMany" xml:space="preserve">
+    <value>{0} entradas do Severino</value>
+  </data>
+  <data name="Dns_OwnCountOne" xml:space="preserve">
+    <value>1 entrada do Severino</value>
+  </data>
+  <data name="Dns_OwnEmpty" xml:space="preserve">
+    <value>Nenhuma ainda. Uma entrada leva um nome a um IP, como sql.interno para 10.0.0.8, e pode ser destino de rotas e serviços.</value>
+  </data>
+  <data name="Dns_OwnHint" xml:space="preserve">
+    <value>Valem com o app fechado ou pausado, como linhas escritas à mão.</value>
+  </data>
+  <data name="Dns_PendingMany" xml:space="preserve">
+    <value>{0} nomes só valem depois de aprovados, por serem IPs públicos ou curingas. O Windows pede confirmação de administrador uma vez.</value>
+  </data>
+  <data name="Dns_PendingOne" xml:space="preserve">
+    <value>{0} só vale depois de aprovado, por ser um IP público ou um curinga. O Windows pede confirmação de administrador.</value>
+  </data>
+  <data name="Dns_PrivateNetwork" xml:space="preserve">
+    <value>rede privada</value>
+  </data>
+  <data name="Dns_PublicIp" xml:space="preserve">
+    <value>IP público</value>
+  </data>
+  <data name="Dns_ReadAgain" xml:space="preserve">
+    <value>Ler de novo</value>
+  </data>
+  <data name="Dns_RemoveAnyway" xml:space="preserve">
+    <value>Remover mesmo assim</value>
+  </data>
+  <data name="Dns_RemoveInUse" xml:space="preserve">
+    <value>Remover entrada em uso</value>
+  </data>
+  <data name="Dns_RemoveInUseConfirm" xml:space="preserve">
+    <value>{0} é o destino de {1}. Sem ela, esses destinos deixam de resolver:
+
+{2}</value>
+  </data>
+  <data name="Dns_RemoveOutside" xml:space="preserve">
+    <value>Remover linha que não é do Severino</value>
+  </data>
+  <data name="Dns_RemoveOutsideMenu" xml:space="preserve">
+    <value>Remover linha que não é do Severino…</value>
+  </data>
+  <data name="Dns_RouteNeedsDot" xml:space="preserve">
+    <value>Uma rota precisa de um nome com ponto, como api.interno.</value>
+  </data>
+  <data name="Dns_SearchName" xml:space="preserve">
+    <value>Buscar no DNS</value>
+  </data>
+  <data name="Dns_SearchPlaceholder" xml:space="preserve">
+    <value>Buscar nome ou IP</value>
+  </data>
+  <data name="Dns_StateActive" xml:space="preserve">
+    <value>Ativa</value>
+  </data>
+  <data name="Dns_StateInHosts" xml:space="preserve">
+    <value>No hosts</value>
+  </data>
+  <data name="Dns_StatePending" xml:space="preserve">
+    <value>Aguardando aprovação</value>
+  </data>
+  <data name="Dns_StateRemoved" xml:space="preserve">
+    <value>Removida</value>
+  </data>
+  <data name="Dns_TargetOf" xml:space="preserve">
+    <value>Destino de </value>
+  </data>
+  <data name="Dns_TouchedTip" xml:space="preserve">
+    <value>Há um comentário do Severino acima dela no hosts, com a linha de antes</value>
+  </data>
+  <data name="Dns_UndoTaken" xml:space="preserve">
+    <value>Não deu para desfazer: os nomes já estão em outra entrada.</value>
+  </data>
+  <data name="DnsEditor_Address" xml:space="preserve">
+    <value>Endereço IP</value>
+  </data>
+  <data name="DnsEditor_ChangeHosts" xml:space="preserve">
+    <value>Alterar o hosts</value>
+  </data>
+  <data name="DnsEditor_ChangeOutside" xml:space="preserve">
+    <value>Alterar linha que não é do Severino</value>
+  </data>
+  <data name="DnsEditor_CurrentLine" xml:space="preserve">
+    <value>Linha atual: {0}</value>
+  </data>
+  <data name="DnsEditor_Edit" xml:space="preserve">
+    <value>Editar entrada DNS</value>
+  </data>
+  <data name="DnsEditor_EditOutside" xml:space="preserve">
+    <value>Editar linha que não é do Severino</value>
+  </data>
+  <data name="DnsEditor_Near" xml:space="preserve">
+    <value>No hosts, perto de: {0}</value>
+  </data>
+  <data name="DnsEditor_New" xml:space="preserve">
+    <value>Nova entrada DNS</value>
+  </data>
+  <data name="DnsEditor_OutsideTitle" xml:space="preserve">
+    <value>Você está mexendo numa linha que já existia no hosts.</value>
+  </data>
+  <data name="DnsEditor_OutsideWarning" xml:space="preserve">
+    <value>Ela não foi criada pelo Severino. Ao salvar, ele altera o arquivo e deixa um comentário acima dela, dizendo que ela não era dele, o que mudou e quando.</value>
+  </data>
+  <data name="DnsEditor_ReviewAndChange" xml:space="preserve">
+    <value>Revisar e alterar o hosts</value>
+  </data>
+  <data name="DnsEditor_SavedPending" xml:space="preserve">
+    <value>{0} A entrada foi salva e fica aguardando aprovação.</value>
+  </data>
+  <data name="DnsEditor_ScopeLoopback" xml:space="preserve">
+    <value>Esta máquina.</value>
+  </data>
+  <data name="DnsEditor_ScopePrivate" xml:space="preserve">
+    <value>Rede privada: vai para o hosts na hora.</value>
+  </data>
+  <data name="DnsEditor_ScopePublic" xml:space="preserve">
+    <value>IP público: depois de salvar, o Windows pede confirmação de administrador para aprovar este nome neste IP.</value>
+  </data>
+  <data name="DnsEditor_Wildcard" xml:space="preserve">
+    <value>Curinga: vale para todo nome abaixo dele, respondido pelo serviço auxiliar. Depois de salvar, o Windows pede confirmação de administrador.</value>
+  </data>
+  <data name="FirstRun_AddSevException" xml:space="preserve">
+    <value>Adicionar exceção para .sev</value>
+  </data>
+  <data name="FirstRun_CheckSubtitle" xml:space="preserve">
+    <value>Antes de começar, uma checagem rápida do que o Severino precisa.</value>
+  </data>
+  <data name="FirstRun_Continue" xml:space="preserve">
+    <value>Continuar</value>
+  </data>
+  <data name="FirstRun_CreateAndOpen" xml:space="preserve">
+    <value>Criar e abrir</value>
+  </data>
+  <data name="FirstRun_HelperDown" xml:space="preserve">
+    <value>Não respondeu. Sem ele, os domínios não chegam ao Severino. Reinstalar o Severino instala o serviço de novo.</value>
+  </data>
+  <data name="FirstRun_HelperFailed" xml:space="preserve">
+    <value>Respondeu, mas não conseguiu gravar o hosts: {0}</value>
+  </data>
+  <data name="FirstRun_HelperOk" xml:space="preserve">
+    <value>Respondendo. O Severino consegue gravar o arquivo hosts.</value>
+  </data>
+  <data name="FirstRun_HttpsHint" xml:space="preserve">
+    <value>O Severino cria uma CA local que só assina os seus domínios, e o Windows pede para confirmar a instalação. Dá para ativar depois, em Configurações.</value>
+  </data>
+  <data name="FirstRun_NoProxy" xml:space="preserve">
+    <value>Nenhum proxy no caminho.</value>
+  </data>
+  <data name="FirstRun_Pac" xml:space="preserve">
+    <value>O Windows usa um script de proxy, que decide sozinho para onde cada endereço vai. Se uma rota não abrir, a barra inferior do Severino ajuda.</value>
+  </data>
+  <data name="FirstRun_Port80" xml:space="preserve">
+    <value>O Severino está escutando na porta 80.</value>
+  </data>
+  <data name="FirstRun_Port80Taken" xml:space="preserve">
+    <value>{0} Dá para liberar a porta ou usar a 8080, e aí as URLs levam :8080.</value>
+  </data>
+  <data name="FirstRun_PortOther" xml:space="preserve">
+    <value>O Severino está escutando na porta {0}. As URLs levam :{0}, como http://meuapp.sev:{0}.</value>
+  </data>
+  <data name="FirstRun_ProxyDidNotStart" xml:space="preserve">
+    <value>O proxy não subiu.</value>
+  </data>
+  <data name="FirstRun_ProxyExcepted" xml:space="preserve">
+    <value>Há um proxy, mas os domínios do Severino já estão nas exceções.</value>
+  </data>
+  <data name="FirstRun_ProxyPort" xml:space="preserve">
+    <value>Porta do proxy</value>
+  </data>
+  <data name="FirstRun_RouteSubtitle" xml:space="preserve">
+    <value>Agora diga qual domínio leva a qual servidor. Dá para mudar tudo depois.</value>
+  </data>
+  <data name="FirstRun_Skip" xml:space="preserve">
+    <value>Pular</value>
+  </data>
+  <data name="FirstRun_Step1" xml:space="preserve">
+    <value>Passo 1 de 2</value>
+  </data>
+  <data name="FirstRun_Step2" xml:space="preserve">
+    <value>Passo 2 de 2</value>
+  </data>
+  <data name="FirstRun_SystemProxy" xml:space="preserve">
+    <value>O Windows usa o proxy {0}, e o Edge e o Chrome mandariam os domínios do Severino para ele. Uma exceção resolve.</value>
+  </data>
+  <data name="FirstRun_Title" xml:space="preserve">
+    <value>Bem-vindo ao Severino</value>
+  </data>
+  <data name="FirstRun_Use8080" xml:space="preserve">
+    <value>Usar a porta 8080</value>
+  </data>
+  <data name="FirstRun_UseHttps" xml:space="preserve">
+    <value>Usar HTTPS</value>
+  </data>
+  <data name="Health_Checking" xml:space="preserve">
+    <value>Verificando…</value>
+  </data>
+  <data name="Health_Down" xml:space="preserve">
+    <value>Fora do ar</value>
+  </data>
+  <data name="Health_Up" xml:space="preserve">
+    <value>Respondendo</value>
+  </data>
+  <data name="Https_AnyName" xml:space="preserve">
+    <value>qualquer nome .{0}</value>
+  </data>
+  <data name="Https_NotActive" xml:space="preserve">
+    <value>O HTTPS não está ativo.</value>
+  </data>
+  <data name="Import_AddedMany" xml:space="preserve">
+    <value>{0} serviços importados</value>
+  </data>
+  <data name="Import_AddedOne" xml:space="preserve">
+    <value>1 serviço importado</value>
+  </data>
+  <data name="Import_AllNamespaces" xml:space="preserve">
+    <value>Todos os namespaces</value>
+  </data>
+  <data name="Import_AlreadyImported" xml:space="preserve">
+    <value>Já importado: importar de novo atualiza as portas.</value>
+  </data>
+  <data name="Import_ClusterAddress" xml:space="preserve">
+    <value>Endereço do cluster</value>
+  </data>
+  <data name="Import_ClusterAddressTip" xml:space="preserve">
+    <value>O nó por onde as NodePorts entram: um IP, ou o nome dele na aba DNS</value>
+  </data>
+  <data name="Import_ContainersMany" xml:space="preserve">
+    <value>{0} containers rodando</value>
+  </data>
+  <data name="Import_ContainersOne" xml:space="preserve">
+    <value>1 container rodando</value>
+  </data>
+  <data name="Import_CreateRouteFor" xml:space="preserve">
+    <value>Criar rota para {0}</value>
+  </data>
+  <data name="Import_DockerTip" xml:space="preserve">
+    <value>Perguntar ao docker e mostrar os containers com portas publicadas</value>
+  </data>
+  <data name="Import_FailedMany" xml:space="preserve">
+    <value>{0} ficaram de fora</value>
+  </data>
+  <data name="Import_FailedOne" xml:space="preserve">
+    <value>1 ficou de fora</value>
+  </data>
+  <data name="Import_FoundName" xml:space="preserve">
+    <value>Serviços encontrados</value>
+  </data>
+  <data name="Import_ImportOne" xml:space="preserve">
+    <value>Importar {0}</value>
+  </data>
+  <data name="Import_IngressHeader" xml:space="preserve">
+    <value>Cada host vira uma rota web, na aba Rotas.</value>
+  </data>
+  <data name="Import_IngressHeaderTarget" xml:space="preserve">
+    <value>Cada host vira uma rota web, na aba Rotas, para {0}, com o Host original, sem passar pela internet.</value>
+  </data>
+  <data name="Import_IngressMany" xml:space="preserve">
+    <value>{0} Ingress, como {1}</value>
+  </data>
+  <data name="Import_IngressRouteMany" xml:space="preserve">
+    <value>{0} rotas de Ingress</value>
+  </data>
+  <data name="Import_IngressRouteOne" xml:space="preserve">
+    <value>1 rota de Ingress</value>
+  </data>
+  <data name="Import_InList" xml:space="preserve">
+    <value>{0} na lista</value>
+  </data>
+  <data name="Import_KubernetesStatus" xml:space="preserve">
+    <value>{0} · {1}, {2} com acesso de fora</value>
+  </data>
+  <data name="Import_KubernetesTip" xml:space="preserve">
+    <value>Perguntar ao kubectl e mostrar os services</value>
+  </data>
+  <data name="Import_LookAgain" xml:space="preserve">
+    <value>Procurar de novo</value>
+  </data>
+  <data name="Import_LookAgainTip" xml:space="preserve">
+    <value>Pergunta de novo ao kubectl e ao docker desta fonte</value>
+  </data>
+  <data name="Import_LookIn" xml:space="preserve">
+    <value>Procurar em</value>
+  </data>
+  <data name="Import_NodeName" xml:space="preserve">
+    <value>IP de um nó</value>
+  </data>
+  <data name="Import_NodePlaceholder" xml:space="preserve">
+    <value>IP de um nó do cluster, para as NodePorts</value>
+  </data>
+  <data name="Import_NoIngressController" xml:space="preserve">
+    <value>Não achei o controlador de Ingress para apontar a rota.</value>
+  </data>
+  <data name="Import_NoProject" xml:space="preserve">
+    <value>(sem projeto)</value>
+  </data>
+  <data name="Import_NoReadyPods" xml:space="preserve">
+    <value>Nenhum pod pronto agora: a rota nasce, mas não vai responder.</value>
+  </data>
+  <data name="Import_Nothing" xml:space="preserve">
+    <value>Nada importado</value>
+  </data>
+  <data name="Import_NoTool" xml:space="preserve">
+    <value>Marque Kubernetes, Docker ou os dois para procurar.</value>
+  </data>
+  <data name="Import_PastedName" xml:space="preserve">
+    <value>Saída colada</value>
+  </data>
+  <data name="Import_PasteEmpty" xml:space="preserve">
+    <value>Nenhum service ou container no texto.</value>
+  </data>
+  <data name="Import_PasteHint" xml:space="preserve">
+    <value>Cole a saída de kubectl get svc -A -o json ou de docker ps --format json.</value>
+  </data>
+  <data name="Import_PasteSource" xml:space="preserve">
+    <value>Colar saída de comando</value>
+  </data>
+  <data name="Import_PasteUnknown" xml:space="preserve">
+    <value>Não reconheci o texto. Cole a saída de kubectl get svc -A -o json ou de docker ps --format json.</value>
+  </data>
+  <data name="Import_PortForward" xml:space="preserve">
+    <value>{0} → kubectl port-forward, que o Severino mantém rodando</value>
+  </data>
+  <data name="Import_Read" xml:space="preserve">
+    <value>Ler</value>
+  </data>
+  <data name="Import_SearchPlaceholder" xml:space="preserve">
+    <value>Buscar por nome ou namespace</value>
+  </data>
+  <data name="Import_SelectNamespace" xml:space="preserve">
+    <value>Marcar o namespace inteiro</value>
+  </data>
+  <data name="Import_ServiceMany" xml:space="preserve">
+    <value>{0} services</value>
+  </data>
+  <data name="Import_ServiceOne" xml:space="preserve">
+    <value>1 service</value>
+  </data>
+  <data name="Import_StoppedDistro" xml:space="preserve">
+    <value>{0} (parada; procurar inicia a distro)</value>
+  </data>
+  <data name="Import_Summary" xml:space="preserve">
+    <value>{0} de {1}</value>
+  </data>
+  <data name="Import_SummaryMany" xml:space="preserve">
+    <value>{0} de {1} serviços marcados</value>
+  </data>
+  <data name="Import_SummaryOne" xml:space="preserve">
+    <value>{0} de {1} serviço marcado</value>
+  </data>
+  <data name="Import_Title" xml:space="preserve">
+    <value>Importar serviços</value>
+  </data>
+  <data name="Import_UnselectNamespace" xml:space="preserve">
+    <value>Desmarcar o namespace</value>
+  </data>
+  <data name="Import_UpdatedMany" xml:space="preserve">
+    <value>{0} atualizados</value>
+  </data>
+  <data name="Import_UpdatedOne" xml:space="preserve">
+    <value>1 atualizado</value>
+  </data>
+  <data name="Import_WhereName" xml:space="preserve">
+    <value>Onde procurar</value>
+  </data>
+  <data name="Kinds_Dns" xml:space="preserve">
+    <value>Entrada DNS:</value>
+  </data>
+  <data name="Kinds_DnsText" xml:space="preserve">
+    <value>um nome direto para o IP de outra máquina, sem proxy. Vale com o app fechado.</value>
+  </data>
+  <data name="Kinds_Route" xml:space="preserve">
+    <value>Rota:</value>
+  </data>
+  <data name="Kinds_RouteText" xml:space="preserve">
+    <value>para abrir no navegador. O nome passa pelo proxy, com HTTPS, caminhos como /api e curingas como *.app.sev.</value>
+  </data>
+  <data name="Kinds_Service" xml:space="preserve">
+    <value>Serviço:</value>
+  </data>
+  <data name="Kinds_ServiceText" xml:space="preserve">
+    <value>para bancos, filas e outros programas. O nome leva direto à porta, em qualquer protocolo; vem pronto do Kubernetes e do Docker.</value>
+  </data>
+  <data name="Kinds_Title" xml:space="preserve">
+    <value>Rota, serviço ou DNS: qual usar</value>
+  </data>
+  <data name="Main_CloseNotice" xml:space="preserve">
+    <value>Fechar o aviso</value>
+  </data>
+  <data name="Main_HideNoticeTip" xml:space="preserve">
+    <value>Esconder até abrir o Severino de novo</value>
+  </data>
+  <data name="Requests_AllDomains" xml:space="preserve">
+    <value>Todos os domínios</value>
+  </data>
+  <data name="Requests_Clear" xml:space="preserve">
+    <value>Limpar</value>
+  </data>
+  <data name="Requests_Domain" xml:space="preserve">
+    <value>Domínio</value>
+  </data>
+  <data name="Requests_Duration" xml:space="preserve">
+    <value>Duração</value>
+  </data>
+  <data name="Requests_EmptyHint" xml:space="preserve">
+    <value>Abra uma das suas rotas no navegador e as requisições aparecem aqui.</value>
+  </data>
+  <data name="Requests_EmptyTitle" xml:space="preserve">
+    <value>Nenhuma requisição</value>
+  </data>
+  <data name="Requests_FilterName" xml:space="preserve">
+    <value>Filtrar por domínio</value>
+  </data>
+  <data name="Requests_FromSeverinoTip" xml:space="preserve">
+    <value>Resposta do próprio Severino, não do seu servidor</value>
+  </data>
+  <data name="Requests_HeldMany" xml:space="preserve">
+    <value>{0} novas</value>
+  </data>
+  <data name="Requests_HeldOne" xml:space="preserve">
+    <value>1 nova</value>
+  </data>
+  <data name="Requests_Lead" xml:space="preserve">
+    <value>As últimas 1000, só em memória. Nada vai para o disco.</value>
+  </data>
+  <data name="Requests_Method" xml:space="preserve">
+    <value>Método</value>
+  </data>
+  <data name="Requests_NoneFor" xml:space="preserve">
+    <value>Nenhuma requisição para {0} ainda.</value>
+  </data>
+  <data name="Requests_Open" xml:space="preserve">
+    <value>aberto</value>
+  </data>
+  <data name="Requests_Path" xml:space="preserve">
+    <value>Caminho</value>
+  </data>
+  <data name="Requests_Pause" xml:space="preserve">
+    <value>Pausar</value>
+  </data>
+  <data name="Requests_ProxyDown" xml:space="preserve">
+    <value>O proxy não está rodando. Veja a barra inferior.</value>
+  </data>
+  <data name="Requests_Resume" xml:space="preserve">
+    <value>Retomar</value>
+  </data>
+  <data name="Requests_TcpFailed" xml:space="preserve">
+    <value>falhou</value>
+  </data>
+  <data name="Requests_Time" xml:space="preserve">
+    <value>Hora</value>
+  </data>
+  <data name="RouteEditor_CreateAnyway" xml:space="preserve">
+    <value>Criar mesmo assim</value>
+  </data>
+  <data name="RouteEditor_CreateAsService" xml:space="preserve">
+    <value>Criar como serviço</value>
+  </data>
+  <data name="RouteEditor_CreateDns" xml:space="preserve">
+    <value>Criar entrada DNS</value>
+  </data>
+  <data name="RouteEditor_DnsHint" xml:space="preserve">
+    <value>Só quer o nome apontando para {0}? Uma entrada DNS faz isso direto, sem o proxy e sem o HTTPS da CA local, e vale com o app fechado.</value>
+  </data>
+  <data name="RouteEditor_Edit" xml:space="preserve">
+    <value>Editar rota</value>
+  </data>
+  <data name="RouteEditor_HstsRequired" xml:space="preserve">
+    <value>HTTPS obrigatório: navegadores só abrem este domínio com HTTPS (HSTS preload).</value>
+  </data>
+  <data name="RouteEditor_NothingListening" xml:space="preserve">
+    <value>Nada escutando em {0} agora. A rota fica esperando seu servidor subir.</value>
+  </data>
+  <data name="RouteEditor_ServiceHint" xml:space="preserve">
+    <value>{0} é a porta do {1}, que não fala HTTP: como rota, não abre. Como serviço, o nome leva direto à porta, em qualquer protocolo.</value>
+  </data>
+  <data name="RouteEditor_Uncovered" xml:space="preserve">
+    <value>{0} está fora da CA atual. Ao salvar, o Severino oferece reemitir a CA, e o Windows pede confirmação.</value>
+  </data>
+  <data name="RouteForm_Address" xml:space="preserve">
+    <value>Endereço</value>
+  </data>
+  <data name="RouteForm_AddressHint" xml:space="preserve">
+    <value>Qualquer nome vale; .test e .localhost nunca colidem com a internet. *.meuapp.sev atende os nomes abaixo dele, e meuapp.sev/api fica só com esse caminho.</value>
+  </data>
+  <data name="RouteForm_AddressPlaceholder" xml:space="preserve">
+    <value>ex.: meuapp.sev</value>
+  </data>
+  <data name="RouteForm_Advanced" xml:space="preserve">
+    <value>Avançado</value>
+  </data>
+  <data name="RouteForm_Group" xml:space="preserve">
+    <value>Grupo (opcional)</value>
+  </data>
+  <data name="RouteForm_GroupHint" xml:space="preserve">
+    <value>Rotas do mesmo grupo aparecem juntas e ligam ou desligam de uma vez, como meuapp para o app e a API.</value>
+  </data>
+  <data name="RouteForm_GroupName" xml:space="preserve">
+    <value>Grupo</value>
+  </data>
+  <data name="RouteForm_HostName" xml:space="preserve">
+    <value>Host do destino</value>
+  </data>
+  <data name="RouteForm_HostTip" xml:space="preserve">
+    <value>localhost, um IP ou um nome do DNS</value>
+  </data>
+  <data name="RouteForm_HttpsOff" xml:space="preserve">
+    <value>O HTTPS está desativado.</value>
+  </data>
+  <data name="RouteForm_IgnoreCert" xml:space="preserve">
+    <value>Ignorar certificado inválido do destino</value>
+  </data>
+  <data name="RouteForm_IgnoreCertHint" xml:space="preserve">
+    <value>Útil para destinos https de desenvolvimento, como o https://localhost:5001 do ASP.NET.</value>
+  </data>
+  <data name="RouteForm_PortsTip" xml:space="preserve">
+    <value>Portas com algum programa escutando agora</value>
+  </data>
+  <data name="RouteForm_PreserveHost" xml:space="preserve">
+    <value>Preservar o Host original</value>
+  </data>
+  <data name="RouteForm_PreserveHostHint" xml:space="preserve">
+    <value>Para apps que geram URLs absolutas. Desligado, o destino recebe o próprio host, o que agrada o Vite e o webpack.</value>
+  </data>
+  <data name="RouteForm_Redirect" xml:space="preserve">
+    <value>Redirecionar HTTP para HTTPS</value>
+  </data>
+  <data name="RouteForm_SchemeName" xml:space="preserve">
+    <value>Protocolo do destino</value>
+  </data>
+  <data name="RouteForm_StripPath" xml:space="preserve">
+    <value>Tirar {0} antes de repassar</value>
+  </data>
+  <data name="RouteForm_StripPathHint" xml:space="preserve">
+    <value>Ligado, {0}/pedidos chega ao destino como /pedidos.</value>
+  </data>
+  <data name="RouteForm_TurnOnInSettings" xml:space="preserve">
+    <value>Ativar em Configurações</value>
+  </data>
+  <data name="RouteForm_UseHttps" xml:space="preserve">
+    <value>Usar HTTPS, com certificado da CA local</value>
+  </data>
+  <data name="Routes_BecameDns" xml:space="preserve">
+    <value>{0} virou uma entrada DNS.</value>
+  </data>
+  <data name="Routes_BecameService" xml:space="preserve">
+    <value>{0} virou um serviço.</value>
+  </data>
+  <data name="Routes_CopyUrl" xml:space="preserve">
+    <value>Copiar URL</value>
+  </data>
+  <data name="Routes_CreateFirst" xml:space="preserve">
+    <value>Criar primeira rota</value>
+  </data>
+  <data name="Routes_DestinationIs" xml:space="preserve">
+    <value>{0} é {1}</value>
+  </data>
+  <data name="Routes_EmptyText" xml:space="preserve">
+    <value>Diga a ele qual domínio leva a qual servidor, como meuapp.sev para localhost:3000, e ele cuida do resto.</value>
+  </data>
+  <data name="Routes_EmptyTitle" xml:space="preserve">
+    <value>O Severino está na portaria</value>
+  </data>
+  <data name="Routes_EnabledMany" xml:space="preserve">
+    <value>{0} ligadas</value>
+  </data>
+  <data name="Routes_EnabledOne" xml:space="preserve">
+    <value>1 ligada</value>
+  </data>
+  <data name="Routes_GroupMore" xml:space="preserve">
+    <value>Mais opções do grupo {0}</value>
+  </data>
+  <data name="Routes_GroupSwitch" xml:space="preserve">
+    <value>Ligar o grupo {0}</value>
+  </data>
+  <data name="Routes_GroupSwitchTip" xml:space="preserve">
+    <value>Liga ou desliga todas as rotas do grupo</value>
+  </data>
+  <data name="Routes_HealthOff" xml:space="preserve">
+    <value>Desligada</value>
+  </data>
+  <data name="Routes_HttpsBothTip" xml:space="preserve">
+    <value>HTTPS, e http:// também atende</value>
+  </data>
+  <data name="Routes_HttpsRedirectTip" xml:space="preserve">
+    <value>HTTPS, com http:// redirecionando</value>
+  </data>
+  <data name="Routes_HttpsUncoveredTip" xml:space="preserve">
+    <value>Fora da CA: reemita em Configurações › HTTPS</value>
+  </data>
+  <data name="Routes_Lead" xml:space="preserve">
+    <value>Para abrir no navegador: o nome passa pelo proxy, com HTTPS, caminhos e curingas.</value>
+  </data>
+  <data name="Routes_MakeDnsButton" xml:space="preserve">
+    <value>Transformar</value>
+  </data>
+  <data name="Routes_MakeDnsConfirm" xml:space="preserve">
+    <value>{0} passa a apontar direto para {1}, sem passar pelo Severino. A porta {2}, o HTTPS da CA local e o log de requisições deixam de valer: o navegador vai ao IP, na porta que a URL disser.</value>
+  </data>
+  <data name="Routes_MakeDnsMenu" xml:space="preserve">
+    <value>Transformar em entrada DNS…</value>
+  </data>
+  <data name="Routes_MakeDnsNeedsIp" xml:space="preserve">
+    <value>Só uma rota cujo destino é um IP vira entrada DNS.</value>
+  </data>
+  <data name="Routes_MakeDnsTip" xml:space="preserve">
+    <value>Para rotas cujo destino é um IP: o nome passa a ir direto a ele, sem o proxy</value>
+  </data>
+  <data name="Routes_MakeDnsTitle" xml:space="preserve">
+    <value>Transformar em entrada DNS</value>
+  </data>
+  <data name="Routes_New" xml:space="preserve">
+    <value>Nova rota</value>
+  </data>
+  <data name="Routes_NewInGroup" xml:space="preserve">
+    <value>Nova rota neste grupo</value>
+  </data>
+  <data name="Routes_NowDns" xml:space="preserve">
+    <value>{0} agora é uma entrada DNS.</value>
+  </data>
+  <data name="Routes_OpenInBrowser" xml:space="preserve">
+    <value>Abrir no navegador</value>
+  </data>
+  <data name="Routes_Ready" xml:space="preserve">
+    <value>{0} pronto</value>
+  </data>
+  <data name="Routes_ReissueCancelled" xml:space="preserve">
+    <value>{0} fica sem HTTPS até reemitir em Configurações.</value>
+  </data>
+  <data name="Routes_Reissued" xml:space="preserve">
+    <value>CA reemitida. {0} já abre com https://</value>
+  </data>
+  <data name="Routes_ReissueDeclined" xml:space="preserve">
+    <value>O Windows não instalou a CA nova. {0} fica sem HTTPS até reemitir.</value>
+  </data>
+  <data name="Routes_ReissueFailed" xml:space="preserve">
+    <value>Não deu para reemitir a CA: {0}</value>
+  </data>
+  <data name="Routes_ReissueLead" xml:space="preserve">
+    <value>A CA atual não cobre {0}. Para esta rota ter HTTPS, o Severino cria uma CA nova para todas as rotas com HTTPS.</value>
+  </data>
+  <data name="Routes_RenameEmpty" xml:space="preserve">
+    <value>Para tirar as rotas do grupo, use Desfazer o grupo.</value>
+  </data>
+  <data name="Routes_RenameGroup" xml:space="preserve">
+    <value>Renomear grupo</value>
+  </data>
+  <data name="Routes_RenameGroupHint" xml:space="preserve">
+    <value>Com o nome de outro grupo, os dois viram um só.</value>
+  </data>
+  <data name="Routes_RenameGroupMenu" xml:space="preserve">
+    <value>Renomear grupo…</value>
+  </data>
+  <data name="Routes_SearchName" xml:space="preserve">
+    <value>Buscar rotas</value>
+  </data>
+  <data name="Routes_SearchPlaceholder" xml:space="preserve">
+    <value>Buscar domínio ou destino</value>
+  </data>
+  <data name="Routes_ShowInDnsTip" xml:space="preserve">
+    <value>Ver na aba DNS: mudar o IP lá muda o destino</value>
+  </data>
+  <data name="Routes_UndoTaken" xml:space="preserve">
+    <value>Não deu para desfazer: o domínio já está em outra rota.</value>
+  </data>
+  <data name="Routes_Ungroup" xml:space="preserve">
+    <value>Desfazer o grupo</value>
+  </data>
+  <data name="Routes_Ungrouped" xml:space="preserve">
+    <value>As rotas de {0} ficaram sem grupo. Para juntar de novo, edite cada uma.</value>
+  </data>
+  <data name="Routes_UngroupTip" xml:space="preserve">
+    <value>As rotas ficam, sem grupo</value>
+  </data>
+  <data name="Routes_UrlCopied" xml:space="preserve">
+    <value>URL copiada</value>
+  </data>
+  <data name="Routes_WildcardApproved" xml:space="preserve">
+    <value>Aprovado: o curinga já responde.</value>
+  </data>
+  <data name="Routes_WildcardPending" xml:space="preserve">
+    <value>{0} só valem depois de aprovado: o curinga manda um sufixo inteiro para o Severino responder. O Windows pede confirmação de administrador.</value>
+  </data>
+  <data name="Routes_WildcardPendingOne" xml:space="preserve">
+    <value>{0} só vale depois de aprovado: o curinga manda um sufixo inteiro para o Severino responder. O Windows pede confirmação de administrador.</value>
+  </data>
+  <data name="ServiceEditor_AddPort" xml:space="preserve">
+    <value>Outra porta</value>
+  </data>
+  <data name="ServiceEditor_Address" xml:space="preserve">
+    <value>Os nomes apontam para {0}, onde o Severino escuta essas portas.</value>
+  </data>
+  <data name="ServiceEditor_Edit" xml:space="preserve">
+    <value>Editar serviço</value>
+  </data>
+  <data name="ServiceEditor_HostTip" xml:space="preserve">
+    <value>Um IP ou um nome do DNS: com o nome, mudar o IP na aba DNS muda o destino</value>
+  </data>
+  <data name="ServiceEditor_Names" xml:space="preserve">
+    <value>Nomes, um por linha</value>
+  </data>
+  <data name="ServiceEditor_NamesName" xml:space="preserve">
+    <value>Nomes</value>
+  </data>
+  <data name="ServiceEditor_New" xml:space="preserve">
+    <value>Novo serviço</value>
+  </data>
+  <data name="ServiceEditor_Origin" xml:space="preserve">
+    <value>Importado de {0} ({1}). "Atualizar" troca as portas pelas do momento e mantém os nomes.</value>
+  </data>
+  <data name="ServiceEditor_Port" xml:space="preserve">
+    <value>Porta</value>
+  </data>
+  <data name="ServiceEditor_PortIncomplete" xml:space="preserve">
+    <value>A porta {0} está incompleta: diga a porta que o app chama, o destino e a porta do destino.</value>
+  </data>
+  <data name="ServiceEditor_PortName" xml:space="preserve">
+    <value>Porta que o app chama</value>
+  </data>
+  <data name="ServiceEditor_PortTip" xml:space="preserve">
+    <value>A porta que o app chama, como 5432</value>
+  </data>
+  <data name="ServiceEditor_RemovePort" xml:space="preserve">
+    <value>Tirar esta porta</value>
+  </data>
+  <data name="ServiceEditor_Target" xml:space="preserve">
+    <value>Destino</value>
+  </data>
+  <data name="ServiceEditor_TargetPort" xml:space="preserve">
+    <value>Na porta</value>
+  </data>
+  <data name="ServiceEditor_TargetPortName" xml:space="preserve">
+    <value>Porta do destino</value>
+  </data>
+  <data name="ServiceEditor_TargetPortTip" xml:space="preserve">
+    <value>A porta em que o destino responde, como a NodePort 30080</value>
+  </data>
+  <data name="ServiceEditor_TargetTip" xml:space="preserve">
+    <value>Onde o serviço responde: um IP ou um nome do DNS</value>
+  </data>
+  <data name="Services_ByHand" xml:space="preserve">
+    <value>Criados à mão</value>
+  </data>
+  <data name="Services_CopyName" xml:space="preserve">
+    <value>Copiar nome</value>
+  </data>
+  <data name="Services_CreateByHand" xml:space="preserve">
+    <value>Criar à mão</value>
+  </data>
+  <data name="Services_DetailTip" xml:space="preserve">
+    <value>Os nomes apontam para {0}, onde o Severino escuta {1}.</value>
+  </data>
+  <data name="Services_EmptyText" xml:space="preserve">
+    <value>Seu app chama postgres.database:5432 como faria dentro do cluster, e o Severino leva até lá. Os nomes vêm prontos do Kubernetes e do Docker.</value>
+  </data>
+  <data name="Services_EmptyTitle" xml:space="preserve">
+    <value>Nenhum serviço ainda</value>
+  </data>
+  <data name="Services_EnabledMany" xml:space="preserve">
+    <value>{0} ligados</value>
+  </data>
+  <data name="Services_EnabledOne" xml:space="preserve">
+    <value>1 ligado</value>
+  </data>
+  <data name="Services_HealthOff" xml:space="preserve">
+    <value>Desligado</value>
+  </data>
+  <data name="Services_ImportFirst" xml:space="preserve">
+    <value>Importar do Kubernetes ou Docker</value>
+  </data>
+  <data name="Services_ImportTip" xml:space="preserve">
+    <value>Do Kubernetes e do Docker, no Windows ou no WSL</value>
+  </data>
+  <data name="Services_Lead" xml:space="preserve">
+    <value>Para bancos, filas e outros programas: o nome leva direto à porta, em qualquer protocolo.</value>
+  </data>
+  <data name="Services_MoreNames" xml:space="preserve">
+    <value>+{0} nomes</value>
+  </data>
+  <data name="Services_NameCopied" xml:space="preserve">
+    <value>Nome copiado</value>
+  </data>
+  <data name="Services_New" xml:space="preserve">
+    <value>Novo serviço</value>
+  </data>
+  <data name="Services_NoName" xml:space="preserve">
+    <value>(sem nome)</value>
+  </data>
+  <data name="Services_OneMoreName" xml:space="preserve">
+    <value>+1 nome</value>
+  </data>
+  <data name="Services_Pasted" xml:space="preserve">
+    <value>colado</value>
+  </data>
+  <data name="Services_PfRestarting" xml:space="preserve">
+    <value>port-forward reiniciando: {0}</value>
+  </data>
+  <data name="Services_PfRunning" xml:space="preserve">
+    <value>kubectl port-forward rodando</value>
+  </data>
+  <data name="Services_PfStarting" xml:space="preserve">
+    <value>port-forward iniciando…</value>
+  </data>
+  <data name="Services_PfStopped" xml:space="preserve">
+    <value>port-forward parado</value>
+  </data>
+  <data name="Services_RefreshTip" xml:space="preserve">
+    <value>Procura de novo e corrige destinos e portas; os nomes ficam</value>
+  </data>
+  <data name="Services_RemovedMany" xml:space="preserve">
+    <value>{0} serviços removidos</value>
+  </data>
+  <data name="Services_RemovedOne" xml:space="preserve">
+    <value>1 serviço removido</value>
+  </data>
+  <data name="Services_RemoveGroup" xml:space="preserve">
+    <value>Remover todos deste grupo</value>
+  </data>
+  <data name="Services_SearchName" xml:space="preserve">
+    <value>Buscar serviços</value>
+  </data>
+  <data name="Services_SearchPlaceholder" xml:space="preserve">
+    <value>Buscar nome ou destino</value>
+  </data>
+  <data name="Services_ThePort" xml:space="preserve">
+    <value>a porta</value>
+  </data>
+  <data name="Services_ThePorts" xml:space="preserve">
+    <value>as portas</value>
+  </data>
+  <data name="Services_UndoPartial" xml:space="preserve">
+    <value>Parte não voltou: os nomes ou endereços já estão em outra rota.</value>
+  </data>
+  <data name="Services_WebRouteOne" xml:space="preserve">
+    <value>1 rota web criada na aba Rotas</value>
+  </data>
+  <data name="Services_WebRoutes" xml:space="preserve">
+    <value>{0} rotas web criadas na aba Rotas</value>
+  </data>
+  <data name="Services_WslToo" xml:space="preserve">
+    <value> Apps no WSL · {0} também chamam pelos nomes.</value>
+  </data>
+  <data name="Settings_About" xml:space="preserve">
+    <value>Sobre</value>
+  </data>
+  <data name="Settings_ActivateHint" xml:space="preserve">
+    <value>Crie uma rota primeiro: a CA só vale para os domínios cadastrados.</value>
+  </data>
+  <data name="Settings_AppVersion" xml:space="preserve">
+    <value>Severino {0}</value>
+  </data>
+  <data name="Settings_Backup" xml:space="preserve">
+    <value>Backup</value>
+  </data>
+  <data name="Settings_BackupFilter" xml:space="preserve">
+    <value>Backup do Severino (*.json)|*.json</value>
+  </data>
+  <data name="Settings_BackupHint" xml:space="preserve">
+    <value>Rotas, serviços e entradas DNS num arquivo JSON, para outra máquina. Importar só acrescenta: o que já existe aqui fica como está.</value>
+  </data>
+  <data name="Settings_BackupOpenFilter" xml:space="preserve">
+    <value>Backup do Severino (*.json)|*.json|Todos os arquivos (*.*)|*.*</value>
+  </data>
+  <data name="Settings_CaDeclined" xml:space="preserve">
+    <value>O Windows não instalou a CA, então nada mudou.</value>
+  </data>
+  <data name="Settings_CaNotTrusted" xml:space="preserve">
+    <value>O Windows não confia mais na CA: ela saiu da lista de confiáveis. Ative de novo ou remova.</value>
+  </data>
+  <data name="Settings_CaRemoved" xml:space="preserve">
+    <value>CA removida.</value>
+  </data>
+  <data name="Settings_CaRemovedRootKept" xml:space="preserve">
+    <value>As chaves foram apagadas, mas a CA ficou na lista de confiáveis do Windows porque o pedido foi recusado. Sem a chave, ela não assina mais nada.</value>
+  </data>
+  <data name="Settings_CaUnreadable" xml:space="preserve">
+    <value>Não foi possível ler a CA, talvez criada por outro usuário do Windows. Ative de novo ou remova.</value>
+  </data>
+  <data name="Settings_CleanUp" xml:space="preserve">
+    <value>Limpar tudo</value>
+  </data>
+  <data name="Settings_CleanUpButton" xml:space="preserve">
+    <value>Limpar tudo…</value>
+  </data>
+  <data name="Settings_CleanUpHint" xml:space="preserve">
+    <value>Tira do Windows o que o Severino pôs: os blocos do hosts (rotas e DNS), as regras de DNS dos curingas, a CA local, a inicialização automática, as exceções de proxy e os nomes nas distros do WSL. Depois fecha o app.</value>
+  </data>
+  <data name="Settings_CleanUpRootKept" xml:space="preserve">
+    <value>A CA ficou na lista de confiáveis do Windows porque o pedido foi recusado. As chaves dela foram apagadas, então ela não assina mais nada.</value>
+  </data>
+  <data name="Settings_ConfigFolder" xml:space="preserve">
+    <value>Pasta de configuração</value>
+  </data>
+  <data name="Settings_Covers" xml:space="preserve">
+    <value>Cobre: {0}</value>
+  </data>
+  <data name="Settings_CreateRouteFirst" xml:space="preserve">
+    <value>Crie uma rota primeiro.</value>
+  </data>
+  <data name="Settings_ExportBackup" xml:space="preserve">
+    <value>Exportar backup</value>
+  </data>
+  <data name="Settings_ExportCa" xml:space="preserve">
+    <value>Exportar CA (PEM)</value>
+  </data>
+  <data name="Settings_FirefoxHint" xml:space="preserve">
+    <value>O Firefox ({0} {1}) usa a própria lista de CAs e vai recusar estes certificados. Abra about:config, ligue {2} e reinicie o Firefox.</value>
+  </data>
+  <data name="Settings_FirefoxProfile" xml:space="preserve">
+    <value>perfil</value>
+  </data>
+  <data name="Settings_FirefoxProfiles" xml:space="preserve">
+    <value>perfis</value>
+  </data>
+  <data name="Settings_General" xml:space="preserve">
+    <value>Geral</value>
+  </data>
+  <data name="Settings_HttpPort" xml:space="preserve">
+    <value>Porta HTTP do proxy</value>
+  </data>
+  <data name="Settings_HttpPortHint" xml:space="preserve">
+    <value>Fora da 80, as URLs passam a levar a porta (ex.: :8080)</value>
+  </data>
+  <data name="Settings_HttpPortName" xml:space="preserve">
+    <value>Porta HTTP</value>
+  </data>
+  <data name="Settings_HttpsActivate" xml:space="preserve">
+    <value>Ativar HTTPS</value>
+  </data>
+  <data name="Settings_HttpsActiveUntil" xml:space="preserve">
+    <value>Ativo. A CA vale até {0}.</value>
+  </data>
+  <data name="Settings_HttpsNote" xml:space="preserve">
+    <value>Ao ativar, o Windows pede para confirmar a instalação da CA. Ela só assina os domínios das rotas.</value>
+  </data>
+  <data name="Settings_HttpsOff" xml:space="preserve">
+    <value>Desativado. As rotas abrem só por http://.</value>
+  </data>
+  <data name="Settings_HttpsOn" xml:space="preserve">
+    <value>HTTPS ativo. As rotas abrem com https://, e o http:// continua funcionando.</value>
+  </data>
+  <data name="Settings_HttpsPort" xml:space="preserve">
+    <value>Porta HTTPS do proxy</value>
+  </data>
+  <data name="Settings_HttpsPortHint" xml:space="preserve">
+    <value>Fora da 443, as URLs https:// passam a levar a porta</value>
+  </data>
+  <data name="Settings_HttpsPortName" xml:space="preserve">
+    <value>Porta HTTPS</value>
+  </data>
+  <data name="Settings_ImportBackup" xml:space="preserve">
+    <value>Importar backup</value>
+  </data>
+  <data name="Settings_Imported" xml:space="preserve">
+    <value>Importados: {0}.</value>
+  </data>
+  <data name="Settings_ImportFailed" xml:space="preserve">
+    <value>Não deu para importar: {0}</value>
+  </data>
+  <data name="Settings_ImportNothing" xml:space="preserve">
+    <value>Nada novo para importar.</value>
+  </data>
+  <data name="Settings_ImportRefused" xml:space="preserve">
+    <value>Não importados:</value>
+  </data>
+  <data name="Settings_ImportReissueLead" xml:space="preserve">
+    <value>A CA atual não cobre {0}. Para essas rotas terem HTTPS, o Severino cria uma CA nova para todas as rotas com HTTPS.</value>
+  </data>
+  <data name="Settings_ImportSkipped" xml:space="preserve">
+    <value>Rotas que já existiam, e ficaram como estavam: {0}.</value>
+  </data>
+  <data name="Settings_Language" xml:space="preserve">
+    <value>Idioma</value>
+  </data>
+  <data name="Settings_LanguageHint" xml:space="preserve">
+    <value>Inglês ou português. Igual ao Windows usa português quando o Windows está em português.</value>
+  </data>
+  <data name="Settings_LanguageRestart" xml:space="preserve">
+    <value>O idioma troca quando o Severino abre de novo.</value>
+  </data>
+  <data name="Settings_LocalCertificates" xml:space="preserve">
+    <value>Certificados locais</value>
+  </data>
+  <data name="Settings_Maintenance" xml:space="preserve">
+    <value>Manutenção</value>
+  </data>
+  <data name="Settings_Network" xml:space="preserve">
+    <value>Rede</value>
+  </data>
+  <data name="Settings_NodeCommandName" xml:space="preserve">
+    <value>Comando do Node.js</value>
+  </data>
+  <data name="Settings_NodeHint" xml:space="preserve">
+    <value>Para o Node.js confiar na CA, rode uma vez e abra um terminal novo:</value>
+  </data>
+  <data name="Settings_NoWsl" xml:space="preserve">
+    <value>Nenhuma distro do WSL instalada.</value>
+  </data>
+  <data name="Settings_OldRootKept" xml:space="preserve">
+    <value> A CA antiga ficou na lista de confiáveis do Windows, mas sem a chave ela não assina mais nada.</value>
+  </data>
+  <data name="Settings_OpenFolder" xml:space="preserve">
+    <value>Abrir pasta</value>
+  </data>
+  <data name="Settings_PemFilter" xml:space="preserve">
+    <value>Certificado PEM (*.pem)|*.pem</value>
+  </data>
+  <data name="Settings_PortRange" xml:space="preserve">
+    <value>Use um número de 1 a 65535.</value>
+  </data>
+  <data name="Settings_PortsDiffer" xml:space="preserve">
+    <value>HTTP e HTTPS precisam de portas diferentes.</value>
+  </data>
+  <data name="Settings_PowerShell" xml:space="preserve">
+    <value>Comandos no PowerShell</value>
+  </data>
+  <data name="Settings_Reissue" xml:space="preserve">
+    <value>Reemitir</value>
+  </data>
+  <data name="Settings_Reissued" xml:space="preserve">
+    <value>CA reemitida. Os certificados das rotas são refeitos no próximo acesso.</value>
+  </data>
+  <data name="Settings_ReissuedForImport" xml:space="preserve">
+    <value>CA reemitida para incluir as rotas importadas.</value>
+  </data>
+  <data name="Settings_ReissueTip" xml:space="preserve">
+    <value>Cria uma CA nova para os domínios das rotas com HTTPS de hoje</value>
+  </data>
+  <data name="Settings_ReissueTitle" xml:space="preserve">
+    <value>Reemitir a CA</value>
+  </data>
+  <data name="Settings_RemoveCa" xml:space="preserve">
+    <value>Remover CA</value>
+  </data>
+  <data name="Settings_RemoveCaConfirm" xml:space="preserve">
+    <value>O HTTPS para de responder e as chaves da CA são apagadas. O Windows pede confirmação para tirar a CA da lista de confiáveis.</value>
+  </data>
+  <data name="Settings_RestartNow" xml:space="preserve">
+    <value>Reiniciar agora</value>
+  </data>
+  <data name="Settings_ReviewSetup" xml:space="preserve">
+    <value>Rever checagem</value>
+  </data>
+  <data name="Settings_ReviewSetupHint" xml:space="preserve">
+    <value>Abre de novo o assistente do primeiro uso: serviço auxiliar, porta e proxy do sistema</value>
+  </data>
+  <data name="Settings_Services" xml:space="preserve">
+    <value>Serviços</value>
+  </data>
+  <data name="Settings_StartMinimized" xml:space="preserve">
+    <value>Iniciar minimizado</value>
+  </data>
+  <data name="Settings_StartMinimizedHint" xml:space="preserve">
+    <value>Ao abrir pelo atalho, vai direto para a bandeja, sem mostrar a janela</value>
+  </data>
+  <data name="Settings_StartWithWindows" xml:space="preserve">
+    <value>Iniciar com o Windows</value>
+  </data>
+  <data name="Settings_StartWithWindowsHint" xml:space="preserve">
+    <value>Abre na bandeja quando você entra no Windows</value>
+  </data>
+  <data name="Settings_Tagline" xml:space="preserve">
+    <value>O porteiro dos seus domínios de desenvolvimento.</value>
+  </data>
+  <data name="Settings_Terminal" xml:space="preserve">
+    <value>Terminal</value>
+  </data>
+  <data name="Settings_TerminalExamplesName" xml:space="preserve">
+    <value>Exemplos de comandos</value>
+  </data>
+  <data name="Settings_Theme" xml:space="preserve">
+    <value>Tema</value>
+  </data>
+  <data name="Settings_ThemeDark" xml:space="preserve">
+    <value>Escuro</value>
+  </data>
+  <data name="Settings_ThemeHint" xml:space="preserve">
+    <value>Claro, escuro ou igual ao Windows</value>
+  </data>
+  <data name="Settings_ThemeLight" xml:space="preserve">
+    <value>Claro</value>
+  </data>
+  <data name="Settings_UncoveredMany" xml:space="preserve">
+    <value>{0} estão fora da CA e ficam sem HTTPS até reemitir.</value>
+  </data>
+  <data name="Settings_UncoveredOne" xml:space="preserve">
+    <value>{0} está fora da CA e fica sem HTTPS até reemitir.</value>
+  </data>
+  <data name="Settings_WatchServices" xml:space="preserve">
+    <value>Acompanhar serviços importados</value>
+  </data>
+  <data name="Settings_WatchServicesHint" xml:space="preserve">
+    <value>Com o app aberto, faz o Atualizar sozinho: quando um container do Docker sobe ou cai, e no Kubernetes a cada 30 s.</value>
+  </data>
+  <data name="Settings_WslApplyAgain" xml:space="preserve">
+    <value>Aplicar de novo</value>
+  </data>
+  <data name="Settings_WslDistroName" xml:space="preserve">
+    <value>Serviços pelo nome em {0}</value>
+  </data>
+  <data name="Settings_WslHint" xml:space="preserve">
+    <value>Nas distros ligadas, o Severino grava os nomes no /etc/hosts e regras de iptables que levam cada porta ao destino, como root na distro, sem pedir administrador. Distros paradas recebem tudo quando iniciam. Containers do Docker no Windows ficam de fora: a distro não vê o loopback do Windows.</value>
+  </data>
+  <data name="Settings_WslTitle" xml:space="preserve">
+    <value>Apps no WSL chamam os serviços pelo nome</value>
+  </data>
+  <data name="Shell_StillRunning" xml:space="preserve">
+    <value>O Severino continua rodando</value>
+  </data>
+  <data name="Shell_StillRunningText" xml:space="preserve">
+    <value>Fechar a janela só esconde o Severino. Para sair, use o ícone na bandeja.</value>
+  </data>
+  <data name="Status_AddExceptions" xml:space="preserve">
+    <value>Adicionar exceções</value>
+  </data>
+  <data name="Status_AllGood" xml:space="preserve">
+    <value>tudo certo</value>
+  </data>
+  <data name="Status_ChangePort" xml:space="preserve">
+    <value>{0} Trocar porta</value>
+  </data>
+  <data name="Status_ExceptionsAdded" xml:space="preserve">
+    <value>Exceções adicionadas: {0}. Recarregue a página no navegador.</value>
+  </data>
+  <data name="Status_ExceptionsLocked" xml:space="preserve">
+    <value>O Windows não deixou alterar as exceções, talvez por uma política da empresa. Peça para incluir {0} nas exceções do proxy.
+
+Detalhe: {1}</value>
+  </data>
+  <data name="Status_ExceptionsThere" xml:space="preserve">
+    <value>As exceções já estavam lá.</value>
+  </data>
+  <data name="Status_HelperFailed" xml:space="preserve">
+    <value>O serviço auxiliar não conseguiu atualizar o hosts.
+
+Detalhe: {0}</value>
+  </data>
+  <data name="Status_HelperMissing" xml:space="preserve">
+    <value>O Severino precisa do serviço auxiliar para gravar o arquivo hosts.
+
+Reinstale o Severino ou, rodando do código-fonte, rode num terminal como administrador, na pasta do projeto:
+
+    ./scripts/dev-helper.ps1 install
+
+Detalhe: {0}</value>
+  </data>
+  <data name="Status_HelperTitle" xml:space="preserve">
+    <value>Serviço auxiliar</value>
+  </data>
+  <data name="Status_HostsFailed" xml:space="preserve">
+    <value>hosts: falha ao gravar</value>
+  </data>
+  <data name="Status_HostsHelperUnavailable" xml:space="preserve">
+    <value>hosts: serviço auxiliar indisponível</value>
+  </data>
+  <data name="Status_HostsOk" xml:space="preserve">
+    <value>hosts ok</value>
+  </data>
+  <data name="Status_HostsSyncing" xml:space="preserve">
+    <value>hosts: sincronizando…</value>
+  </data>
+  <data name="Status_HostsWithoutRoutes" xml:space="preserve">
+    <value>hosts sem as rotas</value>
+  </data>
+  <data name="Status_HttpsChangePort" xml:space="preserve">
+    <value>HTTPS: {0} Trocar porta</value>
+  </data>
+  <data name="Status_HttpsInvalidCa" xml:space="preserve">
+    <value>HTTPS: CA inválida</value>
+  </data>
+  <data name="Status_HttpsOff" xml:space="preserve">
+    <value>HTTPS desativado</value>
+  </data>
+  <data name="Status_HttpsOk" xml:space="preserve">
+    <value>HTTPS ok</value>
+  </data>
+  <data name="Status_HttpsPaused" xml:space="preserve">
+    <value>HTTPS pausado</value>
+  </data>
+  <data name="Status_HttpsStarting" xml:space="preserve">
+    <value>HTTPS iniciando…</value>
+  </data>
+  <data name="Status_HttpsStopped" xml:space="preserve">
+    <value>HTTPS parado: {0} Tentar de novo</value>
+  </data>
+  <data name="Status_HttpsUncoveredMany" xml:space="preserve">
+    <value>HTTPS: {0} domínios fora da CA</value>
+  </data>
+  <data name="Status_HttpsUncoveredOne" xml:space="preserve">
+    <value>HTTPS: 1 domínio fora da CA</value>
+  </data>
+  <data name="Status_PacActive" xml:space="preserve">
+    <value>proxy por script ativo</value>
+  </data>
+  <data name="Status_PacInfo" xml:space="preserve">
+    <value>O Windows usa um script de proxy (PAC), que decide sozinho para onde cada endereço vai. O Severino não consegue saber se ele desvia as suas rotas.
+
+Se uma rota não abrir no navegador, peça para o script ignorar esses domínios, ou teste com a VPN desligada.
+
+Script: {0}</value>
+  </data>
+  <data name="Status_Paused" xml:space="preserve">
+    <value>pausado</value>
+  </data>
+  <data name="Status_PausedResume" xml:space="preserve">
+    <value>Severino pausado. Retomar</value>
+  </data>
+  <data name="Status_PortsDidNotOpen" xml:space="preserve">
+    <value>Estas portas não abriram:
+
+{0}
+
+Feche o programa que está usando a porta e tente de novo.</value>
+  </data>
+  <data name="Status_ProxyConfirm" xml:space="preserve">
+    <value>O Windows está configurado para usar o proxy {0}. O Edge e o Chrome mandariam {1} para ele, e não para o Severino.
+
+Adicionar esses domínios às exceções do proxy? Eles entram na mesma lista de Opções da Internet, e o Severino tira só o que adicionou quando você usar "Limpar tudo".</value>
+  </data>
+  <data name="Status_ProxyOn" xml:space="preserve">
+    <value>Proxy ativo :{0}</value>
+  </data>
+  <data name="Status_ProxyOnBoth" xml:space="preserve">
+    <value>Proxy ativo :{0} :{1}</value>
+  </data>
+  <data name="Status_ProxyStarting" xml:space="preserve">
+    <value>Proxy iniciando…</value>
+  </data>
+  <data name="Status_ProxyStopped" xml:space="preserve">
+    <value>Proxy parado: {0} Tentar de novo</value>
+  </data>
+  <data name="Status_ServicePortDown" xml:space="preserve">
+    <value>serviço {0}: porta {1} indisponível</value>
+  </data>
+  <data name="Status_ServicePortsDown" xml:space="preserve">
+    <value>{0} portas de serviço indisponíveis</value>
+  </data>
+  <data name="Status_SystemProxyInWayMany" xml:space="preserve">
+    <value>proxy do sistema no caminho de {0} domínios</value>
+  </data>
+  <data name="Status_SystemProxyInWayOne" xml:space="preserve">
+    <value>proxy do sistema no caminho de 1 domínio</value>
+  </data>
+  <data name="Status_SystemProxyTitle" xml:space="preserve">
+    <value>Proxy do sistema</value>
+  </data>
+  <data name="Tab_Requests" xml:space="preserve">
+    <value>Requisições</value>
+  </data>
+  <data name="Tab_Routes" xml:space="preserve">
+    <value>Rotas</value>
+  </data>
+  <data name="Tab_Services" xml:space="preserve">
+    <value>Serviços</value>
+  </data>
+  <data name="Tab_Settings" xml:space="preserve">
+    <value>Configurações</value>
+  </data>
+  <data name="Terminal_Installed" xml:space="preserve">
+    <value>Instalado. Com o app aberto, qualquer PowerShell usa os comandos, com as mesmas regras das telas. Get-Command -Module Severino lista todos.</value>
+  </data>
+  <data name="Terminal_NotInstalled" xml:space="preserve">
+    <value>O instalador põe o módulo no PowerShell. Rodando do código-fonte, importe antes: Import-Module ./powershell/Severino.</value>
+  </data>
+  <data name="Tray_Exit" xml:space="preserve">
+    <value>Sair</value>
+  </data>
+  <data name="Tray_NoRoutes" xml:space="preserve">
+    <value>Nenhuma rota ligada</value>
+  </data>
+  <data name="Tray_Open" xml:space="preserve">
+    <value>Abrir Severino</value>
+  </data>
+  <data name="Updates_AutoCheck" xml:space="preserve">
+    <value>Procurar versões novas</value>
+  </data>
+  <data name="Updates_AutoCheckHint" xml:space="preserve">
+    <value>Uma vez por dia, pergunta ao GitHub qual é a última versão. Vão só o seu IP e a versão do app, como em qualquer visita a uma página.</value>
+  </data>
+  <data name="Updates_Available" xml:space="preserve">
+    <value>A versão {0} saiu. Você está na {1}.</value>
+  </data>
+  <data name="Updates_BannerMessage" xml:space="preserve">
+    <value>Você está na {0}. A atualização mantém rotas, serviços e configurações.</value>
+  </data>
+  <data name="Updates_BannerTitle" xml:space="preserve">
+    <value>Severino {0} saiu</value>
+  </data>
+  <data name="Updates_CheckFailed" xml:space="preserve">
+    <value>Não deu para consultar o GitHub: {0}</value>
+  </data>
+  <data name="Updates_Checking" xml:space="preserve">
+    <value>Consultando o GitHub…</value>
+  </data>
+  <data name="Updates_CheckNow" xml:space="preserve">
+    <value>Procurar agora</value>
+  </data>
+  <data name="Updates_Confirm" xml:space="preserve">
+    <value>O Severino baixa a versão {0}{1}, fecha, instala e abre de novo. O Windows vai pedir permissão de administrador. Rotas, serviços e configurações ficam como estão.</value>
+  </data>
+  <data name="Updates_ConfirmButton" xml:space="preserve">
+    <value>Atualizar</value>
+  </data>
+  <data name="Updates_ConfirmTitle" xml:space="preserve">
+    <value>Atualizar o Severino</value>
+  </data>
+  <data name="Updates_DownloadFailed" xml:space="preserve">
+    <value>O download falhou: {0}</value>
+  </data>
+  <data name="Updates_Downloading" xml:space="preserve">
+    <value>Baixando a versão {0}…</value>
+  </data>
+  <data name="Updates_DownloadOnGitHub" xml:space="preserve">
+    <value>Baixar no GitHub</value>
+  </data>
+  <data name="Updates_DownloadProgress" xml:space="preserve">
+    <value>Progresso do download</value>
+  </data>
+  <data name="Updates_LastCheck" xml:space="preserve">
+    <value>Última consulta: {0}, às {1}</value>
+  </data>
+  <data name="Updates_SetupFailed" xml:space="preserve">
+    <value>Não deu para abrir o instalador: {0}</value>
+  </data>
+  <data name="Updates_Size" xml:space="preserve">
+    <value> ({0} MB)</value>
+  </data>
+  <data name="Updates_Skip" xml:space="preserve">
+    <value>Pular esta versão</value>
+  </data>
+  <data name="Updates_Skipped" xml:space="preserve">
+    <value>A versão {0} foi pulada. Procurar agora mostra ela de novo.</value>
+  </data>
+  <data name="Updates_Today" xml:space="preserve">
+    <value>hoje</value>
+  </data>
+  <data name="Updates_TrayMessage" xml:space="preserve">
+    <value>Abra o Severino e clique em Atualizar agora.</value>
+  </data>
+  <data name="Updates_UpdateNow" xml:space="preserve">
+    <value>Atualizar agora</value>
+  </data>
+  <data name="Updates_UpToDate" xml:space="preserve">
+    <value>Você está na versão mais recente.</value>
+  </data>
+  <data name="Updates_WhatsNew" xml:space="preserve">
+    <value>Ver novidades</value>
+  </data>
+  <data name="Updates_Yesterday" xml:space="preserve">
+    <value>ontem</value>
+  </data>
+  <data name="Wsl_AppliedMany" xml:space="preserve">
+    <value>{0} serviços pelo nome.</value>
+  </data>
+  <data name="Wsl_AppliedNone" xml:space="preserve">
+    <value>Ligada. Nenhum serviço a levar ainda.</value>
+  </data>
+  <data name="Wsl_AppliedOne" xml:space="preserve">
+    <value>1 serviço pelo nome.</value>
+  </data>
+  <data name="Wsl_Applying" xml:space="preserve">
+    <value>Aplicando…</value>
+  </data>
+  <data name="Wsl_NoAnswer" xml:space="preserve">
+    <value>A distro não respondeu a tempo.</value>
+  </data>
+  <data name="Wsl_Partial" xml:space="preserve">
+    <value>{0} serviços, com falhas: {1}</value>
+  </data>
+  <data name="Wsl_ScriptExit" xml:space="preserve">
+    <value>O script terminou com o código {0}.</value>
+  </data>
+  <data name="Wsl_Stopped" xml:space="preserve">
+    <value>Parada. Recebe os nomes quando iniciar.</value>
+  </data>
+</root>

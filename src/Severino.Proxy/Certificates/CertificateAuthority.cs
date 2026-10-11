@@ -38,7 +38,7 @@ public sealed class CertificateAuthority : IDisposable
         using var key = ECDsa.Create(ECCurve.NamedCurves.nistP256);
         var now = time.GetUtcNow();
         var subject = new X500DistinguishedName(
-            $"CN=Severino Local CA ({Environment.UserName}@{Environment.MachineName}), OU=Emitida em {now:yyyy-MM-dd HH:mm}Z, O=Severino");
+            $"CN=Severino Local CA ({Environment.UserName}@{Environment.MachineName}), OU=Issued {now:yyyy-MM-dd HH:mm}Z, O=Severino");
 
         var request = new CertificateRequest(subject, key, HashAlgorithmName.SHA256);
         request.CertificateExtensions.Add(new X509BasicConstraintsExtension(true, true, 0, true));

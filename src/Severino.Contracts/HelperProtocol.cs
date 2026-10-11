@@ -1,6 +1,7 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using Severino.Contracts.Resources;
 
 namespace Severino.Contracts;
 
@@ -66,7 +67,7 @@ public static class HelperProtocol
         normalized = null;
         if (entries is null)
         {
-            error = "A lista de entradas é obrigatória.";
+            error = Strings.Protocol_EntriesRequired;
             return false;
         }
 
@@ -75,12 +76,12 @@ public static class HelperProtocol
         {
             if (!TryNormalizeName(entry?.Name, out var name, out var reason))
             {
-                error = $"Domínio inválido '{entry?.Name}': {reason}";
+                error = string.Format(Strings.Protocol_BadDomain, entry?.Name, reason);
                 return false;
             }
             if (!HostEntry.TryNormalizeAddress(entry!.Address, out var address))
             {
-                error = $"Endereço não permitido para '{name}': {entry.Address}. Só endereços de loopback.";
+                error = string.Format(Strings.Protocol_NotLoopback, name, entry.Address);
                 return false;
             }
             result.Add(new HostEntry(name, address));
@@ -88,7 +89,7 @@ public static class HelperProtocol
 
         if (result.Count > MaxEntries)
         {
-            error = $"No máximo {MaxEntries} entradas.";
+            error = string.Format(Strings.Protocol_TooMany, MaxEntries);
             return false;
         }
 
@@ -110,7 +111,7 @@ public static class HelperProtocol
         normalized = null;
         if (entries is null)
         {
-            error = "A lista de entradas é obrigatória.";
+            error = Strings.Protocol_EntriesRequired;
             return false;
         }
 
@@ -119,12 +120,12 @@ public static class HelperProtocol
         {
             if (!TryNormalizeName(entry?.Name, out var name, out var reason))
             {
-                error = $"Domínio inválido '{entry?.Name}': {reason}";
+                error = string.Format(Strings.Protocol_BadDomain, entry?.Name, reason);
                 return false;
             }
             if (!DnsAddress.TryClassify(entry!.Address, out var address, out _))
             {
-                error = $"Endereço inválido para '{name}': {entry.Address}.";
+                error = string.Format(Strings.Protocol_BadAddress, name, entry.Address);
                 return false;
             }
             result.Add(new HostEntry(name, address));
@@ -132,7 +133,7 @@ public static class HelperProtocol
 
         if (result.Count > MaxEntries)
         {
-            error = $"No máximo {MaxEntries} entradas.";
+            error = string.Format(Strings.Protocol_TooMany, MaxEntries);
             return false;
         }
 

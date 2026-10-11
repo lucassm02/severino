@@ -1,5 +1,6 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
+using Severino.Contracts.Resources;
 
 namespace Severino.Contracts;
 
@@ -34,7 +35,7 @@ public static class DomainName
         normalized = null;
         var name = (input ?? "").Trim();
         if (!name.StartsWith("*.", StringComparison.Ordinal))
-            return Fail("Um curinga começa com *., como *.meuapp.sev.", out error);
+            return Fail(Strings.Domain_WildcardStart, out error);
         if (!TryNormalize(name[2..], out var baseName, out error))
             return false;
         normalized = "*." + baseName;
@@ -57,12 +58,12 @@ public static class DomainName
         var name = (input ?? "").Trim(' ').TrimEnd('.');
 
         if (name.Length == 0)
-            return Fail("Informe um domínio.", out error);
+            return Fail(Strings.Domain_Required, out error);
 
         // Checked before IDN conversion so the message is specific, and so nothing that could
         // break a hosts line (newline, space, '#') ever reaches the conversion.
         if (name.Any(c => char.IsControl(c) || char.IsWhiteSpace(c) || c == '#'))
-            return Fail("O domínio não pode ter espaços, quebras de linha ou '#'.", out error);
+            return Fail(Strings.Domain_Whitespace, out error);
 
         string ascii;
         try
@@ -71,31 +72,31 @@ public static class DomainName
         }
         catch (ArgumentException)
         {
-            return Fail("O domínio tem caracteres inválidos.", out error);
+            return Fail(Strings.Domain_BadChars, out error);
         }
 
         if (ascii.Length > MaxLength)
-            return Fail($"O domínio passa de {MaxLength} caracteres.", out error);
+            return Fail(string.Format(Strings.Domain_TooLong, MaxLength), out error);
 
         var labels = ascii.Split('.');
         if (labels.Length < 2 && !allowSingleLabel)
-            return Fail("Use pelo menos duas partes, como meuapp.sev.", out error);
+            return Fail(Strings.Domain_TwoLabels, out error);
 
         foreach (var label in labels)
         {
             if (label.Length is 0 or > MaxLabelLength)
-                return Fail($"Cada parte do domínio deve ter de 1 a {MaxLabelLength} caracteres.", out error);
+                return Fail(string.Format(Strings.Domain_LabelLength, MaxLabelLength), out error);
             if (label[0] == '-' || label[^1] == '-')
-                return Fail("Uma parte do domínio não pode começar nem terminar com hífen.", out error);
+                return Fail(Strings.Domain_Hyphen, out error);
             if (!label.All(c => c is (>= 'a' and <= 'z') or (>= '0' and <= '9') or '-'))
-                return Fail("Use só letras, números e hífen.", out error);
+                return Fail(Strings.Domain_Letters, out error);
         }
 
         if (labels[^1].All(char.IsAsciiDigit))
-            return Fail("O domínio não pode terminar em número; para endereços IP não é preciso rota.", out error);
+            return Fail(Strings.Domain_EndsInNumber, out error);
 
         if (ascii == "localhost")
-            return Fail("localhost já aponta para esta máquina.", out error);
+            return Fail(Strings.Domain_Localhost, out error);
 
         normalized = ascii;
         error = null;

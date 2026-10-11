@@ -1,5 +1,6 @@
 using Severino.Core.Configuration;
 using Severino.Core.Dns;
+using Severino.Core.Resources;
 
 namespace Severino.Core.Routes;
 
@@ -67,5 +68,5 @@ public sealed class Backup(ConfigService config, ServiceRouteService services, D
         return new(routes, servicesAdded, dnsAdded, refused);
     }
 
-    private static string Describe(IReadOnlyList<string> names) => names.Count > 0 ? names[0] : "(sem nome)";
+    private static string Describe(IReadOnlyList<string> names) => names.Count > 0 ? names[0] : Strings.Common_NoName;
 }

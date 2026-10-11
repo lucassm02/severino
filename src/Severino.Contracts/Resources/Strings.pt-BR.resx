@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="Domain_BadChars" xml:space="preserve">
+    <value>O domínio tem caracteres inválidos.</value>
+  </data>
+  <data name="Domain_EndsInNumber" xml:space="preserve">
+    <value>O domínio não pode terminar em número; para endereços IP não é preciso rota.</value>
+  </data>
+  <data name="Domain_Hyphen" xml:space="preserve">
+    <value>Uma parte do domínio não pode começar nem terminar com hífen.</value>
+  </data>
+  <data name="Domain_LabelLength" xml:space="preserve">
+    <value>Cada parte do domínio deve ter de 1 a {0} caracteres.</value>
+  </data>
+  <data name="Domain_Letters" xml:space="preserve">
+    <value>Use só letras, números e hífen.</value>
+  </data>
+  <data name="Domain_Localhost" xml:space="preserve">
+    <value>localhost já aponta para esta máquina.</value>
+  </data>
+  <data name="Domain_Required" xml:space="preserve">
+    <value>Informe um domínio.</value>
+  </data>
+  <data name="Domain_TooLong" xml:space="preserve">
+    <value>O domínio passa de {0} caracteres.</value>
+  </data>
+  <data name="Domain_TwoLabels" xml:space="preserve">
+    <value>Use pelo menos duas partes, como meuapp.sev.</value>
+  </data>
+  <data name="Domain_Whitespace" xml:space="preserve">
+    <value>O domínio não pode ter espaços, quebras de linha ou '#'.</value>
+  </data>
+  <data name="Domain_WildcardStart" xml:space="preserve">
+    <value>Um curinga começa com *., como *.meuapp.sev.</value>
+  </data>
+  <data name="Framing_TooLong" xml:space="preserve">
+    <value>A mensagem passa de {0} bytes.</value>
+  </data>
+  <data name="Framing_Truncated" xml:space="preserve">
+    <value>A conexão terminou antes do fim da mensagem.</value>
+  </data>
+  <data name="Protocol_BadAddress" xml:space="preserve">
+    <value>Endereço inválido para '{0}': {1}.</value>
+  </data>
+  <data name="Protocol_BadDomain" xml:space="preserve">
+    <value>Domínio inválido '{0}': {1}</value>
+  </data>
+  <data name="Protocol_EntriesRequired" xml:space="preserve">
+    <value>A lista de entradas é obrigatória.</value>
+  </data>
+  <data name="Protocol_NotLoopback" xml:space="preserve">
+    <value>Endereço não permitido para '{0}': {1}. Só endereços de loopback.</value>
+  </data>
+  <data name="Protocol_TooMany" xml:space="preserve">
+    <value>No máximo {0} entradas.</value>
+  </data>
+</root>

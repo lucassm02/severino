@@ -2,6 +2,7 @@ using System.Text.Json;
 using System.Text.RegularExpressions;
 using Severino.Contracts;
 using Severino.Core.Configuration;
+using Severino.Core.Resources;
 
 namespace Severino.Core.Discovery;
 
@@ -34,9 +35,9 @@ public static partial class DockerDiscovery
                 .ToList();
 
             var ports = PublishedPorts(String(root, "Ports") ?? "");
-            var unreachable = ports.Count > 0 ? null : "Nenhuma porta publicada no host.";
+            var unreachable = ports.Count > 0 ? null : Strings.Docker_NoPublishedPort;
             if (names.Count == 0)
-                (ports, unreachable) = ([], "O nome do container não serve como nome de host.");
+                (ports, unreachable) = ([], Strings.Docker_BadName);
             result.Add(new(ServiceKind.Docker, project ?? "", service ?? container, names, ports, null, "Docker", unreachable));
         }
         return [.. result.OrderBy(c => c.Namespace, StringComparer.Ordinal).ThenBy(c => c.Name, StringComparer.Ordinal)];

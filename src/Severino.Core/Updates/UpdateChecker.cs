@@ -35,10 +35,10 @@ public sealed class UpdateChecker(HttpClient http, Version current)
     public static ReleaseInfo Parse(JsonDocument document)
     {
         var root = document.RootElement;
-        var tag = String(root, "tag_name") ?? throw new UpdateCheckException("A resposta não tem tag_name.");
-        var version = ParseVersion(tag) ?? throw new UpdateCheckException($"A tag {tag} não é uma versão.");
+        var tag = String(root, "tag_name") ?? throw new UpdateCheckException("The answer has no tag_name.");
+        var version = ParseVersion(tag) ?? throw new UpdateCheckException($"Tag {tag} is not a version.");
         var page = Uri.TryCreate(String(root, "html_url"), UriKind.Absolute, out var url) ? url
-            : throw new UpdateCheckException("A resposta não tem html_url.");
+            : throw new UpdateCheckException("The answer has no html_url.");
 
         ReleaseInstaller? installer = null;
         if (root.TryGetProperty("assets", out var assets) && assets.ValueKind == JsonValueKind.Array)

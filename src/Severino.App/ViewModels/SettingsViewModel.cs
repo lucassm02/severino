@@ -4,6 +4,7 @@ using System.IO;
 using System.Windows;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using Severino.App.Resources;
 using Severino.App.Services;
 using Severino.Core.Certificates;
 using Severino.Core.Configuration;
@@ -16,6 +17,11 @@ namespace Severino.App.ViewModels;
 public sealed record ThemeOption(AppTheme Value, string Label)
 {
     // Screen readers and UI Automation read the item's ToString.
+    public override string ToString() => Label;
+}
+
+public sealed record LanguageOption(AppLanguage Value, string Label)
+{
     public override string ToString() => Label;
 }
 
@@ -49,6 +55,7 @@ public sealed partial class SettingsViewModel : ObservableObject
 
         var settings = config.Current.Settings;
         Theme = settings.Theme;
+        Language = settings.Language;
         StartWithWindows = autoStart.IsEnabled;
         StartMinimized = settings.StartMinimized;
         WatchServices = settings.WatchServices;
@@ -63,9 +70,9 @@ public sealed partial class SettingsViewModel : ObservableObject
 
     public IReadOnlyList<ThemeOption> Themes { get; } =
     [
-        new(AppTheme.Auto, "Igual ao Windows"),
-        new(AppTheme.Light, "Claro"),
-        new(AppTheme.Dark, "Escuro"),
+        new(AppTheme.Auto, Strings.Common_SameAsWindows),
+        new(AppTheme.Light, Strings.Settings_ThemeLight),
+        new(AppTheme.Dark, Strings.Settings_ThemeDark),
     ];
 
     public string ConfigDirectory => _config.Directory;
@@ -85,6 +92,30 @@ public sealed partial class SettingsViewModel : ObservableObject
         _config.Update(c => c with { Settings = c.Settings with { Theme = value } });
         _themes.Apply(value);
     }
+
+    /// <summary>Each language by its own name, so someone lost in the other one still finds theirs.</summary>
+    public IReadOnlyList<LanguageOption> Languages { get; } =
+    [
+        new(AppLanguage.Auto, Strings.Common_SameAsWindows),
+        new(AppLanguage.English, "English"),
+        new(AppLanguage.Portuguese, "Português (Brasil)"),
+    ];
+
+    [ObservableProperty]
+    public partial AppLanguage Language { get; set; }
+
+    /// <summary>The chosen language differs from the one on screen: it takes a restart.</summary>
+    [ObservableProperty]
+    public partial bool LanguageNeedsRestart { get; set; }
+
+    partial void OnLanguageChanged(AppLanguage value)
+    {
+        _config.Update(c => c with { Settings = c.Settings with { Language = value } });
+        LanguageNeedsRestart = UiLanguage.CultureFor(value, UiLanguage.Windows).Name != CultureInfo.CurrentUICulture.Name;
+    }
+
+    [RelayCommand]
+    private Task RestartAsync() => _shell.Value.RestartAsync();
 
     partial void OnStartMinimizedChanged(bool value) =>
         _config.Update(c => c with { Settings = c.Settings with { StartMinimized = value } });
@@ -151,9 +182,9 @@ public sealed partial class SettingsViewModel : ObservableObject
     private static string? ParsePort(string? text, int otherPort, out int port)
     {
         if (!int.TryParse(text?.Trim(), out port) || port is < 1 or > 65535)
-            return "Use um número de 1 a 65535.";
+            return Strings.Settings_PortRange;
         if (port == otherPort)
-            return "HTTP e HTTPS precisam de portas diferentes.";
+            return Strings.Settings_PortsDiffer;
         return null;
     }
 
@@ -199,8 +230,8 @@ public sealed partial class SettingsViewModel : ObservableObject
     [ObservableProperty]
     public partial string? FirefoxHint { get; set; }
 
-    /// <summary>Why "Ativar HTTPS" is disabled, when it is because there are no routes.</summary>
-    public string? ActivateHint => HasRoutes || HttpsActive ? null : "Crie uma rota primeiro: a CA só vale para os domínios cadastrados.";
+    /// <summary>Why Strings.Settings_HttpsActivate is disabled, when it is because there are no routes.</summary>
+    public string? ActivateHint => HasRoutes || HttpsActive ? null : Strings.Settings_ActivateHint;
 
     partial void OnHasRoutesChanged(bool value) => OnPropertyChanged(nameof(ActivateHint));
     partial void OnHttpsActiveChanged(bool value) => OnPropertyChanged(nameof(ActivateHint));
@@ -211,31 +242,31 @@ public sealed partial class SettingsViewModel : ObservableObject
 
     [RelayCommand(CanExecute = nameof(CanActivate))]
     private Task ActivateHttpsAsync() => RunAsync(async () => HttpsMessage = Describe(
-        await _https.ActivateAsync(prompt => DialogService.ConfirmTrustAsync("Ativar HTTPS", prompt)),
-        done: "HTTPS ativo. As rotas abrem com https://, e o http:// continua funcionando."));
+        await _https.ActivateAsync(prompt => DialogService.ConfirmTrustAsync(Strings.Settings_HttpsActivate, prompt)),
+        done: Strings.Settings_HttpsOn));
 
     [RelayCommand(CanExecute = nameof(CanUseCa))]
     private Task ReissueHttpsAsync() => RunAsync(async () => HttpsMessage = Describe(
-        await _https.ReissueAsync(prompt => DialogService.ConfirmTrustAsync("Reemitir a CA", prompt)),
-        done: "CA reemitida. Os certificados das rotas são refeitos no próximo acesso."));
+        await _https.ReissueAsync(prompt => DialogService.ConfirmTrustAsync(Strings.Settings_ReissueTitle, prompt)),
+        done: Strings.Settings_Reissued));
 
     [RelayCommand(CanExecute = nameof(CanRemove))]
     private Task RemoveHttpsAsync() => RunAsync(async () =>
     {
-        if (!await DialogService.ConfirmAsync("Remover CA",
-                "O HTTPS para de responder e as chaves da CA são apagadas. O Windows pede confirmação para tirar a CA da lista de confiáveis.",
-                "Remover"))
+        if (!await DialogService.ConfirmAsync(Strings.Settings_RemoveCa,
+                Strings.Settings_RemoveCaConfirm,
+                Strings.Common_Remove))
             return;
         NodeCommand = null;
         HttpsMessage = await _https.RemoveAsync()
-            ? "CA removida."
-            : "As chaves foram apagadas, mas a CA ficou na lista de confiáveis do Windows porque o pedido foi recusado. Sem a chave, ela não assina mais nada.";
+            ? Strings.Settings_CaRemoved
+            : Strings.Settings_CaRemovedRootKept;
     });
 
     [RelayCommand(CanExecute = nameof(CanUseCa))]
     private void ExportCa()
     {
-        var path = DialogService.PickSavePath("severino-ca.pem", "Certificado PEM (*.pem)|*.pem");
+        var path = DialogService.PickSavePath("severino-ca.pem", Strings.Settings_PemFilter);
         if (path is null)
             return;
         try
@@ -246,7 +277,7 @@ public sealed partial class SettingsViewModel : ObservableObject
         }
         catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
         {
-            HttpsMessage = $"Não deu para gravar o arquivo: {ex.Message}";
+            HttpsMessage = string.Format(Strings.Common_CouldNotWriteFile, ex.Message);
         }
     }
 
@@ -267,7 +298,7 @@ public sealed partial class SettingsViewModel : ObservableObject
         }
         catch (Exception ex)
         {
-            HttpsMessage = $"Algo deu errado: {ex.Message}";
+            HttpsMessage = string.Format(Strings.Common_SomethingWentWrong, ex.Message);
         }
         finally
         {
@@ -278,10 +309,10 @@ public sealed partial class SettingsViewModel : ObservableObject
     private static string? Describe(HttpsActionResult result, string done) => result switch
     {
         HttpsActionResult.Done => done,
-        HttpsActionResult.DoneOldRootKept => done + " A CA antiga ficou na lista de confiáveis do Windows, mas sem a chave ela não assina mais nada.",
-        HttpsActionResult.Declined => "O Windows não instalou a CA, então nada mudou.",
+        HttpsActionResult.DoneOldRootKept => done + Strings.Settings_OldRootKept,
+        HttpsActionResult.Declined => Strings.Settings_CaDeclined,
         HttpsActionResult.Cancelled => null,
-        _ => "Crie uma rota primeiro.",
+        _ => Strings.Settings_CreateRouteFirst,
     };
 
     private void RefreshHttps()
@@ -292,24 +323,24 @@ public sealed partial class SettingsViewModel : ObservableObject
         HttpsBroken = status.State is LocalCaState.NotTrusted or LocalCaState.Unreadable;
         HttpsStateText = status.State switch
         {
-            LocalCaState.Active => $"Ativo. A CA vale até {status.NotAfter?.LocalDateTime.ToString("d", CultureInfo.CurrentCulture)}.",
-            LocalCaState.NotTrusted => "O Windows não confia mais na CA: ela saiu da lista de confiáveis. Ative de novo ou remova.",
-            LocalCaState.Unreadable => "Não foi possível ler a CA, talvez criada por outro usuário do Windows. Ative de novo ou remova.",
-            _ => "Desativado. As rotas abrem só por http://.",
+            LocalCaState.Active => string.Format(Strings.Settings_HttpsActiveUntil, status.NotAfter?.LocalDateTime.ToString("d", CultureInfo.CurrentCulture)),
+            LocalCaState.NotTrusted => Strings.Settings_CaNotTrusted,
+            LocalCaState.Unreadable => Strings.Settings_CaUnreadable,
+            _ => Strings.Settings_HttpsOff,
         };
         var firefox = HttpsActive ? FirefoxTrust.ProfilesIgnoringWindowsRoots() : [];
         FirefoxHint = firefox.Count == 0 ? null
-            : $"O Firefox ({(firefox.Count == 1 ? "perfil" : "perfis")} {string.Join(", ", firefox)}) usa a própria lista de CAs e vai recusar estes certificados. " +
-              $"Abra about:config, ligue {FirefoxTrust.Preference} e reinicie o Firefox.";
+            : string.Format(Strings.Settings_FirefoxHint, firefox.Count == 1 ? Strings.Settings_FirefoxProfile : Strings.Settings_FirefoxProfiles,
+                string.Join(", ", firefox), FirefoxTrust.Preference);
         CoverageText = HttpsActive
-            ? "Cobre: " + HttpsService.DescribeNames(status.Names)
+            ? string.Format(Strings.Settings_Covers, HttpsService.DescribeNames(status.Names))
             : "";
         var uncovered = _https.Uncovered();
         UncoveredText = uncovered.Count switch
         {
             0 => null,
-            1 => $"{uncovered[0]} está fora da CA e fica sem HTTPS até reemitir.",
-            _ => $"{string.Join(", ", uncovered)} estão fora da CA e ficam sem HTTPS até reemitir.",
+            1 => string.Format(Strings.Settings_UncoveredOne, uncovered[0]),
+            _ => string.Format(Strings.Settings_UncoveredMany, string.Join(", ", uncovered)),
         };
     }
 
@@ -318,7 +349,7 @@ public sealed partial class SettingsViewModel : ObservableObject
     [RelayCommand]
     private async Task ExportBackupAsync()
     {
-        var path = DialogService.PickSavePath("severino-backup.json", "Backup do Severino (*.json)|*.json");
+        var path = DialogService.PickSavePath("severino-backup.json", Strings.Settings_BackupFilter);
         if (path is null)
             return;
         try
@@ -327,14 +358,14 @@ public sealed partial class SettingsViewModel : ObservableObject
         }
         catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
         {
-            await DialogService.ShowInfoAsync("Exportar backup", $"Não deu para gravar o arquivo: {ex.Message}");
+            await DialogService.ShowInfoAsync(Strings.Settings_ExportBackup, string.Format(Strings.Common_CouldNotWriteFile, ex.Message));
         }
     }
 
     [RelayCommand]
     private async Task ImportBackupAsync()
     {
-        var path = DialogService.PickOpenPath("Backup do Severino (*.json)|*.json|Todos os arquivos (*.*)|*.*");
+        var path = DialogService.PickOpenPath(Strings.Settings_BackupOpenFilter);
         if (path is null)
             return;
 
@@ -345,11 +376,11 @@ public sealed partial class SettingsViewModel : ObservableObject
         }
         catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or InvalidRouteFileException)
         {
-            await DialogService.ShowInfoAsync("Importar backup", $"Não deu para importar: {ex.Message}");
+            await DialogService.ShowInfoAsync(Strings.Settings_ImportBackup, string.Format(Strings.Settings_ImportFailed, ex.Message));
             return;
         }
 
-        await DialogService.ShowInfoAsync("Importar backup", DescribeImport(result));
+        await DialogService.ShowInfoAsync(Strings.Settings_ImportBackup, DescribeImport(result));
         await OfferReissueAsync(result.Routes.Added);
     }
 
@@ -359,22 +390,22 @@ public sealed partial class SettingsViewModel : ObservableObject
         var routes = result.Routes;
         var came = new[]
         {
-            Count(routes.Added.Count, "rota", "rotas"),
-            Count(result.Services.Count, "serviço", "serviços"),
-            Count(result.Dns.Count, "entrada DNS", "entradas DNS"),
+            Count(routes.Added.Count, Strings.Count_Route, Strings.Count_Routes),
+            Count(result.Services.Count, Strings.Count_Service, Strings.Count_Services),
+            Count(result.Dns.Count, Strings.Count_DnsEntry, Strings.Count_DnsEntries),
         }.OfType<string>().ToList();
         var lines = new List<string>
         {
-            came.Count == 0 ? "Nada novo para importar." : $"Importados: {string.Join(", ", came)}.",
+            came.Count == 0 ? Strings.Settings_ImportNothing : string.Format(Strings.Settings_Imported, string.Join(", ", came)),
         };
         if (routes.Skipped.Count > 0)
-            lines.Add($"Rotas que já existiam, e ficaram como estavam: {string.Join(", ", routes.Skipped)}.");
+            lines.Add(string.Format(Strings.Settings_ImportSkipped, string.Join(", ", routes.Skipped)));
         var refused = routes.Invalid.Concat(result.Refused).ToList();
         if (refused.Count > 0)
-            lines.Add("Não importados:\n" + string.Join("\n", refused.Select(i => $"• {i.Domain}: {i.Reason}")));
+            lines.Add(Strings.Settings_ImportRefused + "\n" + string.Join("\n", refused.Select(i => $"• {i.Domain}: {i.Reason}")));
         return string.Join("\n\n", lines);
 
-        static string? Count(int n, string one, string many) => n switch { 0 => null, 1 => $"1 {one}", _ => $"{n} {many}" };
+        static string? Count(int n, string one, string many) => n switch { 0 => null, 1 => one, _ => string.Format(many, n) };
     }
 
     // Like saving a route in the form: imported HTTPS routes outside the CA need a new one.
@@ -383,10 +414,10 @@ public sealed partial class SettingsViewModel : ObservableObject
         var uncovered = added.Where(r => r.Https && _https.IsActive && !_https.Covers(r.Domain)).Select(r => r.Domain).ToList();
         if (uncovered.Count == 0)
             return;
-        var lead = $"A CA atual não cobre {string.Join(", ", uncovered)}. Para essas rotas terem HTTPS, o Severino cria uma CA nova para todas as rotas com HTTPS.";
+        var lead = string.Format(Strings.Settings_ImportReissueLead, string.Join(", ", uncovered));
         await RunAsync(async () => HttpsMessage = Describe(
-            await _https.ReissueAsync(prompt => DialogService.ConfirmTrustAsync("Reemitir a CA", prompt, lead)),
-            done: "CA reemitida para incluir as rotas importadas."));
+            await _https.ReissueAsync(prompt => DialogService.ConfirmTrustAsync(Strings.Settings_ReissueTitle, prompt, lead)),
+            done: Strings.Settings_ReissuedForImport));
     }
 
     [RelayCommand]
@@ -398,8 +429,8 @@ public sealed partial class SettingsViewModel : ObservableObject
 
         var result = _cleanup.Run();
         if (!result.CaRemoved)
-            await DialogService.ShowInfoAsync("Limpar tudo",
-                "A CA ficou na lista de confiáveis do Windows porque o pedido foi recusado. As chaves dela foram apagadas, então ela não assina mais nada.");
+            await DialogService.ShowInfoAsync(Strings.Settings_CleanUp,
+                Strings.Settings_CleanUpRootKept);
 
         // The DNS block outlives an exit, so it goes now; lines outside Severino stay as they are.
         if (_dnsSync is not null)

@@ -1,6 +1,7 @@
 using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using Severino.App.Resources;
 using Severino.App.Services;
 using Severino.Contracts;
 using Severino.Core.Configuration;
@@ -20,7 +21,7 @@ public enum NameKind
 /// <summary>What the route form had when the person chose to make a service or DNS entry instead.</summary>
 public readonly record struct NameKindSwitch(NameKind Kind, string Name, string Host, int Port);
 
-/// <summary>The "Nova rota" / "Editar rota" form.</summary>
+/// <summary>The Strings.Routes_New / Strings.RouteEditor_Edit form.</summary>
 public sealed partial class RouteEditorViewModel : ObservableObject
 {
     private static readonly TimeSpan DomainCheckDelay = TimeSpan.FromMilliseconds(500);
@@ -40,7 +41,7 @@ public sealed partial class RouteEditorViewModel : ObservableObject
     public RouteEditorViewModel(RouteService routes, DomainInspector inspector, HttpsService https, Navigation navigation, RouteEntry? existing, bool isCopy,
         IReadOnlyList<Core.Dns.DnsDestination>? destinations = null)
     {
-        HostSuggestions = [new Core.Dns.DnsDestination("localhost", "esta máquina", Outside: false), .. destinations ?? []];
+        HostSuggestions = [new Core.Dns.DnsDestination("localhost", Strings.Common_ThisMachine, Outside: false), .. destinations ?? []];
         _routes = routes;
         _inspector = inspector;
         _https = https;
@@ -94,10 +95,10 @@ public sealed partial class RouteEditorViewModel : ObservableObject
     /// </summary>
     public IReadOnlyList<Core.Dns.DnsDestination> HostSuggestions { get; }
 
-    public string Title => IsNew ? "Nova rota" : "Editar rota";
+    public string Title => IsNew ? Strings.Routes_New : Strings.RouteEditor_Edit;
     public string SaveLabel => _confirmedExistingDomain is not null && _confirmedExistingDomain == NormalizedDomain
-        ? "Criar mesmo assim"
-        : IsNew ? "Criar" : "Salvar";
+        ? Strings.RouteEditor_CreateAnyway
+        : IsNew ? Strings.Common_Create : Strings.Common_Save;
 
     public IReadOnlyList<string> Schemes { get; } = [Uri.UriSchemeHttp, Uri.UriSchemeHttps];
 
@@ -125,7 +126,7 @@ public sealed partial class RouteEditorViewModel : ObservableObject
     public bool CanToggleRedirect => HttpsAvailable && Https;
 
     public string? HttpsRequiredText => HttpsAvailable && HstsRequired
-        ? "HTTPS obrigatório: navegadores só abrem este domínio com HTTPS (HSTS preload)."
+        ? Strings.RouteEditor_HstsRequired
         : null;
 
     [ObservableProperty]
@@ -275,15 +276,15 @@ public sealed partial class RouteEditorViewModel : ObservableObject
         if (KnownPorts.NonHttpProgram(port) is { } program)
         {
             _kindSwitch = new NameKindSwitch(NameKind.Service, name, host, port);
-            KindHint = $"{port} é a porta do {program}, que não fala HTTP: como rota, não abre. Como serviço, o nome leva direto à porta, em qualquer protocolo.";
-            KindSwitchLabel = "Criar como serviço";
+            KindHint = string.Format(Strings.RouteEditor_ServiceHint, port, program);
+            KindSwitchLabel = Strings.RouteEditor_CreateAsService;
         }
         else if (Scheme == Uri.UriSchemeHttp && port == 80 && !HasPath
             && DnsAddress.TryClassify(host, out var address, out var scope) && scope != AddressScope.Loopback)
         {
             _kindSwitch = new NameKindSwitch(NameKind.Dns, name, address, port);
-            KindHint = $"Só quer o nome apontando para {address}? Uma entrada DNS faz isso direto, sem o proxy e sem o HTTPS da CA local, e vale com o app fechado.";
-            KindSwitchLabel = "Criar entrada DNS";
+            KindHint = string.Format(Strings.RouteEditor_DnsHint, address);
+            KindSwitchLabel = Strings.RouteEditor_CreateDns;
         }
     }
 
@@ -339,7 +340,7 @@ public sealed partial class RouteEditorViewModel : ObservableObject
 
     private void UpdateCoverageWarning() =>
         CoverageWarning = HttpsAvailable && Https && NormalizedDomain is { } domain && !_https.Covers(domain)
-            ? $"{domain} está fora da CA atual. Ao salvar, o Severino oferece reemitir a CA, e o Windows pede confirmação."
+            ? string.Format(Strings.RouteEditor_Uncovered, domain)
             : null;
 
     private RouteEntry Build() => _original with
@@ -424,7 +425,7 @@ public sealed partial class RouteEditorViewModel : ObservableObject
             await Task.Delay(PortCheckDelay, cts.Token);
             var up = await HealthMonitor.CanConnectAsync(target.IdnHost, target.Port, cts.Token);
             if (!cts.IsCancellationRequested)
-                PortWarning = up ? null : $"Nada escutando em {target.Authority} agora. A rota fica esperando seu servidor subir.";
+                PortWarning = up ? null : string.Format(Strings.RouteEditor_NothingListening, target.Authority);
         }
         catch (OperationCanceledException)
         {

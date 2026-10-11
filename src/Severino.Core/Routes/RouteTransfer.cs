@@ -1,5 +1,6 @@
 using System.Text.Json;
 using Severino.Core.Configuration;
+using Severino.Core.Resources;
 
 namespace Severino.Core.Routes;
 
@@ -91,12 +92,12 @@ public static class RouteTransfer
         }
         catch (JsonException ex)
         {
-            throw new InvalidRouteFileException("O arquivo não é um JSON válido.", ex);
+            throw new InvalidRouteFileException(Strings.Transfer_NotJson, ex);
         }
         if (file is null || file.Severino < 1)
-            throw new InvalidRouteFileException("O arquivo não é uma exportação de rotas do Severino.");
+            throw new InvalidRouteFileException(Strings.Transfer_NotExport);
         if (file.Severino > RouteFile.CurrentVersion)
-            throw new InvalidRouteFileException("O arquivo veio de uma versão mais nova do Severino. Atualize antes de importar.");
+            throw new InvalidRouteFileException(Strings.Transfer_TooNew);
         return file;
     }
 
@@ -135,7 +136,7 @@ public static class RouteTransfer
             var errors = RouteRules.Validate(route, routes, httpPort, httpsPort, services);
             if (!errors.IsValid)
             {
-                invalid.Add(new(route.Domain.Length > 0 ? route.Domain : "(sem domínio)", errors.Domain ?? errors.Path ?? errors.Target ?? ""));
+                invalid.Add(new(route.Domain.Length > 0 ? route.Domain : Strings.Transfer_NoDomain, errors.Domain ?? errors.Path ?? errors.Target ?? ""));
                 continue;
             }
 

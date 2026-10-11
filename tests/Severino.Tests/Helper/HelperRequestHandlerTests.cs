@@ -159,7 +159,7 @@ public sealed class HelperRequestHandlerTests
         var response = Send(HelperRequest.EditLine("10.0.0.8 sql.interno", [new HostEntry("sql.interno", "10.0.0.9")]));
 
         Assert.False(response.Ok);
-        Assert.StartsWith("A linha mudou", response.Error);
+        Assert.StartsWith("The line changed", response.Error);
         Assert.Equal("10.0.0.7 sql.interno\r\n", _hosts.Text);
     }
 

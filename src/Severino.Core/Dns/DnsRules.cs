@@ -1,5 +1,6 @@
 using Severino.Contracts;
 using Severino.Core.Configuration;
+using Severino.Core.Resources;
 using Severino.Core.Routes;
 
 namespace Severino.Core.Dns;
@@ -7,7 +8,8 @@ namespace Severino.Core.Dns;
 /// <summary>Validation for DNS entries, and the one list of names that entries, routes and services share.</summary>
 public static class DnsRules
 {
-    public const string ExternalClash = "já está no hosts, fora do Severino. Edite essa linha na aba DNS ou escolha outro nome.";
+    /// <summary>"{0} já está no hosts, fora do Severino…", with the name for {0}.</summary>
+    public static string ExternalClash => Strings.Dns_ExternalClash;
 
     /// <summary>
     /// The entry with its names and address normalized, or the first reason it cannot be used.
@@ -16,30 +18,30 @@ public static class DnsRules
     public static (DnsEntry? Normalized, string? Error) Validate(DnsEntry entry, SeverinoConfig config, IReadOnlySet<string>? external = null)
     {
         if (entry.Names.Count == 0)
-            return (null, "Informe pelo menos um nome.");
+            return (null, Strings.Rules_NameRequired);
 
         var names = new List<string>();
         foreach (var raw in entry.Names)
         {
             if (!(DomainName.IsWildcard(raw) ? DomainName.TryNormalizeWildcard(raw, out var name, out var reason) : DomainName.TryNormalize(raw, out name, out reason, allowSingleLabel: true)))
-                return (null, $"Nome inválido '{raw}': {reason}");
+                return (null, string.Format(Strings.Rules_BadName, raw, reason));
             if (!names.Contains(name))
                 names.Add(name);
         }
 
         if (!DnsAddress.TryClassify(entry.Address?.Trim(), out var address, out _))
-            return (null, "Informe um IPv4 ou IPv6 de um computador, como 10.0.0.8.");
+            return (null, Strings.Rules_IpRequired);
 
         foreach (var name in names)
         {
             if (config.DnsEntries.Any(d => d.Id != entry.Id && d.Names.Contains(name)))
-                return (null, $"{name} já está em outra entrada DNS.");
+                return (null, string.Format(Strings.Dns_NameInOtherEntry, name));
             if (config.Routes.Any(r => RouteRules.Normalize(r.Domain) == name))
-                return (null, $"{name} já é uma rota.");
+                return (null, string.Format(Strings.Dns_NameIsRoute, name));
             if (config.Services.Any(s => s.Names.Contains(name)))
-                return (null, $"{name} já é um serviço.");
+                return (null, string.Format(Strings.Dns_NameIsService, name));
             if (external?.Contains(name) == true)
-                return (null, $"{name} {ExternalClash}");
+                return (null, string.Format(ExternalClash, name));
         }
 
         return (entry with { Names = names, Address = address, Notes = entry.Notes.Trim() }, null);

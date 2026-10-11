@@ -2,6 +2,7 @@ using System.Net;
 using Severino.Core.Configuration;
 using Severino.Core.Discovery;
 using Severino.Core.Dns;
+using Severino.Core.Resources;
 
 namespace Severino.Core.Routes;
 
@@ -18,13 +19,13 @@ public sealed record RefreshOutcome(RefreshResult? Result, string? Error = null)
         {
             Result.Updated.Count switch
             {
-                0 => "Nada mudou",
-                1 => "1 serviço com portas novas",
-                var n => $"{n} serviços com portas novas",
+                0 => Strings.Refresh_NothingChanged,
+                1 => Strings.Refresh_OneNewPorts,
+                var n => string.Format(Strings.Refresh_ManyNewPorts, n),
             },
         };
         if (Result.Missing.Count > 0)
-            parts.Add($"não encontrados agora: {string.Join(", ", Result.Missing.Select(m => m.Names[0]))}");
+            parts.Add(string.Format(Strings.Refresh_Missing, string.Join(", ", Result.Missing.Select(m => m.Names[0]))));
         return string.Join(" · ", parts);
     }
 }
@@ -55,7 +56,7 @@ public sealed class ServiceRefresher(ServiceDiscovery discovery, ServiceRouteSer
             if (result.Error is { } error)
                 return new(null, error);
             if (result.Context != origin.Context)
-                return new(null, $"O kubectl em {source} está no contexto {result.Context}, não em {origin.Context}. Troque o contexto e atualize de novo.");
+                return new(null, string.Format(Strings.Refresh_WrongContext, source, result.Context, origin.Context));
             found = nodeName is not null && result.Node is { } address
                 ? DiscoveredService.UseName(result.Services, address, nodeName)
                 : result.Services;

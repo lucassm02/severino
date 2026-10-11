@@ -2,6 +2,7 @@ using System.Collections.ObjectModel;
 using System.Windows;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using Severino.App.Resources;
 using Severino.App.Services;
 using Severino.Core.Configuration;
 using Severino.Core.Discovery;
@@ -77,10 +78,10 @@ public sealed partial class ServicesViewModel : ListPageViewModel
         if (distros.Count > 0)
             _config.Update(c => c with { Settings = c.Settings with { WslDistros = [.. c.Settings.WslDistros, .. distros] } });
         var message = Describe(result, outcome.IngressRoutes.Count)
-            + (distros.Count > 0 ? $" Apps no WSL · {string.Join(", ", distros)} também chamam pelos nomes." : "");
+            + (distros.Count > 0 ? string.Format(Strings.Services_WslToo, string.Join(", ", distros)) : "");
         // Ingress hosts became web routes, which live in the other tab.
         if (outcome.IngressRoutes.Count > 0)
-            ShowToast(message, "Ver em Rotas", () => _navigation.Show(AppTab.Routes));
+            ShowToast(message, Strings.Common_SeeInRoutes, () => _navigation.Show(AppTab.Routes));
         else
             ShowToast(message);
     }
@@ -91,8 +92,8 @@ public sealed partial class ServicesViewModel : ListPageViewModel
         var routes = ingressRoutes switch
         {
             0 => null,
-            1 => "1 rota web criada na aba Rotas",
-            var n => $"{n} rotas web criadas na aba Rotas",
+            1 => Strings.Services_WebRouteOne,
+            var n => string.Format(Strings.Services_WebRoutes, n),
         };
         return (services.Count == 0 && routes is not null ? routes
             : ImportServicesViewModel.Describe(services) + (routes is null ? "" : $" · {routes}")) + ".";
@@ -102,7 +103,7 @@ public sealed partial class ServicesViewModel : ListPageViewModel
     private void NewService()
     {
         if (_dialogs.EditService(null) is { } saved)
-            ShowToast($"{saved.Names[0]} pronto");
+            ShowToast(string.Format(Strings.Routes_Ready, saved.Names[0]));
     }
 
     [RelayCommand]
@@ -112,25 +113,25 @@ public sealed partial class ServicesViewModel : ListPageViewModel
     private void CopyServiceName(ServiceItemViewModel item)
     {
         Clipboard.SetText(item.Name);
-        ShowToast("Nome copiado");
+        ShowToast(Strings.Services_NameCopied);
     }
 
     [RelayCommand]
     private void ShowDns(string name) => _navigation.Show(AppTab.Dns, name);
 
     [RelayCommand]
-    private void RemoveService(ServiceItemViewModel item) => RemoveServices([item.Id], $"{item.Name} removido");
+    private void RemoveService(ServiceItemViewModel item) => RemoveServices([item.Id], string.Format(Strings.Common_Removed, item.Name));
 
     [RelayCommand]
     private void RemoveGroup(ServiceGroupViewModel group) =>
-        RemoveServices([.. group.Items.Select(i => i.Id)], $"{Plural(group.Items.Count, "serviço removido", "serviços removidos")}");
+        RemoveServices([.. group.Items.Select(i => i.Id)], Plural(group.Items.Count, Strings.Services_RemovedOne, Strings.Services_RemovedMany));
 
     private void RemoveServices(IReadOnlyCollection<Guid> ids, string message)
     {
         var removed = _services.Remove(ids);
         if (removed.Count == 0)
             return;
-        ShowUndo(message, () => _services.Restore(removed) == removed.Count ? null : "Parte não voltou: os nomes ou endereços já estão em outra rota.");
+        ShowUndo(message, () => _services.Restore(removed) == removed.Count ? null : Strings.Services_UndoPartial);
     }
 
     /// <summary>Asks the group's source again and moves its routes to the ports of now.</summary>
@@ -157,7 +158,7 @@ public sealed partial class ServicesViewModel : ListPageViewModel
         var services = config.Services;
         HasServices = services.Count > 0;
         var enabled = services.Count(s => s.Enabled);
-        Summary = $"{Plural(services.Count, "serviço", "serviços")} · {enabled} {(enabled == 1 ? "ligado" : "ligados")}";
+        Summary = $"{Plural(services.Count, Strings.Count_Service, Strings.Count_Services)} · {Plural(enabled, Strings.Services_EnabledOne, Strings.Services_EnabledMany)}";
 
         var search = Search.Trim();
         var visible = services.Where(s => Matches(s, search)).ToList();

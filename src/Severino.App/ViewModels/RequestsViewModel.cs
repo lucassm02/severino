@@ -6,6 +6,7 @@ using System.Windows.Data;
 using System.Windows.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using Severino.App.Resources;
 using Severino.App.Services;
 using Severino.Core.Configuration;
 using Severino.Core.Routes;
@@ -36,7 +37,7 @@ public sealed partial class RequestItemViewModel(RequestEntry entry) : Observabl
     /// <summary>A service route's TCP connection has no HTTP status: it either reached the target or not.</summary>
     public bool IsTcp => Entry.Scheme == "tcp";
 
-    public string StatusText => IsTcp ? (Entry.Status == 200 ? "ok" : "falhou") : Entry.Status.ToString(System.Globalization.CultureInfo.InvariantCulture);
+    public string StatusText => IsTcp ? (Entry.Status == 200 ? "ok" : Strings.Requests_TcpFailed) : Entry.Status.ToString(System.Globalization.CultureInfo.InvariantCulture);
 
     public bool FromProxy => Entry.FromProxy;
 
@@ -56,7 +57,7 @@ public sealed partial class RequestItemViewModel(RequestEntry entry) : Observabl
 
     public string DurationText => Entry.Duration switch
     {
-        null => "aberto",
+        null => Strings.Requests_Open,
         { TotalMilliseconds: < 1 } => "<1 ms",
         { TotalSeconds: < 1 } d => $"{d.TotalMilliseconds:0} ms",
         { TotalMinutes: < 1 } d => $"{d.TotalSeconds:0.0} s",
@@ -69,7 +70,7 @@ public sealed partial class RequestItemViewModel(RequestEntry entry) : Observabl
 
 public sealed record DomainFilter(string? Domain, string Label)
 {
-    public static readonly DomainFilter All = new(null, "Todos os domínios");
+    public static readonly DomainFilter All = new(null, Strings.Requests_AllDomains);
 
     public override string ToString() => Label;
 }
@@ -129,17 +130,17 @@ public sealed partial class RequestsViewModel : ObservableObject
     [NotifyPropertyChangedFor(nameof(HeldText))]
     public partial int HeldCount { get; set; }
 
-    public string PauseLabel => IsPaused ? "Retomar" : "Pausar";
+    public string PauseLabel => IsPaused ? Strings.Requests_Resume : Strings.Requests_Pause;
 
-    public string? HeldText => IsPaused && HeldCount > 0 ? $"{HeldCount} {(HeldCount == 1 ? "nova" : "novas")}" : null;
+    public string? HeldText => IsPaused && HeldCount > 0 ? (HeldCount == 1 ? Strings.Requests_HeldOne : string.Format(Strings.Requests_HeldMany, HeldCount)) : null;
 
     public bool IsEmpty => View.IsEmpty;
 
     public string EmptyText => _proxy.Status.State == ProxyState.Running
         ? SelectedDomain.Domain is { } domain
-            ? $"Nenhuma requisição para {domain} ainda."
-            : "Abra uma das suas rotas no navegador e as requisições aparecem aqui."
-        : "O proxy não está rodando. Veja a barra inferior.";
+            ? string.Format(Strings.Requests_NoneFor, domain)
+            : Strings.Requests_EmptyHint
+        : Strings.Requests_ProxyDown;
 
     [RelayCommand]
     private void TogglePause()

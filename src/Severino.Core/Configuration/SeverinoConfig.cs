@@ -45,6 +45,9 @@ public sealed record AppSettings
     public bool StartMinimized { get; set; }
     public AppTheme Theme { get; set; } = AppTheme.Auto;
 
+    /// <summary>The UI language; Auto follows the Windows display language.</summary>
+    public AppLanguage Language { get; set; } = AppLanguage.Auto;
+
     /// <summary>WSL distros whose apps call the service routes by name; each gets the hosts block and the NAT rules.</summary>
     public IReadOnlyList<string> WslDistros { get; set; } = [];
 
@@ -171,6 +174,14 @@ public enum ServiceKind
 {
     [JsonStringEnumMemberName("kubernetes")] Kubernetes,
     [JsonStringEnumMemberName("docker")] Docker,
+}
+
+[JsonConverter(typeof(JsonStringEnumConverter<AppLanguage>))]
+public enum AppLanguage
+{
+    [JsonStringEnumMemberName("auto")] Auto,
+    [JsonStringEnumMemberName("en")] English,
+    [JsonStringEnumMemberName("pt-BR")] Portuguese,
 }
 
 [JsonConverter(typeof(JsonStringEnumConverter<AppTheme>))]

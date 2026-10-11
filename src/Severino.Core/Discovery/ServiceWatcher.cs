@@ -2,6 +2,7 @@ using System.Diagnostics;
 using System.Text;
 using Microsoft.Extensions.Logging;
 using Severino.Core.Configuration;
+using Severino.Core.Resources;
 using Severino.Core.Routes;
 
 namespace Severino.Core.Discovery;
@@ -161,7 +162,7 @@ public sealed class ServiceWatcher(ConfigService config, ServiceRefresher refres
             if (outcome.Result is { Updated.Count: > 0 } result)
             {
                 var names = string.Join(", ", result.Updated.Select(r => r.Names[0]));
-                Updated?.Invoke(this, $"{names} com portas novas, atualizado sozinho.");
+                Updated?.Invoke(this, string.Format(Strings.Watcher_Updated, names));
             }
         }
         catch (Exception ex) when (ex is not OperationCanceledException)
@@ -234,7 +235,7 @@ public sealed class ProcessServiceEvents : IServiceEvents
         }
         catch (System.ComponentModel.Win32Exception)
         {
-            return $"O docker não está instalado em {source}.";
+            return string.Format(Strings.Discovery_NotInstalled, "docker", source);
         }
         process.BeginOutputReadLine();
         process.BeginErrorReadLine();

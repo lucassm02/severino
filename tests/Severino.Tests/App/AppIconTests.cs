@@ -65,11 +65,12 @@ public sealed class AppIconTests
         Assert.Contains(256, widths);
     }
 
-    private static string RepoRoot()
+    // From this source file, so it works whatever folder the tests were built to.
+    private static string RepoRoot([System.Runtime.CompilerServices.CallerFilePath] string source = "")
     {
-        var dir = new DirectoryInfo(AppContext.BaseDirectory);
+        var dir = new DirectoryInfo(Path.GetDirectoryName(source)!);
         while (dir is not null && !File.Exists(Path.Combine(dir.FullName, "Severino.slnx")))
             dir = dir.Parent;
-        return dir?.FullName ?? throw new InvalidOperationException("Severino.slnx not found above the test output.");
+        return dir?.FullName ?? throw new InvalidOperationException("Severino.slnx not found above " + source);
     }
 }

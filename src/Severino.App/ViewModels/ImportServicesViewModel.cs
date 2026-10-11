@@ -1,6 +1,7 @@
 using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using Severino.App.Resources;
 using Severino.Core.Configuration;
 using Severino.Core.Discovery;
 using Severino.Core.Routes;
@@ -14,8 +15,8 @@ public sealed record SourceOption(CommandSource? Source, bool Stopped = false)
 {
     public bool IsPaste => Source is null;
 
-    public string Label => Source is null ? "Colar saída de comando"
-        : Stopped ? $"{Source} (parada; procurar inicia a distro)"
+    public string Label => Source is null ? Strings.Import_PasteSource
+        : Stopped ? string.Format(Strings.Import_StoppedDistro, Source)
         : Source.ToString();
 
     public override string ToString() => Label;
@@ -27,7 +28,7 @@ public sealed record SourceScan(KubernetesResult? Kubernetes, DockerResult? Dock
 /// <summary>The "Importar serviços" window.</summary>
 public sealed partial class ImportServicesViewModel : ObservableObject
 {
-    public const string AllNamespaces = "Todos os namespaces";
+    public static string AllNamespaces => Strings.Import_AllNamespaces;
 
     private readonly ServiceDiscovery _discovery;
     private readonly ServiceRouteService _services;
@@ -61,14 +62,14 @@ public sealed partial class ImportServicesViewModel : ObservableObject
         Ingresses.Clear();
         foreach (var host in _routes is null ? [] : hosts)
         {
-            var conflict = target is null ? "Não achei o controlador de Ingress para apontar a rota."
+            var conflict = target is null ? Strings.Import_NoIngressController
                 : _routes!.Validate(new RouteEntry { Domain = host.Host, Target = target }) is { IsValid: false } errors ? errors.Domain ?? errors.Target
                 : null;
             Ingresses.Add(new IngressItemViewModel(host, conflict, () => UpdatePlan()) { IsSelected = conflict is null && marked.Contains(host.Host) });
         }
         HasIngresses = Ingresses.Count > 0;
-        IngressHeader = target is null ? "Cada host vira uma rota web, na aba Rotas."
-            : $"Cada host vira uma rota web, na aba Rotas, para {target}, com o Host original, sem passar pela internet.";
+        IngressHeader = target is null ? Strings.Import_IngressHeader
+            : string.Format(Strings.Import_IngressHeaderTarget, target);
     }
 
     /// <summary>DNS name → node IP, for the nodes the hosts has a name for.</summary>
@@ -182,14 +183,14 @@ public sealed partial class ImportServicesViewModel : ObservableObject
     public bool CanSelectNamespace => SelectedNamespace != AllNamespaces;
 
     [ObservableProperty]
-    public partial string SelectNamespaceLabel { get; set; } = "Marcar o namespace inteiro";
+    public partial string SelectNamespaceLabel { get; set; } = Strings.Import_SelectNamespace;
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(ImportLabel), nameof(HasCandidates))]
     [NotifyCanExecuteChangedFor(nameof(ImportCommand))]
     public partial int SelectedCount { get; set; }
 
-    public string ImportLabel => SelectedCount == 0 ? "Importar" : $"Importar {SelectedCount}";
+    public string ImportLabel => SelectedCount == 0 ? Strings.Common_Import : string.Format(Strings.Import_ImportOne, SelectedCount);
 
     public bool HasCandidates => _all.Count > 0;
 
@@ -332,7 +333,7 @@ public sealed partial class ImportServicesViewModel : ObservableObject
             KubernetesFailed = kubernetes.Error is not null;
             KubernetesStatus = kubernetes.Error is { } error
                 ? error
-                : $"{kubernetes.Context} · {Plural(kubernetes.Services.Count, "service", "services")}, {kubernetes.Services.Count(s => s.CanImport)} com acesso de fora";
+                : string.Format(Strings.Import_KubernetesStatus, kubernetes.Context, Plural(kubernetes.Services.Count, Strings.Import_ServiceOne, Strings.Import_ServiceMany), kubernetes.Services.Count(s => s.CanImport));
             var services = nodeByName is not null && node is not null
                 ? DiscoveredService.UseName(kubernetes.Services, node, nodeByName)
                 : kubernetes.Services;
@@ -350,7 +351,7 @@ public sealed partial class ImportServicesViewModel : ObservableObject
             DockerFailed = docker.Error is not null;
             DockerStatus = docker.Error is { } error
                 ? error
-                : $"{Plural(docker.Containers.Count, "container rodando", "containers rodando")}";
+                : Plural(docker.Containers.Count, Strings.Import_ContainersOne, Strings.Import_ContainersMany);
             candidates.AddRange(docker.Containers.Select(s => new ServiceCandidate(s, new ServiceOrigin
             {
                 Kind = ServiceKind.Docker,
@@ -381,11 +382,11 @@ public sealed partial class ImportServicesViewModel : ObservableObject
         var found = ServiceDiscovery.FromPaste(PasteText, PasteNode);
         if (found is null)
         {
-            PasteError = "Não reconheci o texto. Cole a saída de kubectl get svc -A -o json ou de docker ps --format json.";
+            PasteError = Strings.Import_PasteUnknown;
             SetCandidates([]);
             return;
         }
-        PasteError = found.Count == 0 ? "Nenhum service ou container no texto." : null;
+        PasteError = found.Count == 0 ? Strings.Import_PasteEmpty : null;
         SetCandidates([.. found.Select(s => new ServiceCandidate(s, new ServiceOrigin
         {
             Kind = s.Source,
@@ -433,7 +434,7 @@ public sealed partial class ImportServicesViewModel : ObservableObject
     private void UpdateNamespaceLabel()
     {
         var items = _all.Where(i => i.Namespace == SelectedNamespace && i.Direct).ToList();
-        SelectNamespaceLabel = items.Count > 0 && items.All(i => i.IsSelected) ? "Desmarcar o namespace" : "Marcar o namespace inteiro";
+        SelectNamespaceLabel = items.Count > 0 && items.All(i => i.IsSelected) ? Strings.Import_UnselectNamespace : Strings.Import_SelectNamespace;
     }
 
     private void ApplyFilter()
@@ -487,9 +488,9 @@ public sealed partial class ImportServicesViewModel : ObservableObject
 
     private void UpdateSummary() =>
         ListSummary = _all.Count == 0 ? ""
-            : $"{_all.Count(i => i.IsSelected)} de {_all.Count} {(_all.Count == 1 ? "serviço marcado" : "serviços marcados")}"
-              + (Ingresses.Count(i => i.IsSelected) is var routes and > 0 ? $" · {routes} {(routes == 1 ? "rota" : "rotas")} de Ingress" : "")
-              + (Visible.Count < _all.Count ? $" · {Visible.Count} na lista" : "");
+            : string.Format(_all.Count == 1 ? Strings.Import_SummaryOne : Strings.Import_SummaryMany, _all.Count(i => i.IsSelected), _all.Count)
+              + (Ingresses.Count(i => i.IsSelected) is var routes and > 0 ? " · " + Plural(routes, Strings.Import_IngressRouteOne, Strings.Import_IngressRouteMany) : "")
+              + (Visible.Count < _all.Count ? " · " + string.Format(Strings.Import_InList, Visible.Count) : "");
 
     [RelayCommand(CanExecute = nameof(CanImport))]
     private void Import()
@@ -529,15 +530,15 @@ public sealed partial class ImportServicesViewModel : ObservableObject
         var failed = result.Count(p => p.Route is null);
         var parts = new List<string>();
         if (added > 0)
-            parts.Add(added == 1 ? "1 serviço importado" : $"{added} serviços importados");
+            parts.Add(added == 1 ? Strings.Import_AddedOne : string.Format(Strings.Import_AddedMany, added));
         if (updated > 0)
-            parts.Add(updated == 1 ? "1 atualizado" : $"{updated} atualizados");
+            parts.Add(updated == 1 ? Strings.Import_UpdatedOne : string.Format(Strings.Import_UpdatedMany, updated));
         if (failed > 0)
-            parts.Add(failed == 1 ? "1 ficou de fora" : $"{failed} ficaram de fora");
-        return parts.Count == 0 ? "Nada importado" : string.Join(" · ", parts);
+            parts.Add(failed == 1 ? Strings.Import_FailedOne : string.Format(Strings.Import_FailedMany, failed));
+        return parts.Count == 0 ? Strings.Import_Nothing : string.Join(" · ", parts);
     }
 
-    private static string Plural(int count, string one, string many) => count == 1 ? $"1 {one}" : $"{count} {many}";
+    private static string Plural(int count, string one, string many) => count == 1 ? one : string.Format(many, count);
 }
 
 /// <summary>One row of the import list.</summary>
@@ -548,19 +549,19 @@ public sealed partial class CandidateItemViewModel(ServiceCandidate candidate, A
 
     public string Name => Service.Name;
 
-    /// <summary>Namespace, Compose project, or "(sem projeto)" for a plain container.</summary>
-    public string Namespace => Service.Namespace.Length > 0 ? Service.Namespace : "(sem projeto)";
+    /// <summary>Namespace, Compose project, or Strings.Import_NoProject for a plain container.</summary>
+    public string Namespace => Service.Namespace.Length > 0 ? Service.Namespace : Strings.Import_NoProject;
 
     public string KindText => Service.Source == ServiceKind.Docker ? "Docker" : Service.Kind;
     public bool CanImport => Service.CanImport || Service.CanForward;
 
     /// <summary>
-    /// Reachable without a port-forward. "Marcar o namespace inteiro" takes only these: each
+    /// Reachable without a port-forward. Strings.Import_SelectNamespace takes only these: each
     /// port-forward is a kubectl kept running, so those are marked one by one.
     /// </summary>
     public bool Direct => Service.CanImport;
     public string Detail => Service.CanImport ? string.Join("   ", Service.Ports)
-        : Service.CanForward ? $"{string.Join(", ", Service.ClusterPorts!)} → kubectl port-forward, que o Severino mantém rodando"
+        : Service.CanForward ? string.Format(Strings.Import_PortForward, string.Join(", ", Service.ClusterPorts!))
         : Service.Unreachable ?? "";
     public string NamesText => string.Join(", ", Service.Names);
     public bool NoReadyPods => CanImport && Service.Ready == false;
@@ -597,7 +598,7 @@ public sealed partial class IngressItemViewModel(IngressHost source, string? con
     public string Host => Source.Host;
     public bool CanImport => conflict is null;
     public string? Warning => conflict;
-    public string Detail => Source.Ingresses.Count == 1 ? $"Ingress {Source.Ingresses[0]}" : $"{Source.Ingresses.Count} Ingress, como {Source.Ingresses[0]}";
+    public string Detail => Source.Ingresses.Count == 1 ? $"Ingress {Source.Ingresses[0]}" : string.Format(Strings.Import_IngressMany, Source.Ingresses.Count, Source.Ingresses[0]);
 
     [ObservableProperty]
     public partial bool IsSelected { get; set; }

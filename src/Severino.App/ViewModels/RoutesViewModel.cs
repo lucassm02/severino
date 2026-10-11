@@ -2,6 +2,7 @@ using System.Collections.ObjectModel;
 using System.Windows;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using Severino.App.Resources;
 using Severino.App.Services;
 using Severino.Core.Configuration;
 using Severino.Core.Dns;
@@ -72,23 +73,23 @@ public sealed partial class RoutesViewModel : ListPageViewModel
     {
         var saved = _dialogs.EditRoute(null, group: group, madeInstead: MadeInstead);
         if (saved is not null && !await OfferReissueAsync(saved))
-            ShowToast($"{saved.Domain} pronto");
+            ShowToast(string.Format(Strings.Routes_Ready, saved.Domain));
     }
 
     /// <summary>The route form became a service or DNS entry, which lives in another tab.</summary>
     private void MadeInstead(AppTab tab, string name) =>
-        ShowToast(tab == AppTab.Services ? $"{name} virou um serviço." : $"{name} virou uma entrada DNS.",
-            tab == AppTab.Services ? "Ver em Serviços" : "Ver no DNS",
+        ShowToast(string.Format(tab == AppTab.Services ? Strings.Routes_BecameService : Strings.Routes_BecameDns, name),
+            tab == AppTab.Services ? Strings.Common_SeeInServices : Strings.Common_SeeInDns,
             () => _navigation.Show(tab, name));
 
     [RelayCommand]
     private async Task RenameGroupAsync(RouteGroupViewModel group)
     {
-        if (await DialogService.PromptAsync("Renomear grupo", "Com o nome de outro grupo, os dois viram um só.", group.Name, "Renomear") is not { } name)
+        if (await DialogService.PromptAsync(Strings.Routes_RenameGroup, Strings.Routes_RenameGroupHint, group.Name, Strings.Common_Rename) is not { } name)
             return;
         if (name.Trim().Length == 0)
         {
-            ShowToast("Para tirar as rotas do grupo, use Desfazer o grupo.");
+            ShowToast(Strings.Routes_RenameEmpty);
             return;
         }
         _routes.RenameGroup(group.Name, name);
@@ -99,7 +100,7 @@ public sealed partial class RoutesViewModel : ListPageViewModel
     {
         var name = group.Name;
         _routes.RenameGroup(name, "");
-        ShowToast($"As rotas de {name} ficaram sem grupo. Para juntar de novo, edite cada uma.");
+        ShowToast(string.Format(Strings.Routes_Ungrouped, name));
     }
 
     [RelayCommand]
@@ -130,17 +131,17 @@ public sealed partial class RoutesViewModel : ListPageViewModel
 
         try
         {
-            var lead = $"A CA atual não cobre {saved.Domain}. Para esta rota ter HTTPS, o Severino cria uma CA nova para todas as rotas com HTTPS.";
-            ShowToast((await _https.ReissueAsync(prompt => DialogService.ConfirmTrustAsync("Reemitir a CA", prompt, lead))) switch
+            var lead = string.Format(Strings.Routes_ReissueLead, saved.Domain);
+            ShowToast((await _https.ReissueAsync(prompt => DialogService.ConfirmTrustAsync(Strings.Settings_ReissueTitle, prompt, lead))) switch
             {
-                HttpsActionResult.Done or HttpsActionResult.DoneOldRootKept => $"CA reemitida. {saved.Domain} já abre com https://",
-                HttpsActionResult.Cancelled => $"{saved.Domain} fica sem HTTPS até reemitir em Configurações.",
-                _ => $"O Windows não instalou a CA nova. {saved.Domain} fica sem HTTPS até reemitir.",
+                HttpsActionResult.Done or HttpsActionResult.DoneOldRootKept => string.Format(Strings.Routes_Reissued, saved.Domain),
+                HttpsActionResult.Cancelled => string.Format(Strings.Routes_ReissueCancelled, saved.Domain),
+                _ => string.Format(Strings.Routes_ReissueDeclined, saved.Domain),
             });
         }
         catch (Exception ex)
         {
-            ShowToast($"Não deu para reemitir a CA: {ex.Message}");
+            ShowToast(string.Format(Strings.Routes_ReissueFailed, ex.Message));
         }
         return true;
     }
@@ -156,13 +157,12 @@ public sealed partial class RoutesViewModel : ListPageViewModel
             return;
         if (!Uri.TryCreate(item.Route.Target, UriKind.Absolute, out var target) || !System.Net.IPAddress.TryParse(target.Host.Trim('[', ']'), out var ip))
         {
-            ShowToast("Só uma rota cujo destino é um IP vira entrada DNS.");
+            ShowToast(Strings.Routes_MakeDnsNeedsIp);
             return;
         }
-        if (!await DialogService.ConfirmAsync("Transformar em entrada DNS",
-                $"{item.Domain} passa a apontar direto para {ip}, sem passar pelo Severino. " +
-                $"A porta {target.Port}, o HTTPS da CA local e o log de requisições deixam de valer: o navegador vai ao IP, na porta que a URL disser.",
-                "Transformar"))
+        if (!await DialogService.ConfirmAsync(Strings.Routes_MakeDnsTitle,
+                string.Format(Strings.Routes_MakeDnsConfirm, item.Domain, ip, target.Port),
+                Strings.Routes_MakeDnsButton))
             return;
 
         if (_routes.Remove(item.Id) is not { } removed)
@@ -175,7 +175,7 @@ public sealed partial class RoutesViewModel : ListPageViewModel
             return;
         }
         _dns.Save(draft);
-        ShowToast($"{item.Domain} agora é uma entrada DNS.", "Ver no DNS", () => _navigation.Show(AppTab.Dns, item.Domain));
+        ShowToast(string.Format(Strings.Routes_NowDns, item.Domain), Strings.Common_SeeInDns, () => _navigation.Show(AppTab.Dns, item.Domain));
     }
 
     /// <summary>"*.meuapp.sev espera aprovação…", while a wildcard's suffix is not approved.</summary>
@@ -186,7 +186,7 @@ public sealed partial class RoutesViewModel : ListPageViewModel
     {
         var names = _hosts?.Status.PendingEntries.Select(e => e.Name).Distinct().ToList() ?? [];
         WildcardPendingText = names.Count == 0 ? null
-            : $"{string.Join(", ", names)} {(names.Count == 1 ? "só vale" : "só valem")} depois de aprovado: o curinga manda um sufixo inteiro para o Severino responder. O Windows pede confirmação de administrador.";
+            : string.Format(names.Count == 1 ? Strings.Routes_WildcardPendingOne : Strings.Routes_WildcardPending, string.Join(", ", names));
     }
 
     [RelayCommand]
@@ -200,7 +200,7 @@ public sealed partial class RoutesViewModel : ListPageViewModel
             return;
         }
         await _hosts.SyncAsync();
-        ShowToast("Aprovado: o curinga já responde.");
+        ShowToast(Strings.Routes_WildcardApproved);
     }
 
     [RelayCommand]
@@ -210,7 +210,7 @@ public sealed partial class RoutesViewModel : ListPageViewModel
     private void CopyUrl(RouteItemViewModel item)
     {
         Clipboard.SetText(Url(item));
-        ShowToast("URL copiada");
+        ShowToast(Strings.Routes_UrlCopied);
     }
 
     [RelayCommand]
@@ -218,7 +218,7 @@ public sealed partial class RoutesViewModel : ListPageViewModel
     {
         if (_routes.Remove(item.Id) is not { } removed)
             return;
-        ShowUndo($"{item.Domain} removido", () => _routes.Restore(removed) ? null : "Não deu para desfazer: o domínio já está em outra rota.");
+        ShowUndo(string.Format(Strings.Common_Removed, item.Domain), () => _routes.Restore(removed) ? null : Strings.Routes_UndoTaken);
     }
 
     private string Url(RouteItemViewModel item)
@@ -232,7 +232,7 @@ public sealed partial class RoutesViewModel : ListPageViewModel
         var routes = config.Routes;
         HasRoutes = routes.Count > 0;
         var enabled = routes.Count(r => r.Enabled);
-        Summary = $"{Plural(routes.Count, "rota", "rotas")} · {enabled} {(enabled == 1 ? "ligada" : "ligadas")}";
+        Summary = $"{Plural(routes.Count, Strings.Count_Route, Strings.Count_Routes)} · {Plural(enabled, Strings.Routes_EnabledOne, Strings.Routes_EnabledMany)}";
         // Routes without a group first, then each group in the order it first appears.
         var groupOrder = routes.Select(r => r.Group).Distinct(StringComparer.Ordinal).OrderBy(g => g.Length == 0 ? 0 : 1).ToList();
         var search = Search.Trim();

@@ -2,6 +2,7 @@ using System.IO;
 using System.Windows;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using Severino.App.Resources;
 
 namespace Severino.App.ViewModels;
 
@@ -18,8 +19,8 @@ public sealed partial class SettingsViewModel
         "Disable-SeverinoRoute -Group meuapp";
 
     public string TerminalStatus => File.Exists(ModulePath)
-        ? "Instalado. Com o app aberto, qualquer PowerShell usa os comandos, com as mesmas regras das telas. Get-Command -Module Severino lista todos."
-        : "O instalador põe o módulo no PowerShell. Rodando do código-fonte, importe antes: Import-Module ./powershell/Severino.";
+        ? Strings.Terminal_Installed
+        : Strings.Terminal_NotInstalled;
 
     [ObservableProperty]
     public partial string? TerminalCopied { get; set; }
@@ -28,7 +29,7 @@ public sealed partial class SettingsViewModel
     private async Task CopyTerminalExamplesAsync()
     {
         Clipboard.SetText(TerminalExamples);
-        TerminalCopied = "Copiado";
+        TerminalCopied = Strings.Common_Copied;
         await Task.Delay(TimeSpan.FromSeconds(2));
         TerminalCopied = null;
     }

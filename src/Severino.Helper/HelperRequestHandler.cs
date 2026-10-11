@@ -22,7 +22,7 @@ public sealed class HelperRequestHandler(IHostsWriter hosts, IDnsApprovals appro
         }
         catch (JsonException)
         {
-            return Fail("Mensagem inválida.");
+            return Fail("Invalid message.");
         }
 
         switch (request.Command)
@@ -73,17 +73,17 @@ public sealed class HelperRequestHandler(IHostsWriter hosts, IDnsApprovals appro
         if (!HelperProtocol.TryNormalizeDnsEntries(request.Entries ?? [], out var entries, out var error))
             return Fail(error);
         if (entries.Any(e => DomainName.IsWildcard(e.Name)))
-            return Fail("O hosts não aceita curinga; crie uma entrada DNS do Severino para isso.");
+            return Fail("The hosts file takes no wildcards; create a Severino DNS entry for that.");
 
         string? replacement = null;
         if (entries.Count > 0)
         {
             var addresses = entries.Select(e => e.Address).Distinct(StringComparer.Ordinal).ToList();
             if (addresses.Count != 1)
-                return Fail("Uma linha do hosts tem um endereço só.");
+                return Fail("A hosts line has a single address.");
             var pending = entries.Where(e => !IsAllowed(e)).ToList();
             if (pending.Count > 0)
-                return HelperResponse.Failure("O endereço é público e precisa de aprovação.", HelperVersion, pending);
+                return HelperResponse.Failure("The address is public and needs approval.", HelperVersion, pending);
             // Names in the order they came, as the person typed them.
             var names = new List<string>();
             foreach (var raw in request.Entries!)
@@ -98,14 +98,14 @@ public sealed class HelperRequestHandler(IHostsWriter hosts, IDnsApprovals appro
         {
             var result = hosts.Change(text => HostsText.ReplaceLine(text, request.Line, replacement, _now()));
             if (result is null)
-                return Fail("A linha mudou no hosts desde que o Severino a leu. Atualize a lista e tente de novo.");
+                return Fail("The line changed in the hosts file since Severino read it. Refresh the list and try again.");
             logger.LogInformation("Line outside Severino's blocks {Action}", replacement is null ? "commented out" : "replaced");
             return HelperResponse.Success(HelperVersion);
         }
         catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
         {
             logger.LogError(ex, "Failed to write the hosts file");
-            return Fail($"Não foi possível gravar o hosts: {ex.Message}");
+            return Fail($"Could not write the hosts file: {ex.Message}");
         }
     }
 
@@ -124,7 +124,7 @@ public sealed class HelperRequestHandler(IHostsWriter hosts, IDnsApprovals appro
         catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
         {
             logger.LogError(ex, "Failed to write the hosts file");
-            return Fail($"Não foi possível gravar o hosts: {ex.Message}");
+            return Fail($"Could not write the hosts file: {ex.Message}");
         }
     }
 

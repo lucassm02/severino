@@ -3,6 +3,7 @@ using System.Diagnostics;
 using System.Text;
 using Microsoft.Extensions.Logging;
 using Severino.Core.Configuration;
+using Severino.Core.Resources;
 
 namespace Severino.Core.Discovery;
 
@@ -241,7 +242,7 @@ public sealed class ProcessPortForwardRunner : IPortForwardRunner
         }
         catch (System.ComponentModel.Win32Exception)
         {
-            return $"O kubectl não está instalado em {spec.Source}.";
+            return string.Format(Strings.Discovery_NotInstalled, "kubectl", spec.Source);
         }
         process.BeginOutputReadLine();
         process.BeginErrorReadLine();

@@ -50,12 +50,12 @@ public static class WslCallerScript
             return Remove();
 
         var script = new StringBuilder(Preamble);
-        script.Append("command -v iptables >/dev/null 2>&1 || fail 'O iptables não está instalado na distro.'\n");
+        script.Append("command -v iptables >/dev/null 2>&1 || fail 'iptables is not installed in the distro.'\n");
         script.Append(WriteHosts(routes));
 
         // Remember route_localnet as it was, once per boot, so Remove can put it back.
         script.Append($"[ -e {SavedLocalnet} ] || cat /proc/sys/net/ipv4/conf/all/route_localnet > {SavedLocalnet}\n");
-        script.Append("sysctl -qw net.ipv4.conf.all.route_localnet=1 || fail 'Não deu para ligar o route_localnet.'\n");
+        script.Append("sysctl -qw net.ipv4.conf.all.route_localnet=1 || fail 'Could not turn route_localnet on.'\n");
         foreach (var (chain, hook) in new[] { (Chain, "OUTPUT"), (PostChain, "POSTROUTING") })
         {
             script.Append($"iptables -w -t nat -N {chain} >/dev/null 2>&1\n");
@@ -71,7 +71,7 @@ public static class WslCallerScript
             dnat() {
               to=$3
               case "$to" in *[!0-9.]*) to=$(getent ahostsv4 "$3" | awk 'NR==1 {print $1}');; esac
-              if [ -z "$to" ]; then echo "Não resolvi $3 na distro." >&2; missing=1; return; fi
+              if [ -z "$to" ]; then echo "Could not resolve $3 in the distro." >&2; missing=1; return; fi
               iptables -w -t nat -A SEVERINO -d "$1/32" -p tcp --dport "$2" -j DNAT --to-destination "$to:$4"
             }
 

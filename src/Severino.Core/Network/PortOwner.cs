@@ -1,6 +1,7 @@
 using System.Diagnostics;
 using System.Net;
 using System.Runtime.InteropServices;
+using Severino.Core.Resources;
 
 namespace Severino.Core.Network;
 
@@ -10,7 +11,7 @@ public sealed record PortOwnerInfo(int ProcessId, string ProcessName)
     public bool IsHttpSys => ProcessId == 4;
 
     public string Describe() => IsHttpSys
-        ? "o http.sys do Windows (PID 4), quase sempre o IIS ou outro serviço registrado nele"
+        ? Strings.Port_HttpSys
         : $"{ProcessName} (PID {ProcessId})";
 }
 

@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="Ca_Unreadable" xml:space="preserve">
+    <value>Não foi possível ler a CA local.</value>
+  </data>
+  <data name="Common_SeverinoDoorman" xml:space="preserve">
+    <value>Severino, o porteiro</value>
+  </data>
+  <data name="Error_ActiveRoutes" xml:space="preserve">
+    <value>Rotas ativas</value>
+  </data>
+  <data name="Error_BadGatewayLead" xml:space="preserve">
+    <value>{0} → {1} não respondeu.</value>
+  </data>
+  <data name="Error_BadGatewayText" xml:space="preserve">
+    <value>O Severino interfonou, mas ninguém atendeu. Seu servidor está rodando?</value>
+  </data>
+  <data name="Error_BadGatewayTitle" xml:space="preserve">
+    <value>Destino fora do ar</value>
+  </data>
+  <data name="Error_DisabledLead" xml:space="preserve">
+    <value>{0} está cadastrada, mas desligada.</value>
+  </data>
+  <data name="Error_DisabledText" xml:space="preserve">
+    <value>Ligue a rota no Severino para ela voltar a responder.</value>
+  </data>
+  <data name="Error_DisabledTitle" xml:space="preserve">
+    <value>Rota desligada</value>
+  </data>
+  <data name="Error_FrontDesk" xml:space="preserve">
+    <value>Portaria</value>
+  </data>
+  <data name="Error_NoActiveRoutes" xml:space="preserve">
+    <value>Nenhuma rota ativa no momento.</value>
+  </data>
+  <data name="Error_NotFoundLead" xml:space="preserve">
+    <value>Ninguém avisou a portaria sobre {0}.</value>
+  </data>
+  <data name="Error_NotFoundText" xml:space="preserve">
+    <value>Crie uma rota para este domínio no Severino.</value>
+  </data>
+  <data name="Error_NotFoundTitle" xml:space="preserve">
+    <value>Rota não encontrada</value>
+  </data>
+  <data name="Error_Tagline" xml:space="preserve">
+    <value>o porteiro dos seus domínios de desenvolvimento</value>
+  </data>
+  <data name="Error_TimeoutLead" xml:space="preserve">
+    <value>{0} → {1} não respondeu em {2} minutos.</value>
+  </data>
+  <data name="Error_TimeoutText" xml:space="preserve">
+    <value>O Severino cansou de esperar na portaria.</value>
+  </data>
+  <data name="Error_TimeoutTitle" xml:space="preserve">
+    <value>Destino demorou demais</value>
+  </data>
+  <data name="Forwarder_PortFailed" xml:space="preserve">
+    <value>A porta {0} não abriu em {1}: {2}</value>
+  </data>
+  <data name="Proxy_PortInUse" xml:space="preserve">
+    <value>A porta {0} está em uso.</value>
+  </data>
+  <data name="Proxy_PortInUseBy" xml:space="preserve">
+    <value>A porta {0} está em uso por {1}.</value>
+  </data>
+  <data name="Proxy_PortReserved" xml:space="preserve">
+    <value>O Windows reservou a porta {0} (costuma ser o Hyper-V ou o WinNAT). Escolha outra porta.</value>
+  </data>
+</root>

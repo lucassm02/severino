@@ -1,4 +1,5 @@
 using System.Security.Cryptography;
+using Severino.Core.Resources;
 
 namespace Severino.Core.Updates;
 
@@ -18,7 +19,7 @@ public sealed class UpdateDownloader(HttpClient http)
         CancellationToken cancellationToken = default)
     {
         if (installer.Sha256 is null)
-            throw new UpdateDownloadException("O GitHub não informou o SHA-256 deste instalador, então ele não pode ser conferido.");
+            throw new UpdateDownloadException(Strings.Update_NoDigest);
 
         Directory.CreateDirectory(directory);
         // The name comes from the release; only its file name part is used.
@@ -49,7 +50,7 @@ public sealed class UpdateDownloader(HttpClient http)
 
             var actual = Convert.ToHexStringLower(sha.GetHashAndReset());
             if (actual != installer.Sha256)
-                throw new UpdateDownloadException("O instalador baixado não confere com o SHA-256 publicado na release e foi apagado.");
+                throw new UpdateDownloadException(Strings.Update_DigestMismatch);
 
             File.Move(partial, path, overwrite: true);
             return path;

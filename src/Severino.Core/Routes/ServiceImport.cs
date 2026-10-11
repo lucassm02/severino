@@ -1,5 +1,6 @@
 using Severino.Core.Configuration;
 using Severino.Core.Discovery;
+using Severino.Core.Resources;
 
 namespace Severino.Core.Routes;
 
@@ -13,8 +14,8 @@ public sealed record PlannedService(ServiceCandidate Candidate, ServiceRoute? Ro
 {
     /// <summary>"redis já está em outra rota" style note for the list; null when nothing to say.</summary>
     public string? Warning => Error ?? (DroppedNames.Count == 0 ? null
-        : DroppedNames.Count == 1 ? $"{DroppedNames[0]} já está em outra rota e fica de fora."
-        : $"{string.Join(", ", DroppedNames)} já estão em outras rotas e ficam de fora.");
+        : DroppedNames.Count == 1 ? string.Format(Strings.Import_NameDropped, DroppedNames[0])
+        : string.Format(Strings.Import_NamesDropped, string.Join(", ", DroppedNames)));
 }
 
 public sealed record RefreshResult(IReadOnlyList<ServiceRoute> Updated, IReadOnlyList<ServiceRoute> Missing);
@@ -52,7 +53,7 @@ public static class ServiceImport
             var service = candidate.Service;
             if (!service.CanImport && !service.CanForward)
             {
-                plan.Add(new(candidate, null, null, [], service.Unreachable ?? "Sem acesso de fora."));
+                plan.Add(new(candidate, null, null, [], service.Unreachable ?? Strings.Import_NoOutsideAccess));
                 continue;
             }
 
@@ -67,7 +68,7 @@ public static class ServiceImport
             var dropped = service.Names.Where(taken.Contains).ToList();
             if (names.Count == 0)
             {
-                plan.Add(new(candidate, null, null, dropped, "Todos os nomes já estão em outras rotas."));
+                plan.Add(new(candidate, null, null, dropped, Strings.Import_AllNamesTaken));
                 continue;
             }
 
