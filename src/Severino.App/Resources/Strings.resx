@@ -250,13 +250,7 @@ Update Severino or move the file:
     <value>Opens the hosts file in Notepad, as administrator</value>
   </data>
   <data name="Dns_Outside" xml:space="preserve">
-    <value>In the hosts file, outside Severino</value>
-  </data>
-  <data name="Dns_OutsideBadge" xml:space="preserve">
-    <value>outside Severino</value>
-  </data>
-  <data name="Dns_OutsideBadgeTip" xml:space="preserve">
-    <value>Someone else or another program wrote this line. Severino only changes it if you ask, with a warning.</value>
+    <value>Outside Severino</value>
   </data>
   <data name="Dns_OutsideCountMany" xml:space="preserve">
     <value>{0} outside lines</value>
@@ -266,6 +260,9 @@ Update Severino or move the file:
   </data>
   <data name="Dns_OutsideHint" xml:space="preserve">
     <value>Lines someone else or another program wrote. Severino only changes them if you ask, always with a warning, and leaves a comment in the hosts file.</value>
+  </data>
+  <data name="Dns_OutsideLead" xml:space="preserve">
+    <value>Hosts file lines from other programs or written by hand. They only change if you ask.</value>
   </data>
   <data name="Dns_Own" xml:space="preserve">
     <value>Severino's</value>
@@ -277,10 +274,10 @@ Update Severino or move the file:
     <value>1 Severino entry</value>
   </data>
   <data name="Dns_OwnEmpty" xml:space="preserve">
-    <value>None yet. An entry takes a name to an IP, like sql.interno to 10.0.0.8, and can be the target of routes and services.</value>
+    <value>No entries yet.</value>
   </data>
-  <data name="Dns_OwnHint" xml:space="preserve">
-    <value>They work with the app closed or paused, like lines written by hand.</value>
+  <data name="Dns_OwnEmptyExample" xml:space="preserve">
+    <value>Like sql.interno to 10.0.0.8. Routes and services can use it as a target.</value>
   </data>
   <data name="Dns_PendingMany" xml:space="preserve">
     <value>{0} names only work after approval, being public IPs or wildcards. Windows asks for an administrator confirmation once.</value>
@@ -295,7 +292,7 @@ Update Severino or move the file:
     <value>public IP</value>
   </data>
   <data name="Dns_ReadAgain" xml:space="preserve">
-    <value>Read again</value>
+    <value>Read the hosts file again</value>
   </data>
   <data name="Dns_RemoveAnyway" xml:space="preserve">
     <value>Remove anyway</value>

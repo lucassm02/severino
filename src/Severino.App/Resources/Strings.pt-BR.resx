@@ -250,13 +250,7 @@ Atualize o Severino ou mova o arquivo:
     <value>Abre o arquivo hosts no Bloco de Notas, como administrador</value>
   </data>
   <data name="Dns_Outside" xml:space="preserve">
-    <value>No hosts, fora do Severino</value>
-  </data>
-  <data name="Dns_OutsideBadge" xml:space="preserve">
-    <value>fora do Severino</value>
-  </data>
-  <data name="Dns_OutsideBadgeTip" xml:space="preserve">
-    <value>Outra pessoa ou outro programa escreveu esta linha. O Severino só a altera se você pedir, com aviso.</value>
+    <value>Fora do Severino</value>
   </data>
   <data name="Dns_OutsideCountMany" xml:space="preserve">
     <value>{0} linhas de fora</value>
@@ -266,6 +260,9 @@ Atualize o Severino ou mova o arquivo:
   </data>
   <data name="Dns_OutsideHint" xml:space="preserve">
     <value>Linhas que outra pessoa ou outro programa escreveu. O Severino só as altera se você pedir, sempre com aviso, e deixa um comentário no hosts.</value>
+  </data>
+  <data name="Dns_OutsideLead" xml:space="preserve">
+    <value>Linhas do hosts vindas de outros programas ou escritas à mão. Só mudam se você pedir.</value>
   </data>
   <data name="Dns_Own" xml:space="preserve">
     <value>Do Severino</value>
@@ -277,10 +274,10 @@ Atualize o Severino ou mova o arquivo:
     <value>1 entrada do Severino</value>
   </data>
   <data name="Dns_OwnEmpty" xml:space="preserve">
-    <value>Nenhuma ainda. Uma entrada leva um nome a um IP, como sql.interno para 10.0.0.8, e pode ser destino de rotas e serviços.</value>
+    <value>Nenhuma entrada ainda.</value>
   </data>
-  <data name="Dns_OwnHint" xml:space="preserve">
-    <value>Valem com o app fechado ou pausado, como linhas escritas à mão.</value>
+  <data name="Dns_OwnEmptyExample" xml:space="preserve">
+    <value>Como sql.interno para 10.0.0.8. Rotas e serviços podem usá-la como destino.</value>
   </data>
   <data name="Dns_PendingMany" xml:space="preserve">
     <value>{0} nomes só valem depois de aprovados, por serem IPs públicos ou curingas. O Windows pede confirmação de administrador uma vez.</value>
@@ -295,7 +292,7 @@ Atualize o Severino ou mova o arquivo:
     <value>IP público</value>
   </data>
   <data name="Dns_ReadAgain" xml:space="preserve">
-    <value>Ler de novo</value>
+    <value>Ler o hosts de novo</value>
   </data>
   <data name="Dns_RemoveAnyway" xml:space="preserve">
     <value>Remover mesmo assim</value>

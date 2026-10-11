@@ -110,18 +110,20 @@
         <ScrollViewer Grid.Row="2" VerticalScrollBarVisibility="Auto">
             <StackPanel>
                 <!-- Severino's own entries -->
-                <ui:TextBlock FontTypography="BodyStrong" Text="{x:Static res:Strings.Dns_Own}" />
-                <ui:TextBlock
-                    Margin="0,0,0,8"
-                    Foreground="{DynamicResource TextFillColorSecondaryBrush}"
-                    FontTypography="Caption"
-                    Text="{x:Static res:Strings.Dns_OwnHint}" />
-                <ui:TextBlock
-                    Margin="0,0,0,8"
-                    Foreground="{DynamicResource TextFillColorSecondaryBrush}"
-                    TextWrapping="Wrap"
-                    Text="{x:Static res:Strings.Dns_OwnEmpty}"
-                    Visibility="{Binding HasOwn, Converter={StaticResource FalseToVisible}}" />
+                <!-- No hint here: the lead above already says these work with the app closed. -->
+                <ui:TextBlock Margin="0,0,0,8" FontTypography="BodyStrong" Text="{x:Static res:Strings.Dns_Own}" />
+                <Border
+                    Margin="0,0,0,6"
+                    Padding="16,12"
+                    CornerRadius="6"
+                    BorderThickness="1"
+                    BorderBrush="{DynamicResource ControlStrokeColorDefaultBrush}"
+                    Visibility="{Binding HasOwn, Converter={StaticResource FalseToVisible}}">
+                    <StackPanel>
+                        <TextBlock Text="{x:Static res:Strings.Dns_OwnEmpty}" />
+                        <TextBlock Style="{StaticResource Caption}" TextWrapping="Wrap" Text="{x:Static res:Strings.Dns_OwnEmptyExample}" />
+                    </StackPanel>
+                </Border>
                 <ItemsControl ItemsSource="{Binding Own}">
                     <ItemsControl.ItemTemplate>
                         <DataTemplate DataType="{x:Type vm:DnsRowViewModel}">
@@ -179,22 +181,28 @@
 
                 <!-- Lines from outside Severino -->
                 <StackPanel Margin="0,18,0,0" Visibility="{Binding HasOutside, Converter={StaticResource TrueToVisible}}">
-                    <DockPanel Margin="0,0,0,8">
-                        <ui:Button
-                            DockPanel.Dock="Right"
-                            Appearance="Transparent"
-                            Icon="{ui:SymbolIcon ArrowClockwise24}"
-                            Content="{x:Static res:Strings.Dns_ReadAgain}"
-                            Command="{Binding ReloadCommand}" />
-                        <StackPanel VerticalAlignment="Center">
-                            <ui:TextBlock FontTypography="BodyStrong" Text="{x:Static res:Strings.Dns_Outside}" />
-                            <ui:TextBlock
-                                Foreground="{DynamicResource TextFillColorSecondaryBrush}"
-                                FontTypography="Caption"
-                                TextWrapping="Wrap"
-                                Text="{x:Static res:Strings.Dns_OutsideHint}" />
+                    <!-- The reload sits by the title, away from the scroll bar; the long explanation is its tooltip. -->
+                    <StackPanel Margin="0,0,0,8">
+                        <StackPanel Orientation="Horizontal">
+                            <ui:TextBlock VerticalAlignment="Center" FontTypography="BodyStrong" Text="{x:Static res:Strings.Dns_Outside}" />
+                            <ui:Button
+                                Margin="6,0,0,0"
+                                Padding="6"
+                                VerticalAlignment="Center"
+                                Appearance="Transparent"
+                                BorderThickness="0"
+                                Icon="{ui:SymbolIcon ArrowClockwise16}"
+                                ToolTip="{x:Static res:Strings.Dns_ReadAgain}"
+                                AutomationProperties.Name="{x:Static res:Strings.Dns_ReadAgain}"
+                                Command="{Binding ReloadCommand}" />
                         </StackPanel>
-                    </DockPanel>
+                        <ui:TextBlock
+                            Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                            FontTypography="Caption"
+                            TextWrapping="Wrap"
+                            ToolTip="{x:Static res:Strings.Dns_OutsideHint}"
+                            Text="{x:Static res:Strings.Dns_OutsideLead}" />
+                    </StackPanel>
                     <ItemsControl ItemsSource="{Binding Outside}">
                         <ItemsControl.ItemTemplate>
                             <DataTemplate DataType="{x:Type vm:DnsRowViewModel}">
@@ -231,11 +239,6 @@
                                             <TextBlock FontSize="14" TextTrimming="CharacterEllipsis" ToolTip="{Binding AllNames}">
                                                 <Run FontWeight="SemiBold" Text="{Binding Name, Mode=OneWay}" />
                                                 <Run FontSize="12" Foreground="{DynamicResource TextFillColorSecondaryBrush}" Text="{Binding MoreNames, Mode=OneWay, StringFormat='  {0}'}" />
-                                                <InlineUIContainer BaselineAlignment="Center">
-                                                    <Border Style="{StaticResource Badge}" ToolTip="{x:Static res:Strings.Dns_OutsideBadgeTip}">
-                                                        <TextBlock Style="{StaticResource CautionBadgeText}" Text="{x:Static res:Strings.Dns_OutsideBadge}" />
-                                                    </Border>
-                                                </InlineUIContainer>
                                                 <InlineUIContainer BaselineAlignment="Center">
                                                     <Border Style="{StaticResource Badge}" Visibility="{Binding TouchedText, Converter={StaticResource NullToCollapsed}}" ToolTip="{x:Static res:Strings.Dns_TouchedTip}">
                                                         <TextBlock Style="{StaticResource BadgeText}" Text="{Binding TouchedText}" />
