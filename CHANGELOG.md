@@ -12,6 +12,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 - "Exit" in the tray left the menu frozen on screen and the process running.
 - The DNS tab has less text: shorter section hints, a compact empty state, the reload by its section title and no repeated "outside Severino" badge on each line.
+- The scroll bar of the lists no longer covers the cards' buttons.
 
 ## [0.5.0] - 2026-10-10
 
