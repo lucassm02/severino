@@ -8,6 +8,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+## [0.5.1] - 2026-10-11
+
 ### Fixed
 
 - "Exit" in the tray left the menu frozen on screen and the process running.
@@ -45,5 +47,6 @@ First published version.
 - Installer for Windows 10 and 11, 64-bit.
 - Website at <https://lucassm02.github.io/severino/>, in English and Portuguese, with an intro video and social media images.
 
-[Unreleased]: https://github.com/lucassm02/severino/compare/v0.5.0...HEAD
+[Unreleased]: https://github.com/lucassm02/severino/compare/v0.5.1...HEAD
+[0.5.1]: https://github.com/lucassm02/severino/compare/v0.5.0...v0.5.1
 [0.5.0]: https://github.com/lucassm02/severino/releases/tag/v0.5.0

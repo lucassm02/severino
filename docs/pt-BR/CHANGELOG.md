@@ -8,6 +8,8 @@ O formato segue o [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/), e
 
 ## [Unreleased]
 
+## [0.5.1] - 2026-10-11
+
 ### Corrigido
 
 - "Sair" na bandeja deixava o menu congelado na tela e o processo aberto.
@@ -45,5 +47,6 @@ Primeira versão publicada.
 - Instalador para Windows 10 e 11, 64 bits.
 - Site em <https://lucassm02.github.io/severino/>, em inglês e em português, com vídeo de apresentação e imagens para redes sociais.
 
-[Unreleased]: https://github.com/lucassm02/severino/compare/v0.5.0...HEAD
+[Unreleased]: https://github.com/lucassm02/severino/compare/v0.5.1...HEAD
+[0.5.1]: https://github.com/lucassm02/severino/compare/v0.5.0...v0.5.1
 [0.5.0]: https://github.com/lucassm02/severino/releases/tag/v0.5.0
