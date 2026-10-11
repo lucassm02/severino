@@ -145,6 +145,9 @@ p { margin: 0; }
 }
 
 .topo nav { display: flex; gap: 24px; }
+/* The other language, by its own name; stays when the nav folds away on phones. */
+.idioma { color: var(--texto-suave); font-weight: 600; font-size: 0.95rem; text-decoration: none; }
+.idioma:hover { color: var(--farda); text-decoration: underline; }
 .topo nav a { color: var(--farda); text-decoration: none; font-weight: 600; font-size: 1rem; }
 .topo nav a:hover { text-decoration: underline; }
 

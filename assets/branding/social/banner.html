@@ -6,8 +6,9 @@
     ?v=github    1280x640   github-social-preview.png (repo Settings › Social preview)
     ?v=quadrado  1080x1080  post-quadrado.png (Instagram, LinkedIn feed)
     ?v=icone     180x180    site/assets/apple-touch-icon.png
+  English by default; &lang=pt-BR for the Portuguese ones, saved with a -pt-BR suffix.
 -->
-<html lang="pt-BR">
+<html lang="en">
 <head>
   <meta charset="utf-8">
   <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wdth,wght@12..96,75..100,400..800&family=Source+Sans+3:wght@400;600&display=block" rel="stylesheet">
@@ -110,14 +111,14 @@
     <img class="so-icone" src="../severino-rosto.png" alt="">
     <div class="texto">
       <div class="marca"><img src="../severino-rosto.png" width="56" height="56" alt="">Severino</div>
-      <h1>Chega de localhost:3000.</h1>
-      <p class="sub">Nomes com HTTPS para os seus apps de dev, no Windows, no WSL, no Docker e no cluster.</p>
+      <h1 data-pt="Chega de localhost:3000.">No more localhost:3000.</h1>
+      <p class="sub" data-pt="Nomes com HTTPS para os seus apps de dev, no Windows, no WSL, no Docker e no cluster.">HTTPS names for your dev apps, on Windows, in WSL, in Docker and in the cluster.</p>
       <p class="url">lucassm02.github.io/severino</p>
     </div>
     <div class="lado">
       <img class="porteiro" src="../severino-rosto.png" alt="">
       <div class="quadro">
-        <p class="quadro-titulo">Portaria</p>
+        <p class="quadro-titulo" data-pt="Portaria">Front&nbsp;desk</p>
         <ul>
           <li><span class="nome">meuapp.sev</span><span class="pontos"></span><span class="porta">3000</span></li>
           <li><span class="nome">meuapp.sev/api</span><span class="pontos"></span><span class="porta">8080</span></li>
@@ -130,6 +131,10 @@
   <script>
     const variant = new URLSearchParams(location.search).get("v") || "og";
     document.body.className = variant;
+    if (new URLSearchParams(location.search).get("lang") === "pt-BR") {
+      document.documentElement.lang = "pt-BR";
+      for (const el of document.querySelectorAll("[data-pt]")) el.textContent = el.dataset.pt;
+    }
     // The quadrado stacks: the board goes under the text, inside the same column.
     if (variant === "quadrado") {
       const texto = document.querySelector(".texto");

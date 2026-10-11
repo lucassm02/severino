@@ -1,5 +1,6 @@
 // Renders assets/branding/motion/intro.html to an MP4, frame by frame, with headless Edge and ffmpeg.
-//   node scripts/render-motion.mjs [--fps 60] [--from 0] [--to 30] [--out path.mp4] [--frames dir]
+//   node scripts/render-motion.mjs [--lang en] [--fps 60] [--from 0] [--to 30] [--out path.mp4] [--frames dir]
+// --lang en renders the English cut to severino-intro-en.mp4; without it, the Portuguese one.
 // The page draws each frame from the time alone (window.seek), so nothing depends on how fast
 // this machine is. Needs Edge, ffmpeg on the PATH and the internet for the fonts.
 import { spawn } from "node:child_process";
@@ -15,9 +16,10 @@ const arg = (name, fallback) => {
 };
 const fps = Number(arg("fps", 60));
 const from = Number(arg("from", 0));
-const out = resolve(arg("out", join(root, "site/assets/severino-intro.mp4")));
+const english = arg("lang", "pt-BR") === "en";
+const out = resolve(arg("out", join(root, english ? "site/assets/severino-intro-en.mp4" : "site/assets/severino-intro.mp4")));
 const framesDir = arg("frames"); // also keep PNGs of each frame, for checking
-const page = pathToFileURL(join(root, "assets/branding/motion/intro.html")).href + "?render";
+const page = pathToFileURL(join(root, "assets/branding/motion/intro.html")).href + "?render" + (english ? "&lang=en" : "");
 
 const edge = [
   `${process.env["ProgramFiles(x86)"]}\\Microsoft\\Edge\\Application\\msedge.exe`,

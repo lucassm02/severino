@@ -1,6 +1,12 @@
 // Four small jobs: set the board's letters by hand, turn the Rotas/Serviços/DNS panels into
 // tabs, play the intro while it is on screen, and point the download at the latest release.
 
+// The page is English at the root and Portuguese under /pt-BR/; the few words written here follow it.
+const english = document.documentElement.lang === "en";
+const words = english
+  ? { pause: "Pause the animation", resume: "Resume the animation", release: (v, size) => `Version ${v}, ${size}. Free and open source. For Windows 10 and 11, 64-bit.` }
+  : { pause: "Pausar a animação", resume: "Continuar a animação", release: (v, size) => `Versão ${v}, ${size}. Grátis e com código aberto. Para Windows 10 e 11, 64 bits.` };
+
 (function board() {
   const quadro = document.querySelector(".quadro");
   if (!quadro) return;
@@ -81,7 +87,7 @@
   let visible = false;
   const update = () => {
     button.setAttribute("aria-pressed", String(paused));
-    label.textContent = paused ? "Continuar a animação" : "Pausar a animação";
+    label.textContent = paused ? words.resume : words.pause;
     if (visible && !paused) video.play().catch(() => {});
     else video.pause();
   };
@@ -115,7 +121,7 @@
     const version = (release.tag_name || "").replace(/^v/, "");
     const size = `${Math.round(setup.size / (1024 * 1024))} MB`;
     const note = document.querySelector("[data-release-note]");
-    if (note) note.textContent = `Versão ${version}, ${size}. Grátis e com código aberto. Para Windows 10 e 11, 64 bits.`;
+    if (note) note.textContent = words.release(version, size);
   } catch {
     // Offline or rate-limited: the links already go to the releases page.
   }

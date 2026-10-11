@@ -22,7 +22,7 @@
 - **PowerShell**: a module that talks to the running app (`New-SeverinoRoute`, `Set-SeverinoDns`, `Disable-SeverinoRoute -Group`).
 - **English and Portuguese**: the app follows the Windows language, or the one you pick in Settings.
 
-![Severino's Routes tab](site/assets/app-rotas.png)
+![Severino's Routes tab](site/assets/en/app-rotas.png)
 
 ## Install
 
@@ -65,12 +65,12 @@ The app runs as a regular user but needs the helper service to write the hosts f
 Other scripts:
 
 - `scripts/build-installer.ps1`: publishes the app and the helper and builds the installer with Inno Setup.
-- `scripts/build-social.ps1`: renders the social media images from `assets/branding/social/banner.html`.
-- `node scripts/render-motion.mjs`: renders the intro video (`assets/branding/motion/intro.html`, 30 s) to MP4, frame by frame, with headless Edge and ffmpeg.
+- `scripts/build-social.ps1`: renders the social media images from `assets/branding/social/banner.html`, in English and Portuguese.
+- `node scripts/render-motion.mjs [--lang en]`: renders the intro video (`assets/branding/motion/intro.html`, 30 s) to MP4, frame by frame, with headless Edge and ffmpeg; Portuguese by default, English with `--lang en`.
 - `node scripts/check-links.mjs`: checks the relative links of every Markdown file.
 - `dotnet run scripts/build-icons.cs`: builds the app icons from the artwork in `assets/branding/`.
 
-The website lives in `site/`. To preview it: `python -m http.server 8765 --directory site`. A push that changes `site/` publishes it to GitHub Pages.
+The website lives in `site/`, in English, with the Portuguese page in `site/pt-BR/`. To preview it: `python -m http.server 8765 --directory site`. A push that changes `site/` publishes it to GitHub Pages.
 
 ### Translations
 

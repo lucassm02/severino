@@ -45,7 +45,7 @@ Em `site/`, HTML e CSS estáticos, sem build, com um script pequeno.
 2. **Versão escolhida no disparo** (`patch`, `minor`, `major`), não calculada dos Conventional Commits. *Padrão: sim.* É mais previsível; calcular pelos commits pode vir depois.
 3. **Testes antes de publicar.** *Padrão: sim.* Uma falha impede a release.
 4. **Instalador sem assinatura digital.** *Padrão: sim, por enquanto.* O site avisa sobre o SmartScreen. Assinar exige um certificado de code signing pago.
-5. **Site só em português.** *Padrão: sim.*
+5. **Site só em português.** *Padrão: sim.* Revista na [Fase 9](fase-9-idiomas.md): o site passou a ter o inglês na raiz e o português em `/pt-BR/`.
 
 ## Fora do escopo
 

@@ -1,6 +1,6 @@
 # Spec: Fase 9, Inglês e português
 
-Status: aprovada em 2026-10-10, com os padrões das "Decisões a confirmar". Em implementação. Na implementação, as mensagens das outras camadas mudaram de abordagem: ver "Mensagens que vêm de outras camadas".
+Status: aprovada em 2026-10-10, com os padrões das "Decisões a confirmar", e implementada no mesmo dia. Falta o [roteiro manual](../testes/fase-9-idiomas.md). Na implementação, as mensagens das outras camadas mudaram de abordagem: ver "Mensagens que vêm de outras camadas".
 
 ## Objetivo
 
@@ -54,7 +54,7 @@ O Severino passa a falar inglês, sem deixar de falar português:
 
 **O que não muda de idioma.** Os nomes técnicos (rota, serviço, NodePort, port-forward, hosts), os logs e as marcações do bloco no arquivo hosts (`# >>> Severino managed block`) continuam iguais nos dois idiomas. Os logs passam para o inglês (decisão 5), porque servem para abrir issue.
 
-**Datas e números.** Horários da aba Requisições, "há 3 min" e tamanhos seguem a cultura escolhida no app.
+**Datas e números.** Seguem o formato regional do Windows, como no resto do sistema; só os textos trocam de idioma. *Mudança na implementação:* o rascunho previa a cultura do app também para datas, o que trocaria o formato de quem usa o Windows em português com o app em inglês.
 
 ## Instalador
 

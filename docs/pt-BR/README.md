@@ -4,7 +4,7 @@
 
 [![CI](https://github.com/lucassm02/severino/actions/workflows/ci.yml/badge.svg)](https://github.com/lucassm02/severino/actions/workflows/ci.yml)
 
-![Severino: chega de localhost:3000](../../assets/branding/social/github-social-preview.png)
+![Severino: chega de localhost:3000](../../assets/branding/social/github-social-preview-pt-BR.png)
 
 **O porteiro dos seus apps de desenvolvimento no Windows.** Cada app ganha um nome, como `meuapp.sev`, com HTTPS de verdade, esteja ele no Windows, no WSL, num container ou num cluster Kubernetes. O Severino cuida do arquivo hosts, do proxy reverso e dos certificados.
 
@@ -63,12 +63,12 @@ O app roda como usuário comum, mas precisa do serviço auxiliar para gravar o h
 Outros scripts:
 
 - `scripts/build-installer.ps1`: publica o app e o Helper e gera o instalador com o Inno Setup.
-- `scripts/build-social.ps1`: gera as imagens para redes sociais a partir de `assets/branding/social/banner.html`.
-- `node scripts/render-motion.mjs`: renderiza o vídeo de apresentação (`assets/branding/motion/intro.html`, 30 s) em MP4, quadro a quadro, com o Edge sem janela e o ffmpeg.
+- `scripts/build-social.ps1`: gera as imagens para redes sociais a partir de `assets/branding/social/banner.html`, em inglês e em português.
+- `node scripts/render-motion.mjs [--lang en]`: renderiza o vídeo de apresentação (`assets/branding/motion/intro.html`, 30 s) em MP4, quadro a quadro, com o Edge sem janela e o ffmpeg; em português por padrão, em inglês com `--lang en`.
 - `node scripts/check-links.mjs`: confere os links relativos de todos os arquivos Markdown.
 - `dotnet run scripts/build-icons.cs`: gera os ícones do app a partir da arte em `assets/branding/`.
 
-O site fica em `site/`. Para ver local: `python -m http.server 8765 --directory site`. Um push que mexe em `site/` publica no GitHub Pages.
+O site fica em `site/`, em inglês, com a página em português em `site/pt-BR/`. Para ver local: `python -m http.server 8765 --directory site`. Um push que mexe em `site/` publica no GitHub Pages.
 
 ### Traduções
 
