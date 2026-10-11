@@ -10,20 +10,6 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [0.5.0] - 2026-10-10
 
-### Added
-
-- New version notice: the app asks GitHub for the latest release at start and once a day, and tells you at the top of the window and in the tray.
-- Update from the app: **Update now** downloads the release's installer, checks the SHA-256 GitHub published, installs silently and opens the app again, keeping routes, services and settings.
-- Settings › About shows the result of the last check, with **Check now**, and the option to turn the automatic check off.
-- English. The app, the installer and the error pages follow the Windows language, and Settings › General lets you pick English or Portuguese.
-- The website in English, with the Portuguese version under `/pt-BR/`, where browsers in Portuguese land on their own.
-
-### Changed
-
-- The repository's main language is English. The Portuguese README, changelog and design documents moved to `docs/pt-BR/`.
-
-## [0.4.0] - 2026-10-10
-
 First published version.
 
 ### Added
@@ -47,10 +33,11 @@ First published version.
 - PowerShell module that talks to the running app: `New-SeverinoRoute`, `Set-SeverinoDns`, `Disable-SeverinoRoute -Group` and more.
 - Backup of routes, services and DNS entries to a JSON file.
 - First-run wizard that checks port 80, the helper service and the system proxy.
+- New version notice: the app asks GitHub for the latest release at start and once a day, and tells you at the top of the window and in the tray. **Update now** downloads the installer, checks the SHA-256 GitHub published, installs silently and opens the app again, keeping routes, services and settings. The check can be turned off in Settings › About.
+- English and Portuguese: the app, the installer and the proxy's error pages follow the Windows language, and Settings › General lets you pick.
 - "Clean up everything" and the uninstaller remove what Severino put into Windows.
 - Installer for Windows 10 and 11, 64-bit.
-- Website at <https://lucassm02.github.io/severino/>, with social media images.
+- Website at <https://lucassm02.github.io/severino/>, in English and Portuguese, with an intro video and social media images.
 
 [Unreleased]: https://github.com/lucassm02/severino/compare/v0.5.0...HEAD
-[0.5.0]: https://github.com/lucassm02/severino/compare/v0.4.0...v0.5.0
-[0.4.0]: https://github.com/lucassm02/severino/releases/tag/v0.4.0
+[0.5.0]: https://github.com/lucassm02/severino/releases/tag/v0.5.0

@@ -10,20 +10,6 @@ O formato segue o [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/), e
 
 ## [0.5.0] - 2026-10-10
 
-### Adicionado
-
-- Aviso de versão nova: o app consulta a última release no GitHub ao abrir e uma vez por dia, e avisa no topo da janela e na bandeja.
-- Atualizar pelo app: **Atualizar agora** baixa o instalador da release, confere o SHA-256 publicado pelo GitHub, instala em silêncio e abre o app de novo, mantendo rotas, serviços e configurações.
-- Configurações › Sobre mostra o resultado da última consulta, com **Procurar agora**, e a opção de desligar a consulta automática.
-- Inglês. O app, o instalador e as páginas de erro seguem o idioma do Windows, e Configurações › Geral deixa escolher inglês ou português.
-- O site em inglês, com a versão em português em `/pt-BR/`, para onde navegadores em português vão sozinhos.
-
-### Alterado
-
-- O idioma principal do repositório passa a ser o inglês. O README, o changelog e os documentos de design em português foram para `docs/pt-BR/`.
-
-## [0.4.0] - 2026-10-10
-
 Primeira versão publicada.
 
 ### Adicionado
@@ -47,10 +33,11 @@ Primeira versão publicada.
 - Módulo PowerShell que fala com o app aberto: `New-SeverinoRoute`, `Set-SeverinoDns`, `Disable-SeverinoRoute -Group` e outros.
 - Backup de rotas, serviços e entradas DNS num arquivo JSON.
 - Assistente de primeiro uso, que confere a porta 80, o serviço auxiliar e o proxy do sistema.
+- Aviso de versão nova: o app consulta a última release no GitHub ao abrir e uma vez por dia, e avisa no topo da janela e na bandeja. **Atualizar agora** baixa o instalador, confere o SHA-256 publicado pelo GitHub, instala em silêncio e abre o app de novo, mantendo rotas, serviços e configurações. A consulta pode ser desligada em Configurações › Sobre.
+- Inglês e português: o app, o instalador e as páginas de erro do proxy seguem o idioma do Windows, e Configurações › Geral deixa escolher.
 - "Limpar tudo" e o desinstalador tiram o que o Severino colocou no Windows.
 - Instalador para Windows 10 e 11, 64 bits.
-- Site em <https://lucassm02.github.io/severino/>, com imagens para redes sociais.
+- Site em <https://lucassm02.github.io/severino/>, em inglês e em português, com vídeo de apresentação e imagens para redes sociais.
 
 [Unreleased]: https://github.com/lucassm02/severino/compare/v0.5.0...HEAD
-[0.5.0]: https://github.com/lucassm02/severino/compare/v0.4.0...v0.5.0
-[0.4.0]: https://github.com/lucassm02/severino/releases/tag/v0.4.0
+[0.5.0]: https://github.com/lucassm02/severino/releases/tag/v0.5.0
