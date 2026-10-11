@@ -12,6 +12,24 @@
   <meta name="author" content="lucassm02">
   <meta name="robots" content="index, follow">
   <meta name="theme-color" content="#011D41">
+  <script>
+    // A browser in Portuguese goes straight to /pt-BR/, before anything of this page shows. The
+    // first of the browser's languages that is English or Portuguese decides; a language picked
+    // by hand in the header (saved by site.js) wins over it.
+    (function () {
+      var chosen = null;
+      try { chosen = localStorage.getItem("severino-idioma"); } catch (e) { /* private mode */ }
+      var portuguese = chosen ? chosen === "pt-BR" : false;
+      if (!chosen) {
+        var languages = navigator.languages && navigator.languages.length ? navigator.languages : [navigator.language || ""];
+        for (var i = 0; i < languages.length; i++) {
+          if (/^pt\b/i.test(languages[i])) { portuguese = true; break; }
+          if (/^en\b/i.test(languages[i])) break;
+        }
+      }
+      if (portuguese) location.replace("pt-BR/" + location.search + location.hash);
+    })();
+  </script>
 
   <meta property="og:type" content="website">
   <meta property="og:locale" content="en_US">

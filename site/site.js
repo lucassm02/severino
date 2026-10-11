@@ -1,11 +1,23 @@
-// Four small jobs: set the board's letters by hand, turn the Rotas/Serviços/DNS panels into
-// tabs, play the intro while it is on screen, and point the download at the latest release.
+// Five small jobs: remember a language picked by hand, set the board's letters by hand, turn the
+// Rotas/Serviços/DNS panels into tabs, play the intro while it is on screen, and point the
+// download at the latest release.
 
 // The page is English at the root and Portuguese under /pt-BR/; the few words written here follow it.
 const english = document.documentElement.lang === "en";
 const words = english
   ? { pause: "Pause the animation", resume: "Resume the animation", release: (v, size) => `Version ${v}, ${size}. Free and open source. For Windows 10 and 11, 64-bit.` }
   : { pause: "Pausar a animação", resume: "Continuar a animação", release: (v, size) => `Versão ${v}, ${size}. Grátis e com código aberto. Para Windows 10 e 11, 64 bits.` };
+
+// The header's language link: from then on it beats the browser's language (see index.html's <head>).
+for (const link of document.querySelectorAll(".idioma")) {
+  link.addEventListener("click", () => {
+    try {
+      localStorage.setItem("severino-idioma", link.hreflang);
+    } catch {
+      // Private mode: the link still works, just without being remembered.
+    }
+  });
+}
 
 (function board() {
   const quadro = document.querySelector(".quadro");
