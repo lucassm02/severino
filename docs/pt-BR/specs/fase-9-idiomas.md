@@ -1,6 +1,6 @@
 # Spec: Fase 9, Inglês e português
 
-Status: aprovada em 2026-10-10, com os padrões das "Decisões a confirmar", e implementada no mesmo dia. Falta o [roteiro manual](../testes/fase-9-idiomas.md). Na implementação, as mensagens das outras camadas mudaram de abordagem: ver "Mensagens que vêm de outras camadas".
+Status: aprovada em 2026-10-10, com os padrões das "Decisões a confirmar", e concluída no mesmo dia, com os critérios de pronto verificados pelo [guia de testes](../testes/fase-9-idiomas.md). Na implementação, as mensagens das outras camadas mudaram de abordagem: ver "Mensagens que vêm de outras camadas".
 
 ## Objetivo
 

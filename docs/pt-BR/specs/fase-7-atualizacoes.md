@@ -1,6 +1,6 @@
 # Spec: Fase 7, Aviso de versão nova
 
-Status: aprovada em 2026-10-10, com os padrões das "Decisões a confirmar".
+Status: concluída em 2026-10-10. Critérios de pronto verificados com o [guia de testes](../testes/fase-7-atualizacoes.md); a spec foi aprovada no mesmo dia, com os padrões das "Decisões a confirmar".
 
 ## Objetivo
 

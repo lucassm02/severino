@@ -8,12 +8,15 @@ O formato segue o [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/), e
 
 ## [Unreleased]
 
+## [0.5.0] - 2026-10-10
+
 ### Adicionado
 
 - Aviso de versão nova: o app consulta a última release no GitHub ao abrir e uma vez por dia, e avisa no topo da janela e na bandeja.
 - Atualizar pelo app: **Atualizar agora** baixa o instalador da release, confere o SHA-256 publicado pelo GitHub, instala em silêncio e abre o app de novo, mantendo rotas, serviços e configurações.
 - Configurações › Sobre mostra o resultado da última consulta, com **Procurar agora**, e a opção de desligar a consulta automática.
 - Inglês. O app, o instalador e as páginas de erro seguem o idioma do Windows, e Configurações › Geral deixa escolher inglês ou português.
+- O site em inglês, com a versão em português em `/pt-BR/`, para onde navegadores em português vão sozinhos.
 
 ### Alterado
 
@@ -48,5 +51,6 @@ Primeira versão publicada.
 - Instalador para Windows 10 e 11, 64 bits.
 - Site em <https://lucassm02.github.io/severino/>, com imagens para redes sociais.
 
-[Unreleased]: https://github.com/lucassm02/severino/compare/v0.4.0...HEAD
+[Unreleased]: https://github.com/lucassm02/severino/compare/v0.5.0...HEAD
+[0.5.0]: https://github.com/lucassm02/severino/compare/v0.4.0...v0.5.0
 [0.4.0]: https://github.com/lucassm02/severino/releases/tag/v0.4.0
