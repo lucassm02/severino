@@ -119,20 +119,54 @@ public partial class App : Application
     protected override void OnExit(ExitEventArgs e)
     {
         // Normally ShellService.ExitAsync already stopped everything; this covers logoff and the like.
-        // Run off the UI thread: the cleanup awaits, and this thread is blocked waiting for it.
-        var coordinator = _host?.Services.GetService<ProxyCoordinator>();
-        if (coordinator is { IsStopped: false })
-            Task.Run(coordinator.StopAsync).Wait(TimeSpan.FromSeconds(5));
+        // This thread no longer pumps messages, and the services' loops started on it resume on it:
+        // blocking here on their disposal never ends. The pool does what it can before the deadline.
+        if (_stopping is null && _host is not null)
+        {
+            // The tray icon belongs to this thread; disposing it again later does nothing.
+            _host.Services.GetService<TrayService>()?.Dispose();
+            Task.Run(StopServicesAsync).Wait(StopDeadline);
+        }
 
-        var deleteData = _host?.Services.GetService<ShellService>()?.DeleteDataOnExit == true;
-        _host?.Services.GetService<TrayService>()?.Dispose();
-        _host?.StopAsync(TimeSpan.FromSeconds(5)).GetAwaiter().GetResult();
-        _host?.Dispose();
         // After the host, so the log file is closed.
-        if (deleteData)
+        if (_deleteData)
             SystemCleanup.DeleteData(ConfigStore.DefaultDirectory);
         _singleInstance?.Dispose();
         base.OnExit(e);
+    }
+
+    private static readonly TimeSpan StopDeadline = TimeSpan.FromSeconds(10);
+    private Task? _stopping;
+    private bool _deleteData;
+
+    /// <summary>
+    /// Stops the proxy and disposes every service. Awaited by <see cref="ShellService.ExitAsync"/>
+    /// on the UI thread before <c>Shutdown</c>, while the dispatcher still runs; gives up after a
+    /// few seconds so a stuck service never keeps the app open.
+    /// </summary>
+    internal async Task StopServicesAsync()
+    {
+        _stopping ??= StopHostAsync();
+        await Task.WhenAny(_stopping, Task.Delay(StopDeadline));
+    }
+
+    private async Task StopHostAsync()
+    {
+        if (_host is null)
+            return;
+        _logger?.LogInformation("Stopping services");
+        var coordinator = _host.Services.GetService<ProxyCoordinator>();
+        if (coordinator is { IsStopped: false })
+            await coordinator.StopAsync();
+        _deleteData = _host.Services.GetService<ShellService>()?.DeleteDataOnExit == true;
+        _host.Services.GetService<TrayService>()?.Dispose();
+        await _host.StopAsync(TimeSpan.FromSeconds(5));
+        _logger?.LogInformation("Services stopped; disposing them");
+        // Async: several services only dispose that way, and the sync Dispose would block on them.
+        if (_host is IAsyncDisposable host)
+            await host.DisposeAsync();
+        else
+            _host.Dispose();
     }
 
     /// <summary>

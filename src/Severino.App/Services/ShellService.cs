@@ -72,7 +72,7 @@ public sealed class ShellService
         await ExitAsync();
     }
 
-    /// <summary>Removes the hosts block and stops the proxy before shutting down.</summary>
+    /// <summary>Removes the hosts block, stops the proxy and disposes the services before shutting down.</summary>
     public async Task ExitAsync()
     {
         if (_exiting)
@@ -80,6 +80,10 @@ public sealed class ShellService
         _exiting = true;
         _window.Hide();
         await _proxy.StopAsync();
+        // Here, awaited, and not in App.OnExit: once Shutdown starts this thread stops running the
+        // services' continuations, and waiting for them there hung the app with the tray menu on screen.
+        if (Application.Current is App app)
+            await app.StopServicesAsync();
         Application.Current.Shutdown();
     }
 }

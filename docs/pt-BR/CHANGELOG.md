@@ -8,6 +8,11 @@ O formato segue o [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/), e
 
 ## [Unreleased]
 
+### Corrigido
+
+- "Sair" na bandeja deixava o menu congelado na tela e o processo aberto.
+- A aba DNS tem menos texto: dicas de seção mais curtas, um estado vazio compacto, o "ler de novo" junto ao título da seção e sem o selo "fora do Severino" repetido em cada linha.
+
 ## [0.5.0] - 2026-10-10
 
 Primeira versão publicada.
