@@ -57,6 +57,9 @@ public sealed record AppSettings
     /// <summary>WSL distros whose apps call the service routes by name; each gets the hosts block and the NAT rules.</summary>
     public IReadOnlyList<string> WslDistros { get; set; } = [];
 
+    /// <summary>The chosen WSL distros trust the local CA, for curl and Node there (see WslCaScript).</summary>
+    public bool WslTrustCa { get; set; }
+
     /// <summary>Refresh imported services on their own while the app is open (Docker events, Kubernetes every 30 s).</summary>
     public bool WatchServices { get; set; } = true;
 
@@ -97,6 +100,9 @@ public sealed record AppState
 
     /// <summary>The version the tray already announced, so it does it once.</summary>
     public string NotifiedVersion { get; set; } = "";
+
+    /// <summary>Distros that got the local CA, so it can be taken out of them later, stopped ones included.</summary>
+    public IReadOnlyList<string> WslTrustDistros { get; set; } = [];
 
     /// <summary>The project files applied here, for "Aplicar de novo".</summary>
     public IReadOnlyList<ProjectRef> Projects { get; set; } = [];

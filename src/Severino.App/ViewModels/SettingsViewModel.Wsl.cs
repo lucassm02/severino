@@ -13,6 +13,23 @@ public sealed partial class SettingsViewModel
     private readonly WslCallers _wsl;
     private readonly ServiceDiscovery _discovery;
     private readonly Severino.Core.Dns.DnsSync? _dnsSync;
+    private readonly WslTrust? _trust;
+
+    /// <summary>The chosen distros trust the local CA: curl and Node there open the HTTPS routes without -k.</summary>
+    public bool WslTrustCa
+    {
+        get => _config.Current.Settings.WslTrustCa;
+        set
+        {
+            if (value == WslTrustCa)
+                return;
+            _config.Update(c => c with { Settings = c.Settings with { WslTrustCa = value } });
+            OnPropertyChanged();
+        }
+    }
+
+    /// <summary>Only the trusted CA goes in; without HTTPS active there is nothing to trust yet.</summary>
+    public bool WslTrustNeedsHttps => !_https.IsActive;
 
     /// <summary>Installed distros, chosen or not.</summary>
     public ObservableCollection<WslDistroItem> WslDistros { get; } = [];
@@ -26,6 +43,8 @@ public sealed partial class SettingsViewModel
     private void InitializeWsl()
     {
         _wsl.Changed += (_, _) => Dispatch(RefreshWsl);
+        if (_trust is not null)
+            _trust.Changed += (_, _) => Dispatch(RefreshWsl);
         _config.Changed += (_, _) => Dispatch(RefreshWsl);
         _ = LoadDistrosAsync();
     }
@@ -55,12 +74,16 @@ public sealed partial class SettingsViewModel
     {
         var chosen = _config.Current.Settings.WslDistros;
         var statuses = _wsl.Statuses;
+        var trust = _trust?.Statuses ?? [];
         foreach (var item in WslDistros)
         {
             var isChosen = chosen.Contains(item.Name, StringComparer.OrdinalIgnoreCase);
             var status = statuses.FirstOrDefault(s => s.Distro.Equals(item.Name, StringComparison.OrdinalIgnoreCase));
             item.Refresh(isChosen, isChosen ? status : null);
+            item.RefreshTrust(isChosen ? trust.FirstOrDefault(s => s.Distro.Equals(item.Name, StringComparison.OrdinalIgnoreCase)) : null);
         }
+        OnPropertyChanged(nameof(WslTrustCa));
+        OnPropertyChanged(nameof(WslTrustNeedsHttps));
     }
 
     [RelayCommand]
@@ -92,6 +115,25 @@ public sealed partial class WslDistroItem(string name, Action<string, bool> setC
 
     [ObservableProperty]
     public partial bool IsProblem { get; set; }
+
+    /// <summary>Where the local CA is in this distro, while "Confiar na CA local" is on.</summary>
+    [ObservableProperty]
+    public partial string? TrustText { get; set; }
+
+    [ObservableProperty]
+    public partial bool TrustProblem { get; set; }
+
+    public void RefreshTrust(WslTrustStatus? status)
+    {
+        TrustProblem = status?.State == WslTrustState.Failed;
+        TrustText = status?.State switch
+        {
+            null => null,
+            WslTrustState.Installed => Strings.WslTrust_Installed,
+            WslTrustState.Stopped => Strings.WslTrust_Stopped,
+            _ => string.Format(Strings.WslTrust_Failed, status.Detail),
+        };
+    }
 
     public void Refresh(bool chosen, WslCallerStatus? status)
     {

@@ -188,4 +188,35 @@ Prova os critérios 1 a 6 da parte 3.
 
 ## Parte 4. CA confiável no WSL
 
-Pendente.
+Prova os critérios 1 a 4 da parte 4. Precisa do HTTPS ativo e de uma distro em Configurações › WSL. As rotas web só chegam ao WSL com a rede espelhada; num `%UserProfile%\.wslconfig`:
+
+```ini
+[wsl2]
+networkingMode=mirrored
+```
+
+1. **Ligar.** Em Configurações › WSL, ligue **Confiar na CA local nas distros**.
+   - Esperado: em poucos segundos a linha da distro diz "Confia na CA local". Uma distro parada diz "Recebe a CA local quando ligar".
+2. **curl e Node.** Numa rota HTTPS, como `https://meuapp.sev/`:
+
+   ```bash
+   curl -sI https://meuapp.sev/ | head -1
+   node -e "fetch('https://meuapp.sev/').then(r => console.log(r.status))"
+   ```
+
+   - Esperado: os dois respondem sem erro de certificado (abra um terminal novo na distro para o Node ler o `NODE_EXTRA_CA_CERTS`).
+3. **Distro parada.** `wsl --shutdown`, abra o Severino e depois a distro.
+   - Esperado: em até 30 segundos a linha muda para "Confia na CA local"; o certificado continua lá depois de reiniciar.
+4. **Reemitir.** Reemita a CA em Configurações › HTTPS.
+   - Esperado: a distro recebe a CA nova; o `curl` do passo 2 continua sem erro.
+5. **Desligar.** Desligue a opção.
+
+   ```bash
+   ls /usr/local/share/ca-certificates/severino.crt /etc/profile.d/severino-ca.sh
+   ```
+
+   - Esperado: os dois arquivos somem.
+6. **Tirar a distro, remover a CA, Limpar tudo.** Com a opção ligada, desligue a distro da lista; depois remova a CA; depois use **Limpar tudo**.
+   - Esperado: em cada caso o certificado sai da distro.
+7. **Erro explicado.** Numa distro sem o pacote `ca-certificates` (por exemplo, uma Alpine mínima).
+   - Esperado: a linha da distro diz que não deu para instalar e por quê.

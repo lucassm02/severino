@@ -2008,4 +2008,22 @@ Adicionar esses domínios às exceções do proxy? Eles entram na mesma lista de
   <data name="Project_RowSummary" xml:space="preserve">
     <value>{0} · {1}</value>
   </data>
+  <data name="WslTrust_Title" xml:space="preserve">
+    <value>Confiar na CA local nas distros</value>
+  </data>
+  <data name="WslTrust_Hint" xml:space="preserve">
+    <value>curl e Node nas distros escolhidas abrem as rotas HTTPS sem -k. As rotas web só chegam ao WSL com a rede espelhada (networkingMode=mirrored), porque o proxy escuta no loopback do Windows; as rotas de serviço funcionam de qualquer jeito.</value>
+  </data>
+  <data name="WslTrust_NeedsHttps" xml:space="preserve">
+    <value>Ligue o HTTPS antes: ainda não há CA local para confiar.</value>
+  </data>
+  <data name="WslTrust_Installed" xml:space="preserve">
+    <value>Confia na CA local.</value>
+  </data>
+  <data name="WslTrust_Stopped" xml:space="preserve">
+    <value>Recebe a CA local quando ligar.</value>
+  </data>
+  <data name="WslTrust_Failed" xml:space="preserve">
+    <value>Não deu para instalar a CA local: {0}</value>
+  </data>
 </root>

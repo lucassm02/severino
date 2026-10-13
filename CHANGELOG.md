@@ -16,6 +16,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - A folder as a route's target: Severino serves its files itself, with index.html, no cache and, for single-page apps, unknown pages sent to index.html. Path routes, HTTPS and the route rules work with folders too.
 - Environments: routes, services and DNS entries can belong to one, like `producao` or `staging`, and the same name can live in several. Only the active environment counts (with the items of none); the status bar and the tray switch it, and hosts, proxy, services and WSL follow at once. `Get-SeverinoEnvironment` and `Set-SeverinoEnvironment` in PowerShell.
 - Project files: a `severino.json` in a repository declares a project's routes, services and DNS entries. Drop it on the window, open it in Settings › Projects or run `Import-SeverinoProject`; a preview shows what comes in, changes and leaves before anything is applied, and applying again touches only the project's items. **Save as project…** on a route group, or `Export-SeverinoProject`, writes one.
+- The local CA trusted in WSL: Settings › WSL installs it in the chosen distros (update-ca-certificates or update-ca-trust, and NODE_EXTRA_CA_CERTS for Node), follows reissues, and takes it out when turned off, when the CA goes, and with Clean up everything and the uninstaller.
 
 ### Changed
 

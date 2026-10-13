@@ -205,11 +205,45 @@
                                                 </Style>
                                             </TextBlock.Style>
                                         </TextBlock>
+                                        <TextBlock FontSize="12" TextWrapping="Wrap" Text="{Binding TrustText}" Visibility="{Binding TrustText, Converter={StaticResource NullToCollapsed}}">
+                                            <TextBlock.Style>
+                                                <Style TargetType="TextBlock">
+                                                    <Setter Property="Foreground" Value="{DynamicResource TextFillColorSecondaryBrush}" />
+                                                    <Style.Triggers>
+                                                        <DataTrigger Binding="{Binding TrustProblem}" Value="True">
+                                                            <Setter Property="Foreground" Value="{DynamicResource SystemFillColorCautionBrush}" />
+                                                        </DataTrigger>
+                                                    </Style.Triggers>
+                                                </Style>
+                                            </TextBlock.Style>
+                                        </TextBlock>
                                     </StackPanel>
                                 </DockPanel>
                             </DataTemplate>
                         </ItemsControl.ItemTemplate>
                     </ItemsControl>
+                    <!-- The local CA in the chosen distros: off until asked, since it goes into the distro's own system store. -->
+                    <DockPanel Margin="0,16,0,0">
+                        <ui:ToggleSwitch
+                            DockPanel.Dock="Right"
+                            VerticalAlignment="Top"
+                            IsChecked="{Binding WslTrustCa}"
+                            AutomationProperties.Name="{x:Static res:Strings.WslTrust_Title}" />
+                        <StackPanel>
+                            <ui:TextBlock Text="{x:Static res:Strings.WslTrust_Title}" />
+                            <ui:TextBlock
+                                Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                                FontTypography="Caption"
+                                TextWrapping="Wrap"
+                                Text="{x:Static res:Strings.WslTrust_Hint}" />
+                            <ui:TextBlock
+                                Foreground="{DynamicResource SystemFillColorCautionBrush}"
+                                FontTypography="Caption"
+                                TextWrapping="Wrap"
+                                Text="{x:Static res:Strings.WslTrust_NeedsHttps}"
+                                Visibility="{Binding WslTrustNeedsHttps, Converter={StaticResource TrueToVisible}}" />
+                        </StackPanel>
+                    </DockPanel>
                     <ui:TextBlock
                         Margin="0,8,0,0"
                         Foreground="{DynamicResource TextFillColorSecondaryBrush}"

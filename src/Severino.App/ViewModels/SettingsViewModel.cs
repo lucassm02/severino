@@ -38,9 +38,10 @@ public sealed partial class SettingsViewModel : ObservableObject
 
     public SettingsViewModel(ConfigService config, ThemeService themes, HttpsService https, Backup backup,
         AutoStart autoStart, SystemCleanup cleanup, Lazy<ShellService> shell, Func<FirstRunViewModel> firstRun,
-        WslCallers wsl, ServiceDiscovery discovery, UpdatesViewModel updates, Severino.Core.Dns.DnsSync? dnsSync = null, ProjectsViewModel? projects = null)
+        WslCallers wsl, ServiceDiscovery discovery, UpdatesViewModel updates, Severino.Core.Dns.DnsSync? dnsSync = null, ProjectsViewModel? projects = null, WslTrust? trust = null)
     {
         Projects = projects;
+        _trust = trust;
         Updates = updates;
         _wsl = wsl;
         _discovery = discovery;
@@ -456,6 +457,10 @@ public sealed partial class SettingsViewModel : ObservableObject
             {
             }
         }
+
+        // The CA in the WSL distros outlives an exit too.
+        if (_trust is not null)
+            await _trust.RemoveEverywhereAsync(TimeSpan.FromSeconds(30));
 
         var shell = _shell.Value;
         shell.DeleteDataOnExit = deleteData;

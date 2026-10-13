@@ -112,6 +112,7 @@ public partial class App : Application
         _host.Services.GetRequiredService<DnsSync>().Start();
         // For the PowerShell module, once the config is loaded.
         _host.Services.GetRequiredService<ControlServer>().Start();
+        _host.Services.GetRequiredService<WslTrust>().Start();
         _ = StartProxyAsync(_host.Services.GetRequiredService<ProxyCoordinator>());
         _host.Services.GetRequiredService<UpdatesViewModel>().Start();
         _host.Services.GetRequiredService<HealthNotifier>().Start();
@@ -212,6 +213,7 @@ public partial class App : Application
         var result = new SystemCleanup(ca, new AutoStart(), proxy).Run();
         // The WSL distros too, stopped ones included: they may keep the /etc/hosts block.
         WslCallers.RemoveAsync(new WslShell(), [.. config.Current.Settings.WslDistros], TimeSpan.FromSeconds(30)).Wait();
+        WslTrust.RemoveAsync(new WslShell(), [.. config.Current.State.WslTrustDistros], TimeSpan.FromSeconds(30)).Wait();
         return result.CaRemoved ? 0 : 1;
     }
 
@@ -252,6 +254,7 @@ public partial class App : Application
         services.AddSingleton<DnsService>();
         services.AddSingleton<IWslShell>(_ => new WslShell());
         services.AddSingleton<WslCallers>();
+        services.AddSingleton<WslTrust>();
         services.AddSingleton<IPortForwardRunner, ProcessPortForwardRunner>();
         services.AddSingleton<PortForwards>();
         services.AddSingleton<ServiceRefresher>();

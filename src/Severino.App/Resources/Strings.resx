@@ -2008,4 +2008,22 @@ Add these domains to the proxy exceptions? They go into the same Internet Option
   <data name="Project_RowSummary" xml:space="preserve">
     <value>{0} · {1}</value>
   </data>
+  <data name="WslTrust_Title" xml:space="preserve">
+    <value>Trust the local CA in the distros</value>
+  </data>
+  <data name="WslTrust_Hint" xml:space="preserve">
+    <value>curl and Node in the chosen distros open the HTTPS routes without -k. Web routes reach WSL only with mirrored networking (networkingMode=mirrored), since the proxy listens on the Windows loopback; service routes work either way.</value>
+  </data>
+  <data name="WslTrust_NeedsHttps" xml:space="preserve">
+    <value>Turn on HTTPS first: there is no local CA to trust yet.</value>
+  </data>
+  <data name="WslTrust_Installed" xml:space="preserve">
+    <value>Trusts the local CA.</value>
+  </data>
+  <data name="WslTrust_Stopped" xml:space="preserve">
+    <value>Gets the local CA when it starts.</value>
+  </data>
+  <data name="WslTrust_Failed" xml:space="preserve">
+    <value>Could not install the local CA: {0}</value>
+  </data>
 </root>
