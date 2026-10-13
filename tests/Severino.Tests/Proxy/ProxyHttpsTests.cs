@@ -194,6 +194,24 @@ public sealed class ProxyHttpsTests : IAsyncLifetime
     }
 
     [Fact]
+    public async Task Websocket_passes_through_http2()
+    {
+        // Chrome opens wss:// over HTTP/2 when the server allows it: an extended CONNECT, not an Upgrade.
+        using var socket = new ClientWebSocket();
+        socket.Options.HttpVersion = HttpVersion.Version20;
+        socket.Options.HttpVersionPolicy = HttpVersionPolicy.RequestVersionExact;
+        using var invoker = new HttpMessageInvoker(Handler());
+        await socket.ConnectAsync(new Uri($"wss://meuapp.sev:{_httpsPort}/ws"), invoker, CancellationToken.None);
+
+        await socket.SendAsync("hmr"u8.ToArray(), WebSocketMessageType.Text, true, CancellationToken.None);
+        var buffer = new byte[64];
+        var received = await socket.ReceiveAsync(buffer, CancellationToken.None);
+
+        Assert.Equal("eco: hmr", Encoding.UTF8.GetString(buffer, 0, received.Count));
+        await socket.CloseAsync(WebSocketCloseStatus.NormalClosure, null, CancellationToken.None);
+    }
+
+    [Fact]
     public async Task New_ca_is_used_by_new_connections_without_restarting()
     {
         X509Certificate2? presented = null;
