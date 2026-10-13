@@ -14,12 +14,15 @@
 
 ## What it does
 
-- **Routes**, for the browser: `meuapp.sev → localhost:3000`, with HTTPS from a local certificate authority that only signs your domains. Also by path (`meuapp.sev/api`), by wildcard (`*.meuapp.sev`) and in groups that switch on and off together.
+- **Routes**, for the browser: `meuapp.sev → localhost:3000`, with HTTPS from a local certificate authority that only signs your domains. Also by path (`meuapp.sev/api`), by wildcard (`*.meuapp.sev`), in groups that switch on and off together, and to a folder Severino serves itself. Per route: CORS, headers, a delay or a failure on purpose.
 - **Services**, for databases, queues and the rest: `postgres.database:5432` reaches the cluster over any protocol. Imports from Kubernetes (NodePort, managed port-forward, Ingress) and from Docker, on Windows or in WSL, and fixes the ports on its own when they change.
 - **DNS**, for other machines: `banco.interno → 10.0.0.8`, kept with the app closed. Also shows the hosts lines other programs wrote, without touching them unless you ask.
-- **WSL**: the distros you choose call the same names.
-- **Requests**: a log of what went through the proxy and the services, kept in memory only.
-- **PowerShell**: a module that talks to the running app (`New-SeverinoRoute`, `Set-SeverinoDns`, `Disable-SeverinoRoute -Group`).
+- **Environments**: the same name, like `sql.banco`, in production, staging and the rest, switched from the status bar or the tray.
+- **Project files**: a `severino.json` in the repository brings the project's routes, services and DNS entries, after a preview.
+- **WSL**: the distros you choose call the same names, and can trust the local CA.
+- **Requests**: a log of what went through the proxy and the services, kept in memory only, with each request's headers and bodies, copy as curl, repeat and HAR export.
+- **Notices**: the tray tells when a route or service stops answering, and when it is back.
+- **PowerShell**: a module that talks to the running app (`New-SeverinoRoute`, `Set-SeverinoDns`, `Set-SeverinoEnvironment`, `Import-SeverinoProject`).
 - **English and Portuguese**: the app follows the Windows language, or the one you pick in Settings.
 
 ![Severino's Routes tab](site/assets/en/app-rotas.png)

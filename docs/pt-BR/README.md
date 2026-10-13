@@ -12,12 +12,15 @@
 
 ## O que ele faz
 
-- **Rotas**, para abrir no navegador: `meuapp.sev → localhost:3000`, com HTTPS de uma autoridade certificadora local que só assina os seus domínios. Também por caminho (`meuapp.sev/api`), por curinga (`*.meuapp.sev`) e em grupos que ligam e desligam juntos.
+- **Rotas**, para abrir no navegador: `meuapp.sev → localhost:3000`, com HTTPS de uma autoridade certificadora local que só assina os seus domínios. Também por caminho (`meuapp.sev/api`), por curinga (`*.meuapp.sev`), em grupos que ligam e desligam juntos, e para uma pasta que o próprio Severino serve. Por rota: CORS, cabeçalhos, atraso ou falha de propósito.
 - **Serviços**, para bancos, filas e o resto: `postgres.database:5432` chega ao cluster em qualquer protocolo. Importa do Kubernetes (NodePort, port-forward gerenciado, Ingress) e do Docker, no Windows ou no WSL, e corrige as portas sozinho quando elas mudam.
 - **DNS**, para outras máquinas: `banco.interno → 10.0.0.8`, valendo com o app fechado. Mostra também as linhas do hosts que outros programas escreveram, sem mexer nelas a não ser que você peça.
-- **WSL**: as distros que você escolher chamam os mesmos nomes.
-- **Requisições**: o log do que passou pelo proxy e pelos serviços, só em memória.
-- **PowerShell**: um módulo que fala com o app aberto (`New-SeverinoRoute`, `Set-SeverinoDns`, `Disable-SeverinoRoute -Group`).
+- **Ambientes**: o mesmo nome, como `sql.banco`, em produção, staging e o que mais houver, trocado pela barra de status ou pela bandeja.
+- **Arquivo do projeto**: um `severino.json` no repositório traz as rotas, serviços e entradas DNS do projeto, depois de uma prévia.
+- **WSL**: as distros que você escolher chamam os mesmos nomes, e podem confiar na CA local.
+- **Requisições**: o log do que passou pelo proxy e pelos serviços, só em memória, com os cabeçalhos e corpos de cada requisição, copiar como curl, repetir e exportar em HAR.
+- **Avisos**: a bandeja avisa quando uma rota ou serviço para de responder, e quando volta.
+- **PowerShell**: um módulo que fala com o app aberto (`New-SeverinoRoute`, `Set-SeverinoDns`, `Set-SeverinoEnvironment`, `Import-SeverinoProject`).
 - **Inglês e português**: o app segue o idioma do Windows, ou o que você escolher nas Configurações.
 
 ![A aba Rotas do Severino](../../site/assets/app-rotas.png)

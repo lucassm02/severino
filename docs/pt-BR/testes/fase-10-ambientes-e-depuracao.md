@@ -1,6 +1,6 @@
 # Guia de testes: Fase 10, Ambientes, depuração e projetos
 
-Roteiro manual para fechar a Fase 10. Cobre os critérios de pronto do [spec](../specs/fase-10-ambientes-e-depuracao.md) que os testes automatizados não alcançam. Cada parte ganha a sua seção quando fica pronta; as que ainda não existem estão marcadas como pendentes.
+Roteiro manual para fechar a Fase 10. Cobre os critérios de pronto do [spec](../specs/fase-10-ambientes-e-depuracao.md) que os testes automatizados não alcançam. As partes estão na ordem em que foram feitas; cada uma pode ser testada sozinha.
 
 ## Convenções
 

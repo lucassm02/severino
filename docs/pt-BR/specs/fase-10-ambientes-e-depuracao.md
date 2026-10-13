@@ -1,6 +1,6 @@
 # Spec: Fase 10, Ambientes, depuração e projetos
 
-Status: aprovada em 2026-10-12, em implementação. As escolhas em "Decisões" são os padrões adotados; qualquer uma pode mudar antes da parte correspondente ser feita.
+Status: aprovada em 2026-10-12 e implementada em 2026-10-13, as sete partes; falta o roteiro manual do [guia de testes](../testes/fase-10-ambientes-e-depuracao.md). As escolhas em "Decisões" são os padrões adotados.
 
 ## Objetivo
 
