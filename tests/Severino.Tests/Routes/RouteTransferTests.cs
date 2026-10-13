@@ -65,7 +65,7 @@ public sealed class RouteTransferTests
     [Theory]
     [InlineData("isto não é json")]
     [InlineData("""{ "version": 1, "routes": [] }""")]
-    [InlineData("""{ "severino": 3, "routes": [] }""")]
+    [InlineData("""{ "severino": 4, "routes": [] }""")]
     public void Foreign_or_newer_files_are_refused(string json)
     {
         Assert.Throws<InvalidRouteFileException>(() => Import(json));

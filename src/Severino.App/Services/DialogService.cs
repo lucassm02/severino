@@ -228,6 +228,43 @@ public sealed class DialogService(RouteService routes, ServiceRouteService servi
         return await box.ShowDialogAsync() == FluentResult.Primary;
     }
 
+    /// <summary>
+    /// The preview of a project file before applying it: what comes in, what changes, what
+    /// leaves and what cannot come in, item by item, with where each one points.
+    /// </summary>
+    public static Task<bool> ConfirmProjectAsync(ProjectPlan plan, string path)
+    {
+        var panel = new StackPanel { MaxWidth = 460 };
+        panel.Children.Add(Paragraph(string.Format(Strings.Project_PreviewLead, plan.Name, path)));
+        void Section(string heading, IEnumerable<string> lines)
+        {
+            var list = lines.ToList();
+            if (list.Count == 0)
+                return;
+            panel.Children.Add(new TextBlock { Text = heading, FontWeight = FontWeights.SemiBold, Margin = new Thickness(0, 4, 0, 4) });
+            foreach (var line in list)
+                panel.Children.Add(new TextBlock { Text = "• " + line, TextWrapping = TextWrapping.Wrap, Margin = new Thickness(8, 0, 0, 2) });
+            panel.Children.Add(new Border { Height = 8 });
+        }
+        string Line(ProjectItem item) => string.Format(Strings.Project_ItemLine, item.Kind switch
+        {
+            ProjectItemKind.Route => Strings.Project_KindRoute,
+            ProjectItemKind.Service => Strings.Project_KindService,
+            _ => Strings.Project_KindDns,
+        }, item.Name, item.Detail);
+        Section(Strings.Project_Added, plan.Items.Where(i => i.Change == ProjectChange.Added).Select(Line));
+        Section(Strings.Project_Changed, plan.Items.Where(i => i.Change == ProjectChange.Changed).Select(Line));
+        Section(Strings.Project_Removed, plan.Items.Where(i => i.Change == ProjectChange.Removed).Select(Line));
+        Section(Strings.Project_Refused, plan.Refused.Select(r => $"{r.Domain}: {r.Reason}"));
+        var unchanged = plan.Items.Count(i => i.Change == ProjectChange.Unchanged);
+        if (unchanged > 0)
+            panel.Children.Add(Paragraph(string.Format(Strings.Project_Unchanged, unchanged)));
+        if (!plan.HasChanges)
+            panel.Children.Add(Paragraph(Strings.Project_NothingToDo));
+        var content = new ScrollViewer { Content = panel, MaxHeight = 420, VerticalScrollBarVisibility = ScrollBarVisibility.Auto };
+        return ShowAsync(string.Format(Strings.Project_PreviewTitle, plan.Name), content, Strings.Project_Apply);
+    }
+
     private static TextBlock Paragraph(string text) =>
         new() { Text = text, TextWrapping = TextWrapping.Wrap, Margin = new Thickness(0, 0, 0, 12), MaxWidth = 460 };
 }

@@ -45,6 +45,9 @@ public sealed class ControlHandler(RouteService routes, DnsService dns, ServiceR
                 "services.list" => Ok(new JsonArray([.. services.Services.Select(Service)])),
                 "environments.list" => Ok(EnvironmentList()),
                 "environments.set" => SetEnvironment(args),
+                "projects.plan" => ProjectPlan(args, apply: false),
+                "projects.apply" => ProjectPlan(args, apply: true),
+                "projects.export" => ExportProject(args),
                 _ => Fail(string.Format(Strings.Control_UnknownCommand, command)),
             };
         }
@@ -107,6 +110,52 @@ public sealed class ControlHandler(RouteService routes, DnsService dns, ServiceR
     /// <summary>No "environment" argument matches any; one given matches only it, "" being none.</summary>
     private static bool InEnvironment(string environment, JsonObject args) =>
         !args.ContainsKey("environment") || Environments.Same(environment, Text(args, "environment"));
+
+    /// <summary>What the project file at "path" would change; with <paramref name="apply"/>, also applies it.</summary>
+    private string ProjectPlan(JsonObject args, bool apply)
+    {
+        if (config is null)
+            return Fail(Strings.Control_BadRequest);
+        var path = Text(args, "path");
+        RouteFile file;
+        try
+        {
+            file = ProjectFiles.Read(File.ReadAllText(path));
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or InvalidRouteFileException or ArgumentException)
+        {
+            return Fail(ex.Message);
+        }
+        var names = external?.Names;
+        var plan = ProjectFiles.Plan(file, config.Current, names);
+        if (apply)
+            config.Update(c => ProjectFiles.Remember(ProjectFiles.Plan(file, c, names).Next, file.Name, Path.GetFullPath(path)));
+        return Ok(new JsonObject
+        {
+            ["name"] = plan.Name,
+            ["changes"] = new JsonArray([.. plan.Items.Select(i => new JsonObject
+            {
+                ["kind"] = i.Kind.ToString().ToLowerInvariant(),
+                ["name"] = i.Name,
+                ["detail"] = i.Detail,
+                ["change"] = i.Change.ToString().ToLowerInvariant(),
+            })]),
+            ["refused"] = new JsonArray([.. plan.Refused.Select(r => new JsonObject { ["name"] = r.Domain, ["reason"] = r.Reason })]),
+        });
+    }
+
+    /// <summary>A group's routes, and what they go to, as a severino.json text.</summary>
+    private string ExportProject(JsonObject args)
+    {
+        if (config is null)
+            return Fail(Strings.Control_BadRequest);
+        var group = Text(args, "group");
+        var inGroup = config.Current.Routes.Where(r => r.Group == group).ToList();
+        if (inGroup.Count == 0)
+            return Fail(string.Format(Strings.Control_NoGroup, group));
+        var name = Text(args, "name") is { Length: > 0 } given ? given : group;
+        return Ok(JsonValue.Create(ProjectFiles.Export(name, inGroup, config.Current)));
+    }
 
     private JsonObject EnvironmentList() => new()
     {

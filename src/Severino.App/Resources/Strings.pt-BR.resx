@@ -1915,4 +1915,97 @@ Adicionar esses domínios às exceções do proxy? Eles entram na mesma lista de
   <data name="Env_FieldHint" xml:space="preserve">
     <value>Vale só enquanto esse ambiente estiver ativo, como staging ou producao; o mesmo nome pode existir em ambientes diferentes. Vazio vale sempre.</value>
   </data>
+  <data name="Project_Filter" xml:space="preserve">
+    <value>Projeto do Severino (severino.json)|*.json|Todos os arquivos (*.*)|*.*</value>
+  </data>
+  <data name="Project_OpenTitle" xml:space="preserve">
+    <value>Abrir projeto</value>
+  </data>
+  <data name="Project_OpenFailed" xml:space="preserve">
+    <value>Não deu para abrir {0}: {1}</value>
+  </data>
+  <data name="Project_PreviewTitle" xml:space="preserve">
+    <value>Aplicar o projeto {0}?</value>
+  </data>
+  <data name="Project_PreviewLead" xml:space="preserve">
+    <value>O projeto {0}, de {1}. Só os itens deste projeto mudam; o resto fica como está.</value>
+  </data>
+  <data name="Project_ItemLine" xml:space="preserve">
+    <value>{0} {1} → {2}</value>
+  </data>
+  <data name="Project_KindRoute" xml:space="preserve">
+    <value>Rota</value>
+  </data>
+  <data name="Project_KindService" xml:space="preserve">
+    <value>Serviço</value>
+  </data>
+  <data name="Project_KindDns" xml:space="preserve">
+    <value>Entrada DNS</value>
+  </data>
+  <data name="Project_Added" xml:space="preserve">
+    <value>Entra</value>
+  </data>
+  <data name="Project_Changed" xml:space="preserve">
+    <value>Muda</value>
+  </data>
+  <data name="Project_Removed" xml:space="preserve">
+    <value>Sai (não está mais no arquivo)</value>
+  </data>
+  <data name="Project_Refused" xml:space="preserve">
+    <value>Não entra</value>
+  </data>
+  <data name="Project_Unchanged" xml:space="preserve">
+    <value>{0} ficam como estão.</value>
+  </data>
+  <data name="Project_NothingToDo" xml:space="preserve">
+    <value>Nada a mudar: esta máquina já tem o projeto como o arquivo diz.</value>
+  </data>
+  <data name="Project_Apply" xml:space="preserve">
+    <value>Aplicar</value>
+  </data>
+  <data name="Project_RemoveTitle" xml:space="preserve">
+    <value>Remover o projeto?</value>
+  </data>
+  <data name="Project_RemoveText" xml:space="preserve">
+    <value>As {1} rotas, serviços e entradas DNS de {0} saem desta máquina. O arquivo fica onde está.</value>
+  </data>
+  <data name="Project_RemoveTip" xml:space="preserve">
+    <value>Tira todos os itens do projeto</value>
+  </data>
+  <data name="Project_SaveTitle" xml:space="preserve">
+    <value>Salvar como projeto</value>
+  </data>
+  <data name="Project_SaveGroup" xml:space="preserve">
+    <value>Salvar como projeto…</value>
+  </data>
+  <data name="Project_SaveGroupTip" xml:space="preserve">
+    <value>Grava um severino.json com estas rotas e os serviços e entradas DNS que elas usam, para o repositório do projeto</value>
+  </data>
+  <data name="Project_Settings" xml:space="preserve">
+    <value>Projetos</value>
+  </data>
+  <data name="Project_SettingsHint" xml:space="preserve">
+    <value>Um severino.json no repositório traz as rotas, serviços e entradas DNS do projeto. Abra aqui ou solte o arquivo na janela; nada muda antes da prévia.</value>
+  </data>
+  <data name="Project_Open" xml:space="preserve">
+    <value>Abrir projeto…</value>
+  </data>
+  <data name="Project_Reapply" xml:space="preserve">
+    <value>Aplicar de novo</value>
+  </data>
+  <data name="Project_ReapplyTip" xml:space="preserve">
+    <value>Lê o arquivo de novo e mostra o que mudou</value>
+  </data>
+  <data name="Project_FileMissing" xml:space="preserve">
+    <value>O arquivo não está mais lá.</value>
+  </data>
+  <data name="Project_ItemsOne" xml:space="preserve">
+    <value>1 item</value>
+  </data>
+  <data name="Project_ItemsMany" xml:space="preserve">
+    <value>{0} itens</value>
+  </data>
+  <data name="Project_RowSummary" xml:space="preserve">
+    <value>{0} · {1}</value>
+  </data>
 </root>

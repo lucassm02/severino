@@ -6,14 +6,18 @@ namespace Severino.Core.Routes;
 
 /// <summary>
 /// The backup file: what "Exportar" writes and "Importar" reads. Version 1 had only the routes;
-/// version 2 also carries services and DNS entries.
+/// version 2 also carries services and DNS entries; version 3 a name, for project files
+/// (severino.json, see <see cref="ProjectFiles"/>).
 /// </summary>
 public sealed record RouteFile
 {
-    public const int CurrentVersion = 2;
+    public const int CurrentVersion = 3;
 
     /// <summary>Format version; also tells a Severino routes file apart from any other JSON.</summary>
     public int Severino { get; set; }
+
+    /// <summary>The project's name, in a project file; empty in a backup.</summary>
+    public string Name { get; set; } = "";
 
     public IReadOnlyList<ExportedRoute> Routes { get; set; } = [];
 
@@ -109,6 +113,26 @@ public static class RouteTransfer
         return file;
     }
 
+    /// <summary>A route as the file has it, with a fresh id; not normalized or checked yet.</summary>
+    public static RouteEntry FromExported(ExportedRoute exported) => new()
+    {
+        Domain = exported.Domain ?? "",
+        Target = exported.Target ?? "",
+        Enabled = exported.Enabled,
+        Https = exported.Https,
+        RedirectToHttps = exported.Https && exported.RedirectToHttps,
+        PreserveHost = exported.PreserveHost,
+        IgnoreTargetCertErrors = exported.IgnoreTargetCertErrors,
+        Notes = exported.Notes ?? "",
+        Path = exported.Path ?? "",
+        StripPath = exported.StripPath,
+        Group = (exported.Group ?? "").Trim(),
+        NotifyHealth = exported.NotifyHealth,
+        Rules = exported.Rules ?? new(),
+        SpaFallback = exported.SpaFallback,
+        Environment = (exported.Environment ?? "").Trim(),
+    };
+
     /// <summary>The routes of <paramref name="file"/>, sorted into new, already present and invalid.</summary>
     public static ImportResult Import(RouteFile file, IReadOnlyList<RouteEntry> existing, int httpPort, int? httpsPort, IReadOnlyList<ServiceRoute>? services = null)
     {
@@ -118,24 +142,7 @@ public static class RouteTransfer
         var invalid = new List<InvalidImport>();
         foreach (var exported in file.Routes)
         {
-            var route = new RouteEntry
-            {
-                Domain = exported.Domain ?? "",
-                Target = exported.Target ?? "",
-                Enabled = exported.Enabled,
-                Https = exported.Https,
-                RedirectToHttps = exported.Https && exported.RedirectToHttps,
-                PreserveHost = exported.PreserveHost,
-                IgnoreTargetCertErrors = exported.IgnoreTargetCertErrors,
-                Notes = exported.Notes ?? "",
-                Path = exported.Path ?? "",
-                StripPath = exported.StripPath,
-                Group = (exported.Group ?? "").Trim(),
-                NotifyHealth = exported.NotifyHealth,
-                Rules = exported.Rules ?? new(),
-                SpaFallback = exported.SpaFallback,
-                Environment = (exported.Environment ?? "").Trim(),
-            };
+            var route = FromExported(exported);
 
             var domain = RouteRules.Normalize(route.Domain);
             var path = RouteRules.NormalizePath(route.Path);

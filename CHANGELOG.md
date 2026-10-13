@@ -15,10 +15,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - Route rules, in the route's **Advanced**: allow CORS (Severino answers the preflight), set or remove headers both ways, wait before forwarding, and fail on purpose with 429, 500, 502, 503 or 504 in part of the requests. Each rule on shows as a badge on the route's card.
 - A folder as a route's target: Severino serves its files itself, with index.html, no cache and, for single-page apps, unknown pages sent to index.html. Path routes, HTTPS and the route rules work with folders too.
 - Environments: routes, services and DNS entries can belong to one, like `producao` or `staging`, and the same name can live in several. Only the active environment counts (with the items of none); the status bar and the tray switch it, and hosts, proxy, services and WSL follow at once. `Get-SeverinoEnvironment` and `Set-SeverinoEnvironment` in PowerShell.
+- Project files: a `severino.json` in a repository declares a project's routes, services and DNS entries. Drop it on the window, open it in Settings › Projects or run `Import-SeverinoProject`; a preview shows what comes in, changes and leaves before anything is applied, and applying again touches only the project's items. **Save as project…** on a route group, or `Export-SeverinoProject`, writes one.
 
 ### Changed
 
 - Clicking the new version notice in the tray opens the window.
+- Backup files are now version 3; older versions of Severino do not read them.
 
 ### Fixed
 

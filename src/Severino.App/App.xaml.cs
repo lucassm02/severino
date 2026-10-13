@@ -305,6 +305,8 @@ public partial class App : Application
         services.AddSingleton<UpdatesViewModel>();
         services.AddSingleton<TrayViewModel>();
         services.AddSingleton<EnvironmentsViewModel>();
+        services.AddSingleton<ProjectService>();
+        services.AddSingleton<ProjectsViewModel>();
 
         return builder.Build();
     }

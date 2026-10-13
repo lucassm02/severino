@@ -226,5 +226,63 @@ function Set-SeverinoEnvironment {
     Invoke-SeverinoControl -Command 'environments.set' -Arguments @{ name = if ($None) { '' } else { $Name } }
 }
 
+function Import-SeverinoProject {
+    <#
+    .SYNOPSIS
+    Applies a project file (severino.json): shows what comes in, changes and leaves, then asks before applying.
+    .DESCRIPTION
+    Only the project's own items change. -Confirm:$false applies without asking; -WhatIf only shows the changes.
+    .EXAMPLE
+    Import-SeverinoProject
+    .EXAMPLE
+    Import-SeverinoProject C:\projetos\meuapp
+    #>
+    [CmdletBinding(SupportsShouldProcess, ConfirmImpact = 'High')]
+    param([Parameter(Position = 0)] [string] $Path = '.')
+
+    $file = $Path
+    if (Test-Path -LiteralPath $file -PathType Container) { $file = Join-Path $file 'severino.json' }
+    $file = (Resolve-Path -LiteralPath $file -ErrorAction Stop).ProviderPath
+
+    $plan = Invoke-SeverinoControl -Command 'projects.plan' -Arguments @{ path = $file }
+    foreach ($change in $plan.changes | Where-Object change -ne 'unchanged') {
+        Write-Host ('{0,-9} {1,-8} {2} -> {3}' -f $change.change, $change.kind, $change.name, $change.detail)
+    }
+    foreach ($refused in $plan.refused) {
+        Write-Warning "$($refused.name): $($refused.reason)"
+    }
+    if (-not ($plan.changes | Where-Object change -ne 'unchanged')) {
+        Write-Host "Nothing to change in $($plan.name)."
+        return
+    }
+    if ($PSCmdlet.ShouldProcess($plan.name, 'Apply project')) {
+        Invoke-SeverinoControl -Command 'projects.apply' -Arguments @{ path = $file } | Out-Null
+    }
+}
+
+function Export-SeverinoProject {
+    <#
+    .SYNOPSIS
+    Writes a severino.json with a route group and the services and DNS entries its routes go to.
+    .EXAMPLE
+    Export-SeverinoProject -Group meuapp
+    #>
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory)] [string] $Group,
+        [string] $Path = 'severino.json',
+        [string] $Name
+    )
+
+    $arguments = @{ group = $Group }
+    if ($Name) { $arguments.name = $Name }
+    $json = Invoke-SeverinoControl -Command 'projects.export' -Arguments $arguments
+    # UTF-8 without a BOM, the way repositories keep JSON.
+    $target = $ExecutionContext.SessionState.Path.GetUnresolvedProviderPathFromPSPath($Path)
+    [System.IO.File]::WriteAllText($target, $json + "`n", (New-Object System.Text.UTF8Encoding $false))
+    Get-Item -LiteralPath $target
+}
+
 Export-ModuleMember -Function Get-SeverinoRoute, New-SeverinoRoute, Remove-SeverinoRoute, Enable-SeverinoRoute, Disable-SeverinoRoute,
-    Get-SeverinoDns, Set-SeverinoDns, Remove-SeverinoDns, Get-SeverinoService, Get-SeverinoEnvironment, Set-SeverinoEnvironment
+    Get-SeverinoDns, Set-SeverinoDns, Remove-SeverinoDns, Get-SeverinoService, Get-SeverinoEnvironment, Set-SeverinoEnvironment,
+    Import-SeverinoProject, Export-SeverinoProject

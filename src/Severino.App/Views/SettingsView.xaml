@@ -347,7 +347,49 @@
                     <ui:Button Content="{x:Static res:Strings.Common_Export}" Command="{Binding ExportBackupCommand}" />
                     <ui:Button Margin="8,0,0,0" Content="{x:Static res:Strings.Common_Import}" Command="{Binding ImportBackupCommand}" />
                 </StackPanel>
+            </ui:CardControl>            <!-- Project files (severino.json): opened from here or dropped on the window, applied after a preview. -->
+            <ui:CardControl Margin="0,0,0,4" Icon="{ui:SymbolIcon DocumentFolder24}" Visibility="{Binding Projects, Converter={StaticResource NullToCollapsed}}">
+                <ui:CardControl.Header>
+                    <StackPanel>
+                        <ui:TextBlock Text="{x:Static res:Strings.Project_Settings}" />
+                        <ui:TextBlock Foreground="{DynamicResource TextFillColorSecondaryBrush}" FontTypography="Caption" TextWrapping="Wrap" Text="{x:Static res:Strings.Project_SettingsHint}" />
+                    </StackPanel>
+                </ui:CardControl.Header>
+                <ui:Button Content="{x:Static res:Strings.Project_Open}" Command="{Binding Projects.OpenCommand}" />
             </ui:CardControl>
+            <ItemsControl Margin="0,0,0,4" ItemsSource="{Binding Projects.Items}" Focusable="False">
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate DataType="{x:Type vm:ProjectRow}">
+                        <ui:Card Margin="0,0,0,4" Padding="16,10">
+                            <DockPanel>
+                                <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" VerticalAlignment="Center">
+                                    <ui:Button
+                                        Content="{x:Static res:Strings.Project_Reapply}"
+                                        ToolTip="{x:Static res:Strings.Project_ReapplyTip}"
+                                        IsEnabled="{Binding CanReapply}"
+                                        Command="{Binding DataContext.Projects.ReapplyCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
+                                        CommandParameter="{Binding}" />
+                                    <ui:Button
+                                        Margin="8,0,0,0"
+                                        Content="{x:Static res:Strings.Common_Remove}"
+                                        ToolTip="{x:Static res:Strings.Project_RemoveTip}"
+                                        Command="{Binding DataContext.Projects.RemoveCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
+                                        CommandParameter="{Binding}" />
+                                </StackPanel>
+                                <StackPanel VerticalAlignment="Center">
+                                    <TextBlock FontWeight="SemiBold" Text="{Binding Name}" />
+                                    <TextBlock FontSize="12" TextTrimming="CharacterEllipsis" Foreground="{DynamicResource TextFillColorSecondaryBrush}" Text="{Binding Summary}" ToolTip="{Binding Path}" />
+                                    <TextBlock
+                                        FontSize="12"
+                                        Foreground="{DynamicResource SystemFillColorCautionBrush}"
+                                        Text="{x:Static res:Strings.Project_FileMissing}"
+                                        Visibility="{Binding Missing, Converter={StaticResource TrueToVisible}}" />
+                                </StackPanel>
+                            </DockPanel>
+                        </ui:Card>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
             <ui:CardControl Margin="0,0,0,4" Icon="{ui:SymbolIcon Broom24}">
                 <ui:CardControl.Header>
                     <StackPanel>

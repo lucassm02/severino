@@ -38,6 +38,9 @@ public sealed record DnsEntry
 
     /// <summary>Counts only in this environment; empty for all of them (see <see cref="Environments"/>).</summary>
     public string Environment { get; set; } = "";
+
+    /// <summary>The project file that brought it (see ProjectFiles); empty for one made here.</summary>
+    public string Project { get; set; } = "";
 }
 
 public sealed record AppSettings
@@ -94,6 +97,16 @@ public sealed record AppState
 
     /// <summary>The version the tray already announced, so it does it once.</summary>
     public string NotifiedVersion { get; set; } = "";
+
+    /// <summary>The project files applied here, for "Aplicar de novo".</summary>
+    public IReadOnlyList<ProjectRef> Projects { get; set; } = [];
+}
+
+/// <summary>A project applied from a severino.json: its name, on its items, and where the file was.</summary>
+public sealed record ProjectRef
+{
+    public string Name { get; set; } = "";
+    public string Path { get; set; } = "";
 }
 
 public sealed record RouteEntry
@@ -128,6 +141,9 @@ public sealed record RouteEntry
 
     /// <summary>Counts only in this environment; empty for all of them (see <see cref="Environments"/>).</summary>
     public string Environment { get; set; } = "";
+
+    /// <summary>The project file that brought it (see ProjectFiles); empty for one made here.</summary>
+    public string Project { get; set; } = "";
 }
 
 /// <summary>What the proxy does to a route's traffic beyond forwarding it. All off by default.</summary>
@@ -201,6 +217,9 @@ public sealed record ServiceRoute
 
     /// <summary>Counts only in this environment; empty for all of them (see <see cref="Environments"/>).</summary>
     public string Environment { get; set; } = "";
+
+    /// <summary>The project file that brought it (see ProjectFiles); empty for one made here.</summary>
+    public string Project { get; set; } = "";
 }
 
 public sealed record ServicePort

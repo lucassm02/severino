@@ -264,4 +264,7 @@
   <data name="Control_NoEnvironment" xml:space="preserve">
     <value>There is no environment {0}. The ones in use: {1}.</value>
   </data>
+  <data name="Project_NoName" xml:space="preserve">
+    <value>This file has no project name (&quot;name&quot;): it looks like a backup. Import it in Settings › Backup instead.</value>
+  </data>
 </root>

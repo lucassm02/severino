@@ -15,10 +15,12 @@ O formato segue o [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/), e
 - Regras por rota, no **Avançado** da rota: liberar CORS (o Severino responde o preflight), pôr ou tirar cabeçalhos na ida e na volta, esperar antes de repassar e falhar de propósito com 429, 500, 502, 503 ou 504 em parte das requisições. Cada regra ligada aparece como selo no card da rota.
 - Pasta como destino de uma rota: o Severino serve os arquivos dela, com index.html, sem cache e, para apps de página única, páginas desconhecidas indo para o index.html. Rotas por caminho, HTTPS e as regras por rota também valem para pasta.
 - Ambientes: rotas, serviços e entradas DNS podem ser de um, como `producao` ou `staging`, e o mesmo nome pode existir em vários. Só o ambiente ativo vale (com os itens sem ambiente); a barra de status e a bandeja trocam, e hosts, proxy, serviços e WSL acompanham na hora. `Get-SeverinoEnvironment` e `Set-SeverinoEnvironment` no PowerShell.
+- Arquivo do projeto: um `severino.json` no repositório declara as rotas, serviços e entradas DNS do projeto. Solte o arquivo na janela, abra em Configurações › Projetos ou rode `Import-SeverinoProject`; uma prévia mostra o que entra, muda e sai antes de aplicar, e aplicar de novo só mexe nos itens do projeto. **Salvar como projeto…** num grupo de rotas, ou `Export-SeverinoProject`, gera um.
 
 ### Alterado
 
 - Clicar no aviso de versão nova na bandeja abre a janela.
+- Os arquivos de backup agora são da versão 3; versões anteriores do Severino não os leem.
 
 ### Corrigido
 

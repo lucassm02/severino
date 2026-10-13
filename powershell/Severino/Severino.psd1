@@ -7,7 +7,8 @@
     PowerShellVersion = '5.1'
     FunctionsToExport = @(
         'Get-SeverinoRoute', 'New-SeverinoRoute', 'Remove-SeverinoRoute', 'Enable-SeverinoRoute', 'Disable-SeverinoRoute',
-        'Get-SeverinoDns', 'Set-SeverinoDns', 'Remove-SeverinoDns', 'Get-SeverinoService', 'Get-SeverinoEnvironment', 'Set-SeverinoEnvironment'
+        'Get-SeverinoDns', 'Set-SeverinoDns', 'Remove-SeverinoDns', 'Get-SeverinoService', 'Get-SeverinoEnvironment', 'Set-SeverinoEnvironment',
+        'Import-SeverinoProject', 'Export-SeverinoProject'
     )
     CmdletsToExport   = @()
     VariablesToExport = @()

@@ -91,6 +91,11 @@
                                             <ContextMenu>
                                                 <MenuItem Header="{x:Static res:Strings.Routes_NewInGroup}" Command="{Binding Data.NewRouteInGroupCommand, Source={StaticResource Root}}" CommandParameter="{Binding}" />
                                                 <MenuItem Header="{x:Static res:Strings.Routes_RenameGroupMenu}" Command="{Binding Data.RenameGroupCommand, Source={StaticResource Root}}" CommandParameter="{Binding}" />
+                                                <MenuItem
+                                                    Header="{x:Static res:Strings.Project_SaveGroup}"
+                                                    ToolTip="{x:Static res:Strings.Project_SaveGroupTip}"
+                                                    Command="{Binding Data.SaveGroupAsProjectCommand, Source={StaticResource Root}}"
+                                                    CommandParameter="{Binding}" />
                                                 <Separator />
                                                 <MenuItem
                                                     Header="{x:Static res:Strings.Routes_Ungroup}"

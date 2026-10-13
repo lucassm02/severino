@@ -24,8 +24,9 @@ public sealed partial class RoutesViewModel : ListPageViewModel
     private readonly Navigation _navigation;
 
     public RoutesViewModel(RouteService routes, ConfigService config, HealthMonitor health, DialogService dialogs, HttpsService https, Navigation navigation,
-        DnsService? dns = null, HostsSync? hosts = null)
+        DnsService? dns = null, HostsSync? hosts = null, ProjectService? projects = null)
     {
+        _projects = projects;
         _routes = routes;
         _dns = dns;
         _hosts = hosts;
@@ -94,6 +95,12 @@ public sealed partial class RoutesViewModel : ListPageViewModel
         }
         _routes.RenameGroup(group.Name, name);
     }
+
+    private readonly ProjectService? _projects;
+
+    /// <summary>The group's routes, and what they go to, into a severino.json for the repository.</summary>
+    [RelayCommand]
+    private Task SaveGroupAsProjectAsync(RouteGroupViewModel group) => _projects?.SaveGroupAsync(group.Name) ?? Task.CompletedTask;
 
     [RelayCommand]
     private void Ungroup(RouteGroupViewModel group)

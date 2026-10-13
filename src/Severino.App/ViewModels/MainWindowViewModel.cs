@@ -6,8 +6,9 @@ namespace Severino.App.ViewModels;
 public sealed partial class MainWindowViewModel : ObservableObject
 {
     public MainWindowViewModel(RoutesViewModel routes, ServicesViewModel services, DnsViewModel dns, RequestsViewModel requests, SettingsViewModel settings,
-        StatusBarViewModel status, UpdatesViewModel updates, Navigation navigation, EnvironmentsViewModel? environments = null)
+        StatusBarViewModel status, UpdatesViewModel updates, Navigation navigation, EnvironmentsViewModel? environments = null, ProjectsViewModel? projects = null)
     {
+        Projects = projects;
         Environments = environments;
         Updates = updates;
         Routes = routes;
@@ -26,6 +27,9 @@ public sealed partial class MainWindowViewModel : ObservableObject
     public SettingsViewModel Settings { get; }
     public StatusBarViewModel Status { get; }
     public UpdatesViewModel Updates { get; }
+
+    /// <summary>A severino.json dropped on the window opens through it.</summary>
+    public ProjectsViewModel? Projects { get; }
 
     /// <summary>The environment switch at the end of the status bar.</summary>
     public EnvironmentsViewModel? Environments { get; }

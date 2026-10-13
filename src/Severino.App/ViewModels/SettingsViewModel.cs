@@ -38,8 +38,9 @@ public sealed partial class SettingsViewModel : ObservableObject
 
     public SettingsViewModel(ConfigService config, ThemeService themes, HttpsService https, Backup backup,
         AutoStart autoStart, SystemCleanup cleanup, Lazy<ShellService> shell, Func<FirstRunViewModel> firstRun,
-        WslCallers wsl, ServiceDiscovery discovery, UpdatesViewModel updates, Severino.Core.Dns.DnsSync? dnsSync = null)
+        WslCallers wsl, ServiceDiscovery discovery, UpdatesViewModel updates, Severino.Core.Dns.DnsSync? dnsSync = null, ProjectsViewModel? projects = null)
     {
+        Projects = projects;
         Updates = updates;
         _wsl = wsl;
         _discovery = discovery;
@@ -120,6 +121,9 @@ public sealed partial class SettingsViewModel : ObservableObject
 
     partial void OnStartMinimizedChanged(bool value) =>
         _config.Update(c => c with { Settings = c.Settings with { StartMinimized = value } });
+
+    /// <summary>Settings › Projetos; null where the window is built without one, as in tests.</summary>
+    public ProjectsViewModel? Projects { get; }
 
     /// <summary>The tray notices of routes and services that asked for them.</summary>
     [ObservableProperty]

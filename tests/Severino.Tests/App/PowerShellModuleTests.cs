@@ -77,6 +77,30 @@ public sealed class PowerShellModuleTests : IAsyncLifetime
     }
 
     [Fact]
+    public async Task The_module_exports_a_group_and_applies_a_project_file()
+    {
+        var module = Path.Combine(Root(), "powershell", "Severino", "Severino.psd1");
+        var project = Path.Combine(_dir, "meuapp");
+        Directory.CreateDirectory(project);
+        var script =
+            $"Import-Module '{module}'; " +
+            "New-SeverinoRoute meuapp.sev http://localhost:3000 -Group meuapp | Out-Null; " +
+            $"Export-SeverinoProject -Group meuapp -Path '{Path.Combine(project, "severino.json")}' | Out-Null; " +
+            "Remove-SeverinoRoute meuapp.sev -Confirm:$false | Out-Null; " +
+            $"Import-SeverinoProject '{project}' -Confirm:$false 6>&1; " +
+            "(Get-SeverinoRoute meuapp.sev).target";
+
+        var output = await RunPowerShellAsync(script);
+
+        Assert.Contains("added", output);
+        Assert.Contains("http://localhost:3000", output);
+        var route = Assert.Single(_config.Current.Routes);
+        Assert.Equal("meuapp", route.Project);
+        Assert.Equal("meuapp", Assert.Single(_config.Current.State.Projects).Name);
+        Assert.DoesNotContain("\"id\"", File.ReadAllText(Path.Combine(project, "severino.json")));
+    }
+
+    [Fact]
     public async Task The_module_creates_a_route_and_an_entry_through_the_pipe()
     {
         var module = Path.Combine(Root(), "powershell", "Severino", "Severino.psd1");

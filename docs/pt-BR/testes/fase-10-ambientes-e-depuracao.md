@@ -160,7 +160,31 @@ Prova os critérios 1 a 6 da parte 1. Antes, confira que a barra de status não 
 
 ## Parte 3. Arquivo do projeto
 
-Pendente.
+Prova os critérios 1 a 6 da parte 3.
+
+1. **Gerar.** Na aba Rotas, no **⋯** do grupo `meuapp`, **Salvar como projeto…** e salve em `C:\temp\meuapp\severino.json`. Abra o arquivo num editor.
+   - Esperado: `"severino": 3`, `"name": "meuapp"`, as rotas do grupo e os serviços e entradas DNS que elas usam como destino; nenhum `id` nem endereço `127.77`.
+2. **Aplicar soltando o arquivo.** Remova as rotas do grupo e solte o `severino.json` na janela do Severino.
+   - Esperado: a prévia "Aplicar o projeto meuapp?" lista o que **Entra**, com o destino de cada item. **Cancelar** não muda nada; **Aplicar** traz tudo de volta.
+3. **Lista.** Em Configurações › Projetos, o projeto aparece com o número de itens e o caminho do arquivo.
+4. **Aplicar de novo.** No arquivo, mude o destino de uma rota, apague outra e salve. **Aplicar de novo**.
+   - Esperado: a prévia mostra **Muda** e **Sai**; aplicado, a rota muda e a apagada some. Uma rota que você desligou antes continua desligada.
+5. **Sem mudanças.** **Aplicar de novo** sem mexer no arquivo.
+   - Esperado: "Nada a mudar".
+6. **Conflito.** Crie à mão uma rota com um domínio que o arquivo também tem e aplique de novo.
+   - Esperado: a prévia mostra o domínio em **Não entra**, com o motivo; a rota feita à mão continua como está.
+7. **Remover.** **Remover** o projeto.
+   - Esperado: os itens do projeto saem; os feitos à mão ficam.
+8. **PowerShell.**
+
+   ```powershell
+   Export-SeverinoProject -Group meuapp -Path C:\temp\meuapp\severino.json
+   Import-SeverinoProject C:\temp\meuapp
+   ```
+
+   - Esperado: o primeiro grava o arquivo. O segundo lista as mudanças e pergunta antes de aplicar; `-WhatIf` só mostra.
+9. **Backup não é projeto.** Tente abrir como projeto um backup exportado em Configurações › Backup.
+   - Esperado: a mensagem diz que o arquivo não tem nome de projeto e sugere importar como backup.
 
 ## Parte 4. CA confiável no WSL
 

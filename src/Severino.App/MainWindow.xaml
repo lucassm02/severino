@@ -18,7 +18,10 @@
     WindowStartupLocation="CenterScreen"
     WindowBackdropType="Mica"
     Icon="/Assets/severino.ico"
-    ExtendsContentIntoTitleBar="True">
+    ExtendsContentIntoTitleBar="True"
+    AllowDrop="True"
+    DragOver="OnDragOver"
+    Drop="OnDrop">
     <ui:FluentWindow.Resources>
         <Style x:Key="StatusLink" TargetType="ui:Button" BasedOn="{StaticResource {x:Type ui:Button}}">
             <Setter Property="Appearance" Value="Transparent" />
