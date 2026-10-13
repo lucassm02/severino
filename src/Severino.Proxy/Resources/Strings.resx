@@ -105,4 +105,46 @@
   <data name="Error_FileNotFoundText" xml:space="preserve">
     <value>For a single-page app, turn on “Send unknown paths to index.html” in the route of {0}.</value>
   </data>
+  <data name="Access_LoginTitle" xml:space="preserve">
+    <value>Sign in</value>
+  </data>
+  <data name="Access_LoginBadge" xml:space="preserve">
+    <value>sign in</value>
+  </data>
+  <data name="Access_LoginLead" xml:space="preserve">
+    <value>{0} asks for a password.</value>
+  </data>
+  <data name="Access_LoginText" xml:space="preserve">
+    <value>Whoever set up this route in Severino chose so. The session lasts until the browser closes, 12 hours at most.</value>
+  </data>
+  <data name="Access_User" xml:space="preserve">
+    <value>User</value>
+  </data>
+  <data name="Access_Password" xml:space="preserve">
+    <value>Password</value>
+  </data>
+  <data name="Access_SignIn" xml:space="preserve">
+    <value>Sign in</value>
+  </data>
+  <data name="Access_Wrong" xml:space="preserve">
+    <value>Wrong user or password.</value>
+  </data>
+  <data name="Access_RequiredTitle" xml:space="preserve">
+    <value>Restricted</value>
+  </data>
+  <data name="Access_LoginNeeded" xml:space="preserve">
+    <value>{0} asks for a password: sign in at {1} in the browser.</value>
+  </data>
+  <data name="Access_BasicLead" xml:space="preserve">
+    <value>{0} asks for a user and a password (Basic Auth).</value>
+  </data>
+  <data name="Access_BasicText" xml:space="preserve">
+    <value>The browser asks for them; reload the page to try again.</value>
+  </data>
+  <data name="Access_HeaderLead" xml:space="preserve">
+    <value>{0} only answers requests with the {1} header.</value>
+  </data>
+  <data name="Access_HeaderText" xml:space="preserve">
+    <value>Send it with the route&apos;s key, as an API gateway would ask.</value>
+  </data>
 </root>

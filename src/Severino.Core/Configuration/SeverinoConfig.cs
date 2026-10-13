@@ -145,6 +145,9 @@ public sealed record RouteEntry
     /// <summary>CORS, headers, delay and simulated failure, applied by the proxy on the way.</summary>
     public TrafficRules Rules { get; set; } = new();
 
+    /// <summary>A password or a header before the proxy forwards; open by default.</summary>
+    public RouteAccess Access { get; set; } = new();
+
     /// <summary>Counts only in this environment; empty for all of them (see <see cref="Environments"/>).</summary>
     public string Environment { get; set; } = "";
 
@@ -187,6 +190,40 @@ public sealed record HeaderRule
 {
     public string Name { get; set; } = "";
     public string Value { get; set; } = "";
+}
+
+/// <summary>
+/// Who may go through a route: anyone, someone who knows a password (Severino's own page or Basic
+/// Auth), or a client that sends a header. Secrets are kept as hashes only (see Routes.AccessSecrets).
+/// </summary>
+public sealed record RouteAccess
+{
+    public AccessMode Mode { get; set; }
+
+    /// <summary>For <see cref="AccessMode.Login"/> and <see cref="AccessMode.Basic"/>.</summary>
+    public string User { get; set; } = "";
+
+    /// <summary>PBKDF2-SHA256 with salt, as "pbkdf2-sha256$iterations$salt$hash".</summary>
+    public string PasswordHash { get; set; } = "";
+
+    /// <summary>For <see cref="AccessMode.Header"/>: the header the client sends, like X-Api-Key.</summary>
+    public string HeaderName { get; set; } = "";
+
+    /// <summary>SHA-256 of the header's value, as "sha256$hex".</summary>
+    public string HeaderHash { get; set; } = "";
+}
+
+[JsonConverter(typeof(JsonStringEnumConverter<AccessMode>))]
+public enum AccessMode
+{
+    [JsonStringEnumMemberName("open")] Open,
+
+    /// <summary>Severino's own page asks for the password and keeps a session cookie.</summary>
+    [JsonStringEnumMemberName("login")] Login,
+
+    [JsonStringEnumMemberName("basic")] Basic,
+
+    [JsonStringEnumMemberName("header")] Header,
 }
 
 /// <summary>

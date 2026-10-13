@@ -69,13 +69,45 @@ public static class ErrorPages
             $"<p class=\"lead\">{Format(Strings.Error_SimulatedLead, $"<strong>{Html.Encode(domain)}</strong>", status, percent)}</p>" +
             $"<p>{Html.Encode(Strings.Error_SimulatedText)}</p>");
 
+    /// <summary>Severino's own login page for a route with <see cref="Severino.Core.Configuration.AccessMode.Login"/>.</summary>
+    /// <param name="action">Where the form posts: the route's login path.</param>
+    /// <param name="next">The path to go back to, already checked.</param>
+    public static string Login(string domain, string action, string next, string? user, bool failed) =>
+        Page(Strings.Access_LoginTitle, 401,
+            $"<p class=\"lead\">{Format(Strings.Access_LoginLead, $"<strong>{Html.Encode(domain)}</strong>")}</p>" +
+            $"<p>{Html.Encode(Strings.Access_LoginText)}</p>" +
+            (failed ? $"<p class=\"error\" role=\"alert\">{Html.Encode(Strings.Access_Wrong)}</p>" : "") +
+            $"<form method=\"post\" action=\"{Html.Encode(action)}\">" +
+            $"<input type=\"hidden\" name=\"next\" value=\"{Html.Encode(next)}\">" +
+            $"<label>{Html.Encode(Strings.Access_User)}<input name=\"user\" autocomplete=\"username\" required value=\"{Html.Encode(user ?? "")}\"{(user is null ? " autofocus" : "")}></label>" +
+            $"<label>{Html.Encode(Strings.Access_Password)}<input name=\"password\" type=\"password\" autocomplete=\"current-password\" required{(user is null ? "" : " autofocus")}></label>" +
+            $"<button type=\"submit\">{Html.Encode(Strings.Access_SignIn)}</button></form>",
+            Strings.Access_LoginBadge);
+
+    /// <summary>A request that is not a page, to a route with the login page: where to sign in.</summary>
+    public static string LoginNeeded(string domain, string url) =>
+        Page(Strings.Access_RequiredTitle, 401,
+            $"<p class=\"lead\">{Format(Strings.Access_LoginLead, $"<strong>{Html.Encode(domain)}</strong>")}</p>" +
+            $"<p><a href=\"{Html.Encode(url)}\">{Html.Encode(Strings.Access_SignIn)}</a></p>");
+
+    public static string BasicNeeded(string domain) =>
+        Page(Strings.Access_RequiredTitle, 401,
+            $"<p class=\"lead\">{Format(Strings.Access_BasicLead, $"<strong>{Html.Encode(domain)}</strong>")}</p>" +
+            $"<p>{Html.Encode(Strings.Access_BasicText)}</p>");
+
+    public static string HeaderNeeded(string domain, string header) =>
+        Page(Strings.Access_RequiredTitle, 401,
+            $"<p class=\"lead\">{Format(Strings.Access_HeaderLead, $"<strong>{Html.Encode(domain)}</strong>", $"<code>{Html.Encode(header)}</code>")}</p>" +
+            $"<p>{Html.Encode(Strings.Access_HeaderText)}</p>");
+
     /// <summary>A resource sentence with markup already made for its placeholders; the sentence itself is encoded.</summary>
     private static string Format(string sentence, params object[] markup) => string.Format(Html.Encode(sentence), markup);
 
     private static string Display(string target) =>
         Uri.TryCreate(target, UriKind.Absolute, out var uri) ? uri.Authority : target;
 
-    private static string Page(string title, int status, string body) => $$"""
+    /// <param name="badge">What the orange badge says; the status by default.</param>
+    private static string Page(string title, int status, string body, string? badge = null) => $$"""
         <!doctype html>
         <html lang="{{System.Globalization.CultureInfo.CurrentUICulture.Name}}">
         <head>
@@ -145,13 +177,28 @@ public static class ErrorPages
           }
           .brand { color: var(--fg); font-weight: 800; letter-spacing: -.01em; }
           .brand span { color: var(--orange); }
+          form { display: grid; gap: 14px; margin-top: 20px; }
+          label { display: grid; gap: 6px; font-size: 14px; font-weight: 600; }
+          input {
+            font: inherit; font-weight: 400; color: var(--fg); background: var(--row); border: 1px solid var(--line);
+            border-radius: 10px; padding: 10px 12px;
+          }
+          input:focus-visible { outline: none; border-color: var(--accent); box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent) 35%, transparent); }
+          button {
+            font: inherit; font-weight: 700; color: #fff; background: var(--accent); border: 0; border-radius: 10px;
+            padding: 11px 16px; cursor: pointer; margin-top: 4px;
+          }
+          button:hover { filter: brightness(1.1); }
+          button:focus-visible { outline: 2px solid var(--orange); outline-offset: 2px; }
+          .error { color: #c42b1c !important; font-weight: 600; margin-top: 12px !important; }
+          @media (prefers-color-scheme: dark) { .error { color: #ff99a4 !important; } button { color: #011d41; } }
         </style>
         </head>
         <body>
         <main>
           <div class="band">
             <span class="desk">{{Html.Encode(Strings.Error_FrontDesk)}}</span>
-            <span class="code">{{status}}</span>
+            <span class="code">{{Html.Encode(badge ?? status.ToString(System.Globalization.CultureInfo.InvariantCulture))}}</span>
           </div>
           <img class="face" src="{{Face.Value}}" alt="{{Html.Encode(Strings.Common_SeverinoDoorman)}}" width="104" height="104">
           <div class="content">

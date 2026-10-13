@@ -44,6 +44,9 @@ public sealed record ExportedRoute
     public string Group { get; set; } = "";
     public bool NotifyHealth { get; set; }
     public TrafficRules Rules { get; set; } = new();
+
+    /// <summary>Mode, user and hashes; the password itself never goes in a file.</summary>
+    public RouteAccess Access { get; set; } = new();
     public bool SpaFallback { get; set; }
     public string Environment { get; set; } = "";
 }
@@ -79,6 +82,7 @@ public static class RouteTransfer
                 Group = r.Group,
                 NotifyHealth = r.NotifyHealth,
                 Rules = r.Rules,
+                Access = r.Access,
                 SpaFallback = r.SpaFallback,
                 Environment = r.Environment,
             })],
@@ -129,6 +133,7 @@ public static class RouteTransfer
         Group = (exported.Group ?? "").Trim(),
         NotifyHealth = exported.NotifyHealth,
         Rules = exported.Rules ?? new(),
+        Access = exported.Access ?? new(),
         SpaFallback = exported.SpaFallback,
         Environment = (exported.Environment ?? "").Trim(),
     };

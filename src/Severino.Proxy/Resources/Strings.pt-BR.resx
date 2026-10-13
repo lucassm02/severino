@@ -105,4 +105,46 @@
   <data name="Error_FileNotFoundText" xml:space="preserve">
     <value>Para um app de página única, ligue “Mandar caminhos desconhecidos para o index.html” na rota de {0}.</value>
   </data>
+  <data name="Access_LoginTitle" xml:space="preserve">
+    <value>Entrar</value>
+  </data>
+  <data name="Access_LoginBadge" xml:space="preserve">
+    <value>entrada</value>
+  </data>
+  <data name="Access_LoginLead" xml:space="preserve">
+    <value>{0} pede senha.</value>
+  </data>
+  <data name="Access_LoginText" xml:space="preserve">
+    <value>Quem configurou esta rota no Severino escolheu assim. A sessão dura até o navegador fechar, no máximo 12 horas.</value>
+  </data>
+  <data name="Access_User" xml:space="preserve">
+    <value>Usuário</value>
+  </data>
+  <data name="Access_Password" xml:space="preserve">
+    <value>Senha</value>
+  </data>
+  <data name="Access_SignIn" xml:space="preserve">
+    <value>Entrar</value>
+  </data>
+  <data name="Access_Wrong" xml:space="preserve">
+    <value>Usuário ou senha errados.</value>
+  </data>
+  <data name="Access_RequiredTitle" xml:space="preserve">
+    <value>Acesso restrito</value>
+  </data>
+  <data name="Access_LoginNeeded" xml:space="preserve">
+    <value>{0} pede senha: entre por {1} no navegador.</value>
+  </data>
+  <data name="Access_BasicLead" xml:space="preserve">
+    <value>{0} pede usuário e senha (Basic Auth).</value>
+  </data>
+  <data name="Access_BasicText" xml:space="preserve">
+    <value>O navegador pergunta; recarregue a página para tentar de novo.</value>
+  </data>
+  <data name="Access_HeaderLead" xml:space="preserve">
+    <value>{0} só responde requisições com o cabeçalho {1}.</value>
+  </data>
+  <data name="Access_HeaderText" xml:space="preserve">
+    <value>Mande o cabeçalho com a chave da rota, como pediria um gateway de API.</value>
+  </data>
 </root>

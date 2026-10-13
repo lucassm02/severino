@@ -277,7 +277,8 @@ public partial class App : Application
         services.AddSingleton(sp => new ProxyServer(
             sp.GetRequiredService<ILoggerFactory>(),
             domain => sp.GetRequiredService<LocalCa>().CertificateFor(domain),
-            sp.GetRequiredService<RequestLog>()));
+            sp.GetRequiredService<RequestLog>(),
+            SessionKey.LoadOrCreate(ConfigStore.DefaultDirectory)));
         services.AddSingleton(_ => new HealthMonitor());
         services.AddSingleton(sp => new ServiceForwarder(sp.GetRequiredService<ILoggerFactory>(), sp.GetRequiredService<RequestLog>()));
         services.AddSingleton<ProxyCoordinator>();

@@ -273,4 +273,19 @@
   <data name="Service_RulesNeedHttp" xml:space="preserve">
     <value>Rules only apply to the ports marked HTTP: mark one, or turn the rules off.</value>
   </data>
+  <data name="Access_UserRequired" xml:space="preserve">
+    <value>Fill in the user.</value>
+  </data>
+  <data name="Access_UserColon" xml:space="preserve">
+    <value>A Basic Auth user cannot have a colon (:).</value>
+  </data>
+  <data name="Access_PasswordRequired" xml:space="preserve">
+    <value>Fill in the password.</value>
+  </data>
+  <data name="Access_BadHeader" xml:space="preserve">
+    <value>{0} cannot be the header: use a name like X-Api-Key.</value>
+  </data>
+  <data name="Access_KeyRequired" xml:space="preserve">
+    <value>Fill in the header&apos;s value.</value>
+  </data>
 </root>

@@ -5,9 +5,9 @@ using Severino.Core.Resources;
 
 namespace Severino.Core.Routes;
 
-public sealed record RouteErrors(string? Domain, string? Target, string? Path = null, string? Rules = null)
+public sealed record RouteErrors(string? Domain, string? Target, string? Path = null, string? Rules = null, string? Access = null)
 {
-    public bool IsValid => Domain is null && Target is null && Path is null && Rules is null;
+    public bool IsValid => Domain is null && Target is null && Path is null && Rules is null && Access is null;
 }
 
 /// <summary>Validation shared by the route form and the proxy.</summary>
@@ -44,7 +44,28 @@ public static class RouteRules
         else if (IsLoop(target, domain, routes, proxyPort, httpsPort))
             targetError = Strings.Route_Loop;
 
-        return new RouteErrors(domainError, targetError, pathError, ValidateRules(route.Rules));
+        return new RouteErrors(domainError, targetError, pathError, ValidateRules(route.Rules), ValidateAccess(route.Access));
+    }
+
+    /// <summary>The first reason the access cannot be used, or null. Secrets come already hashed.</summary>
+    public static string? ValidateAccess(RouteAccess access)
+    {
+        switch (access.Mode)
+        {
+            case AccessMode.Login or AccessMode.Basic:
+                if (string.IsNullOrWhiteSpace(access.User))
+                    return Strings.Access_UserRequired;
+                if (access.Mode == AccessMode.Basic && access.User.Contains(':'))
+                    return Strings.Access_UserColon;
+                return AccessSecrets.IsPasswordHash(access.PasswordHash) ? null : Strings.Access_PasswordRequired;
+            case AccessMode.Header:
+                var name = access.HeaderName.Trim();
+                if (name.Length == 0 || !name.All(IsTokenChar) || FixedHeaders.Contains(name))
+                    return string.Format(Strings.Access_BadHeader, name.Length == 0 ? "\"\"" : name);
+                return AccessSecrets.IsKeyHash(access.HeaderHash) ? null : Strings.Access_KeyRequired;
+            default:
+                return null;
+        }
     }
 
     /// <summary>The statuses a simulated failure may answer with.</summary>

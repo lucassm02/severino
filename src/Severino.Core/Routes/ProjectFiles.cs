@@ -91,7 +91,7 @@ public static class ProjectFiles
             var errors = RouteRules.Validate(route, routes, settings.HttpPort, settings.HttpsPort, services, DnsRules.Names(dns, route.Environment), external);
             if (!errors.IsValid)
             {
-                refused.Add(new(route.Domain.Length > 0 ? route.Domain + route.Path : Strings.Transfer_NoDomain, errors.Domain ?? errors.Path ?? errors.Target ?? errors.Rules ?? ""));
+                refused.Add(new(route.Domain.Length > 0 ? route.Domain + route.Path : Strings.Transfer_NoDomain, errors.Domain ?? errors.Path ?? errors.Target ?? errors.Rules ?? errors.Access ?? ""));
                 continue;
             }
             routes.Add(route with { Domain = domain!, Path = path! });

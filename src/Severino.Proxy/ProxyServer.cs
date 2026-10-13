@@ -36,9 +36,16 @@ public sealed record ProxyStatus(ProxyState State, int Port, string? Detail = nu
 /// place; a port change restarts only that listener.
 /// </summary>
 /// <param name="certificates">Server certificate for a normalized domain, or null when it has none.</param>
-public sealed class ProxyServer(ILoggerFactory loggerFactory, Func<string, X509Certificate2?>? certificates = null, RequestLog? requests = null) : IAsyncDisposable
+/// <param name="sessionKey">Signs the login cookies of routes with a password; one of this run when null, which ends the sessions at the next start.</param>
+public sealed class ProxyServer(ILoggerFactory loggerFactory, Func<string, X509Certificate2?>? certificates = null, RequestLog? requests = null, byte[]? sessionKey = null)
+    : IAsyncDisposable
 {
-    private readonly SemaphoreSlim _gate = new(1, 1);
+    private readonly RouteAccessGate _gate = new(sessionKey ?? System.Security.Cryptography.RandomNumberGenerator.GetBytes(32), TimeProvider.System);
+
+    /// <summary>The routes that ask for a password or a header, by YARP route id.</summary>
+    private IReadOnlyDictionary<string, AccessRule> _access = new Dictionary<string, AccessRule>();
+
+    private readonly SemaphoreSlim _lock = new(1, 1);
     private readonly ILogger _logger = loggerFactory.CreateLogger<ProxyServer>();
     private Listener? _http;
     private Listener? _https;
@@ -78,7 +85,7 @@ public sealed class ProxyServer(ILoggerFactory loggerFactory, Func<string, X509C
     /// </summary>
     public async Task StartAsync(int httpPort, int? httpsPort, IReadOnlyList<RouteEntry> routes, CancellationToken cancellationToken = default)
     {
-        await _gate.WaitAsync(cancellationToken);
+        await _lock.WaitAsync(cancellationToken);
         try
         {
             _routes = routes;
@@ -104,7 +111,7 @@ public sealed class ProxyServer(ILoggerFactory loggerFactory, Func<string, X509C
         }
         finally
         {
-            _gate.Release();
+            _lock.Release();
         }
     }
 
@@ -114,6 +121,7 @@ public sealed class ProxyServer(ILoggerFactory loggerFactory, Func<string, X509C
         _routes = routes;
         _services = services ?? _services;
         _rules = RulesOf(routes, _services);
+        _access = AccessOf(routes);
         _http?.Folders.Clear();
         _https?.Folders.Clear();
         var (yarpRoutes, clusters) = ProxyConfigMapper.Map(routes, Status.Port, _httpsPort, _services);
@@ -123,7 +131,7 @@ public sealed class ProxyServer(ILoggerFactory loggerFactory, Func<string, X509C
 
     public async Task StopAsync()
     {
-        await _gate.WaitAsync();
+        await _lock.WaitAsync();
         try
         {
             await StopAsync(_http);
@@ -134,7 +142,7 @@ public sealed class ProxyServer(ILoggerFactory loggerFactory, Func<string, X509C
         }
         finally
         {
-            _gate.Release();
+            _lock.Release();
         }
     }
 
@@ -145,7 +153,7 @@ public sealed class ProxyServer(ILoggerFactory loggerFactory, Func<string, X509C
             return;
         await StopAsync();
         _disposed = true;
-        _gate.Dispose();
+        _lock.Dispose();
     }
 
     /// <summary>The certificate for an SNI name: only routes and services with HTTPS on, and only names the CA covers.</summary>
@@ -206,6 +214,7 @@ public sealed class ProxyServer(ILoggerFactory loggerFactory, Func<string, X509C
         app.Use((context, next) => ServeFolderAsync(context, next, folders));
         app.MapReverseProxy(pipeline =>
         {
+            pipeline.Use(GateAsync);
             pipeline.Use((context, next) => RouteTraffic.ApplyAsync(context, next, _rules));
             pipeline.Use(WriteErrorPageAsync);
         });
@@ -274,17 +283,22 @@ public sealed class ProxyServer(ILoggerFactory loggerFactory, Func<string, X509C
     /// A route whose target is a folder: answered here, before YARP, with the route's rules
     /// (all but the request headers, which have no server to go to).
     /// </summary>
-    private Task ServeFolderAsync(HttpContext context, Func<Task> next, FolderSites folders)
+    private async Task ServeFolderAsync(HttpContext context, Func<Task> next, FolderSites folders)
     {
         var route = RouteRules.Find(_routes, context.Request.Host.Host, context.Request.Path.Value);
         if (route is null || RouteRules.FolderOf(route.Target) is not { } folder)
-            return next();
+        {
+            await next();
+            return;
+        }
 
         var domain = RouteRules.Normalize(route.Domain) ?? context.Request.Host.Host;
         var prefix = RouteRules.NormalizePath(route.Path) ?? "";
         RequestLog.MarkFolder(context, route.Id, folder);
+        if (_access.TryGetValue(route.Id.ToString("N"), out var access) && !await _gate.AllowAsync(context, access, context.Request.Host.Host))
+            return;
         RouteTraffic.SetResponseHeaders(context, route.Rules.ResponseHeaders);
-        return RouteTraffic.ApplyAsync(context, () =>
+        await RouteTraffic.ApplyAsync(context, () =>
         {
             // The static file middlewares only serve requests no endpoint took, and the 404
             // fallback takes every path without a dot: this request is the folder's.
@@ -297,6 +311,19 @@ public sealed class ProxyServer(ILoggerFactory loggerFactory, Func<string, X509C
             return context.Response.WriteAsync(ErrorPages.FolderMissing(domain, folder));
         }, route.Rules, domain);
     }
+
+    /// <summary>Before the rules and the forwarding: the route's password or header, when it asks for one.</summary>
+    private async Task GateAsync(HttpContext context, Func<Task> next)
+    {
+        var route = context.GetReverseProxyFeature().Route.Config;
+        if (_access.TryGetValue(route.RouteId, out var access) && !await _gate.AllowAsync(context, access, context.Request.Host.Host))
+            return;
+        await next();
+    }
+
+    private static Dictionary<string, AccessRule> AccessOf(IReadOnlyList<RouteEntry> routes) =>
+        routes.Where(r => r.Enabled && r.Access.Mode != AccessMode.Open)
+            .ToDictionary(r => r.Id.ToString("N"), r => new AccessRule(r.Id, r.Access, RouteRules.NormalizePath(r.Path) ?? "", r.Rules.Cors));
 
     private static Dictionary<string, TrafficRules> RulesOf(IReadOnlyList<RouteEntry> routes, IReadOnlyList<ServiceRoute> services)
     {

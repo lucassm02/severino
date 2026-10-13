@@ -273,4 +273,19 @@
   <data name="Service_RulesNeedHttp" xml:space="preserve">
     <value>As regras só valem nas portas marcadas como HTTP: marque uma ou desligue as regras.</value>
   </data>
+  <data name="Access_UserRequired" xml:space="preserve">
+    <value>Preencha o usuário.</value>
+  </data>
+  <data name="Access_UserColon" xml:space="preserve">
+    <value>O usuário do Basic Auth não pode ter dois-pontos (:).</value>
+  </data>
+  <data name="Access_PasswordRequired" xml:space="preserve">
+    <value>Preencha a senha.</value>
+  </data>
+  <data name="Access_BadHeader" xml:space="preserve">
+    <value>{0} não serve de cabeçalho: use um nome como X-Api-Key.</value>
+  </data>
+  <data name="Access_KeyRequired" xml:space="preserve">
+    <value>Preencha o valor do cabeçalho.</value>
+  </data>
 </root>
