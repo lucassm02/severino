@@ -152,31 +152,34 @@
             </DockPanel>
         </ui:Card>
 
-        <StackPanel Visibility="{Binding IsWizard, Converter={StaticResource FalseToVisible}}">
-            <ui:TextBlock Margin="0,16,0,6" Style="{StaticResource FieldLabel}" Text="{x:Static res:Strings.RouteForm_Group}" />
-            <ComboBox
-                IsEditable="True"
-                IsTextSearchEnabled="False"
-                ItemsSource="{Binding GroupSuggestions}"
-                Text="{Binding Group, UpdateSourceTrigger=PropertyChanged}"
-                AutomationProperties.Name="{x:Static res:Strings.RouteForm_GroupName}" />
-            <ui:TextBlock
-                Style="{StaticResource Hint}"
-                Text="{x:Static res:Strings.RouteForm_GroupHint}" />
-            <ui:TextBlock Margin="0,16,0,6" FontTypography="BodyStrong" Text="{x:Static res:Strings.Env_Field}" />
-            <ComboBox
-                IsEditable="True"
-                IsTextSearchEnabled="False"
-                ItemsSource="{Binding EnvironmentSuggestions}"
-                Text="{Binding Environment, UpdateSourceTrigger=PropertyChanged}"
-                AutomationProperties.Name="{x:Static res:Strings.Env_FieldName}" />
-            <ui:TextBlock
-                Margin="0,4,0,0"
-                TextWrapping="Wrap"
-                FontTypography="Caption"
-                Foreground="{DynamicResource TextFillColorSecondaryBrush}"
-                Text="{x:Static res:Strings.Env_FieldHint}" />
-        </StackPanel>
+        <!-- Group and environment side by side: both optional, both a label shared by several items. -->
+        <Grid Margin="0,16,0,0" Visibility="{Binding IsWizard, Converter={StaticResource FalseToVisible}}">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="16" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+            <StackPanel Grid.Column="0">
+                <ui:TextBlock Style="{StaticResource FieldLabel}" Text="{x:Static res:Strings.RouteForm_Group}" />
+                <ComboBox
+                    IsEditable="True"
+                    IsTextSearchEnabled="False"
+                    ItemsSource="{Binding GroupSuggestions}"
+                    Text="{Binding Group, UpdateSourceTrigger=PropertyChanged}"
+                    AutomationProperties.Name="{x:Static res:Strings.RouteForm_GroupName}" />
+                <ui:TextBlock Style="{StaticResource Hint}" Text="{x:Static res:Strings.RouteForm_GroupHint}" />
+            </StackPanel>
+            <StackPanel Grid.Column="2">
+                <ui:TextBlock Style="{StaticResource FieldLabel}" Text="{x:Static res:Strings.Env_Field}" />
+                <ComboBox
+                    IsEditable="True"
+                    IsTextSearchEnabled="False"
+                    ItemsSource="{Binding EnvironmentSuggestions}"
+                    Text="{Binding Environment, UpdateSourceTrigger=PropertyChanged}"
+                    AutomationProperties.Name="{x:Static res:Strings.Env_FieldName}" />
+                <ui:TextBlock Style="{StaticResource Hint}" Text="{x:Static res:Strings.Env_FieldHint}" />
+            </StackPanel>
+        </Grid>
 
 
         <!-- The first-run wizard asks about HTTPS its own way, before the CA exists. -->
@@ -224,9 +227,22 @@
                     Style="{StaticResource Hint}"
                     Text="{x:Static res:Strings.Health_NotifyHint}" />
 
-                <!-- What the proxy does to the traffic: shown on the route's card while on. -->
-                <ui:TextBlock Margin="0,8,0,0" FontTypography="BodyStrong" Text="{x:Static res:Strings.Rules_Title}" />
-                <CheckBox Margin="0,4,0,0" Content="{x:Static res:Strings.Rules_Cors}" IsChecked="{Binding Cors}" />
+                <ui:TextBox
+                    Margin="0,16,0,0"
+
+                    MinHeight="64"
+                    AcceptsReturn="True"
+                    TextWrapping="Wrap"
+                    PlaceholderText="{x:Static res:Strings.Common_Remarks}"
+                    AutomationProperties.Name="{x:Static res:Strings.Common_Remarks}"
+                    Text="{Binding Notes, UpdateSourceTrigger=PropertyChanged}" />
+            </StackPanel>
+        </Expander>
+
+        <!-- What the proxy does to the traffic: shown on the route's card while on. -->
+        <Expander Margin="0,8,0,0" Header="{x:Static res:Strings.Rules_Title}" IsExpanded="{Binding ShowRules}">
+            <StackPanel Margin="0,8,0,0">
+                <CheckBox Content="{x:Static res:Strings.Rules_Cors}" IsChecked="{Binding Cors}" />
                 <ui:TextBlock
                     Margin="28,0,0,8"
                     Style="{StaticResource Hint}"
@@ -341,16 +357,6 @@
                     Text="{Binding RulesError}"
                     Visibility="{Binding RulesError, Converter={StaticResource NullToCollapsed}}"
                     AutomationProperties.LiveSetting="Assertive" />
-
-                <ui:TextBox
-                    Margin="0,16,0,0"
-
-                    MinHeight="64"
-                    AcceptsReturn="True"
-                    TextWrapping="Wrap"
-                    PlaceholderText="{x:Static res:Strings.Common_Remarks}"
-                    AutomationProperties.Name="{x:Static res:Strings.Common_Remarks}"
-                    Text="{Binding Notes, UpdateSourceTrigger=PropertyChanged}" />
             </StackPanel>
         </Expander>
     </StackPanel>

@@ -10,6 +10,7 @@ public partial class ServiceEditorWindow : FluentWindow
         DataContext = viewModel;
         InitializeComponent();
         FirstRender.Repaint(this);
+        FirstRender.FitScreen(this);
         viewModel.CloseRequested += (_, saved) => DialogResult = saved;
         Loaded += (_, _) => Names.Focus();
     }

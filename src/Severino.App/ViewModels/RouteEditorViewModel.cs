@@ -96,7 +96,8 @@ public sealed partial class RouteEditorViewModel : ObservableObject
         GroupSuggestions = routes.Groups;
         Environment = _original.Environment;
         EnvironmentSuggestions = routes.EnvironmentNames;
-        ShowAdvanced = PreserveHost || IgnoreTargetCertErrors || NotifyHealth || rules.HasAny() || Notes.Length > 0;
+        ShowAdvanced = PreserveHost || IgnoreTargetCertErrors || NotifyHealth || Notes.Length > 0;
+        ShowRules = rules.HasAny();
         UpdateHttpsRules();
         IsReady = true;
         ScheduleChecks();
@@ -270,6 +271,10 @@ public sealed partial class RouteEditorViewModel : ObservableObject
     [ObservableProperty]
     public partial bool ShowAdvanced { get; set; }
 
+    /// <summary>The rules section opens by itself when the route has some.</summary>
+    [ObservableProperty]
+    public partial bool ShowRules { get; set; }
+
     [ObservableProperty]
     public partial string? DomainError { get; set; }
 
@@ -416,7 +421,7 @@ public sealed partial class RouteEditorViewModel : ObservableObject
         TargetError = IsFolder && !System.IO.Path.IsPathFullyQualified(FolderPath?.Trim() ?? "") ? Strings.RouteForm_FolderNotFull : errors.Target;
         RulesError = errors.Rules;
         if (errors.Rules is not null)
-            ShowAdvanced = true;
+            ShowRules = true;
         if (!errors.IsValid || TargetError is not null)
             return;
 

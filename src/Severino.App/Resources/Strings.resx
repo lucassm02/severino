@@ -1643,10 +1643,10 @@ Add these domains to the proxy exceptions? They go into the same Internet Option
     <value>Stopped. Gets the names when it starts.</value>
   </data>
   <data name="Requests_KeepBodies" xml:space="preserve">
-    <value>Keep bodies</value>
+    <value>Capture bodies</value>
   </data>
   <data name="Requests_KeepBodiesTip" xml:space="preserve">
-    <value>Keeps the first 64 KB of text bodies, both ways, from the next requests on. In memory only, like the rest of the log.</value>
+    <value>Keeps up to 64 KB of the text body of each request and response from now on, in memory only, like the rest of the log.</value>
   </data>
   <data name="Requests_ExportHar" xml:space="preserve">
     <value>Export HAR</value>
@@ -1679,7 +1679,7 @@ Add these domains to the proxy exceptions? They go into the same Internet Option
     <value>Sends the same request again through Severino; it shows up as a new line</value>
   </data>
   <data name="Requests_CannotRepeat" xml:space="preserve">
-    <value>Its body was not kept, so it cannot be sent again as it was. Turn on “Keep bodies” and try with the next one.</value>
+    <value>Its body was not captured, so it cannot be sent again as it was. Capture bodies and try with the next one.</value>
   </data>
   <data name="Requests_Repeated" xml:space="preserve">
     <value>Sent again: {0}.</value>
@@ -1730,16 +1730,16 @@ Add these domains to the proxy exceptions? They go into the same Internet Option
     <value>A service connection carries bytes, not HTTP: there are no headers or body to show.</value>
   </data>
   <data name="Requests_BodyOff" xml:space="preserve">
-    <value>Bodies are not being kept. Turn on “Keep bodies” to see them from the next requests on.</value>
+    <value>Bodies are not being captured.</value>
   </data>
   <data name="Requests_BodyNotKept" xml:space="preserve">
-    <value>Not kept: it went through before “Keep bodies” was on.</value>
+    <value>Not captured: it went through before capturing was on.</value>
   </data>
   <data name="Requests_BodyEmpty" xml:space="preserve">
     <value>No body.</value>
   </data>
   <data name="Requests_BodyNotText" xml:space="preserve">
-    <value>{0}, {1}: not text, so not kept.</value>
+    <value>{0}, {1}: not text, so not captured.</value>
   </data>
   <data name="Requests_BodyCut" xml:space="preserve">
     <value>The first 64 KB of {0}.</value>
@@ -1853,7 +1853,7 @@ Add these domains to the proxy exceptions? They go into the same Internet Option
     <value>fails {0}% with {1}</value>
   </data>
   <data name="Rules_BadgeTip" xml:space="preserve">
-    <value>The route&apos;s rules, in Edit › Advanced</value>
+    <value>The route&apos;s rules, in its editor</value>
   </data>
   <data name="RouteForm_TargetServer" xml:space="preserve">
     <value>Server</value>
@@ -2025,5 +2025,14 @@ Add these domains to the proxy exceptions? They go into the same Internet Option
   </data>
   <data name="WslTrust_Failed" xml:space="preserve">
     <value>Could not install the local CA: {0}</value>
+  </data>
+  <data name="Requests_Capturing" xml:space="preserve">
+    <value>Capturing bodies</value>
+  </data>
+  <data name="Requests_CapturingTip" xml:space="preserve">
+    <value>Up to 64 KB of each text body, in memory only. Click to stop.</value>
+  </data>
+  <data name="Requests_StartCapture" xml:space="preserve">
+    <value>Capture from the next ones</value>
   </data>
 </root>

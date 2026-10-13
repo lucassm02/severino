@@ -63,9 +63,9 @@ O guia de testes manuais fica em `docs/pt-BR/testes/fase-10-ambientes-e-depuraca
 
 ### Critérios de pronto
 
-1. **Abrir.** Clicar numa linha da aba Requisições abre um painel à direita com três seções: **Geral** (URL, rota, destino, status, tempo, tamanhos), **Cabeçalhos** (ida e volta) e **Corpo**.
+1. **Abrir.** Clicar numa linha da aba Requisições abre um painel à direita com três seções: **Geral** (URL, rota, destino, status, tempo, tamanhos), **Cabeçalhos** (ida e volta) e **Conteúdo**.
 2. **Cabeçalhos sempre.** Os cabeçalhos da ida e da volta ficam guardados para toda requisição HTTP. `Authorization`, `Cookie`, `Set-Cookie` e `Proxy-Authorization` aparecem mascarados, com um botão para mostrar.
-3. **Corpo quando pedido.** Um interruptor **Guardar corpos** no topo da aba, desligado por padrão, passa a guardar até 64 KB de cada corpo de ida e volta, só de tipos de texto (JSON, texto, XML, formulário, JavaScript, HTML). JSON aparece formatado. Outros tipos mostram só o tamanho.
+3. **Conteúdo quando pedido.** **Capturar conteúdo**, no menu **⋯** da aba e na aba Conteúdo dos detalhes, desligado por padrão, passa a guardar até 64 KB de cada corpo de ida e volta, só de tipos de texto (JSON, texto, XML, formulário, JavaScript, HTML). JSON aparece formatado. Outros tipos mostram só o tamanho.
 4. **Copiar como curl.** Monta o comando com método, URL, cabeçalhos e, se guardado, o corpo, pronto para colar no PowerShell (`curl.exe`).
 5. **Repetir.** Manda a mesma requisição de novo pelo proxy; ela aparece como linha nova no log. Fica indisponível para WebSocket, conexões TCP e requisições com corpo que não foi guardado.
 6. **Exportar HAR.** Salva as linhas visíveis (respeitando o filtro de domínio) num `.har` que o DevTools do navegador abre.
@@ -149,7 +149,7 @@ O guia de testes manuais fica em `docs/pt-BR/testes/fase-10-ambientes-e-depuraca
 
 ### Critérios de pronto
 
-1. **No Avançado da rota**, uma seção **Regras** com:
+1. **No editor da rota**, uma seção **Regras**, abaixo de Avançado e aberta quando a rota já tem alguma, com:
    - **Liberar CORS:** responde o preflight `OPTIONS` com 204 e acrescenta `Access-Control-Allow-*` às respostas, refletindo a origem pedida, com credenciais.
    - **Cabeçalhos na ida** e **na volta:** pares nome e valor; valor vazio remove o cabeçalho.
    - **Atraso:** de 0 a 30 000 ms antes de repassar.

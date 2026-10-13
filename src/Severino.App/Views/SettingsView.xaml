@@ -382,7 +382,7 @@
                     <ui:Button Margin="8,0,0,0" Content="{x:Static res:Strings.Common_Import}" Command="{Binding ImportBackupCommand}" />
                 </StackPanel>
             </ui:CardControl>            <!-- Project files (severino.json): opened from here or dropped on the window, applied after a preview. -->
-            <ui:CardControl Margin="0,0,0,4" Icon="{ui:SymbolIcon DocumentFolder24}" Visibility="{Binding Projects, Converter={StaticResource NullToCollapsed}}">
+            <ui:CardControl Margin="0,0,0,4" Icon="{ui:SymbolIcon DocumentBulletList24}" Visibility="{Binding Projects, Converter={StaticResource NullToCollapsed}}">
                 <ui:CardControl.Header>
                     <StackPanel>
                         <ui:TextBlock Text="{x:Static res:Strings.Project_Settings}" />

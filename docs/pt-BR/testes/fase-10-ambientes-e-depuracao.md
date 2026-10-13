@@ -27,14 +27,14 @@ Prova os critérios 1 a 7 da parte 2.
    ```
 
    - Esperado: em Cabeçalhos, `Authorization: ••••••••`. Marcar **Mostrar valores ocultos** mostra `Bearer segredo`.
-4. **Sem corpos.** Com **Guardar corpos** desligado, mande um POST:
+4. **Sem corpos.** Com **Capturar conteúdo** desligado (no menu **⋯** da aba), mande um POST:
 
    ```powershell
    curl.exe -X POST http://meuapp.sev/api -H "Content-Type: application/json" -d '{"pedido":42}'
    ```
 
-   - Esperado: a aba Corpo explica que os corpos não estão sendo guardados. **Repetir** diz que o corpo não foi guardado e não manda nada.
-5. **Com corpos.** Ligue **Guardar corpos** e repita o POST.
+   - Esperado: a aba Conteúdo diz que o conteúdo não está sendo capturado e oferece **Capturar a partir das próximas**. **Repetir** diz que o conteúdo não foi capturado e não manda nada.
+5. **Com conteúdo.** Ligue **Capturar conteúdo** e repita o POST. O cabeçalho da aba mostra **Capturando conteúdo**; um clique ali desliga.
    - Esperado: a ida mostra o JSON formatado, `"pedido": 42`. A volta mostra o que o servidor respondeu, se for texto.
 6. **Copiar como curl.** Nessa linha, **Copiar como curl › Para PowerShell** e cole no terminal.
    - Esperado: o comando roda e aparece como linha nova no log, igual à original.
@@ -43,7 +43,7 @@ Prova os critérios 1 a 7 da parte 2.
 8. **Exportar HAR.** No **⋯** da aba, **Exportar HAR**, salve e arraste o arquivo para a aba Network do DevTools do Edge ou do Chrome.
    - Esperado: as requisições aparecem lá, com cabeçalhos e, nas que tinham, os corpos.
 9. **Só memória.** Saia do Severino e abra de novo.
-   - Esperado: o log começa vazio e **Guardar corpos** volta desligado.
+   - Esperado: o log começa vazio e a captura volta desligada.
 
 ## Parte 7. Avisos de saúde
 
@@ -71,7 +71,7 @@ Prova os critérios 1 a 6 da parte 7. Deixe a janela do Severino escondida (fech
 
 Prova os critérios 1 a 4 da parte 5. Use o DevTools do navegador (F12, aba Network) para ver os cabeçalhos.
 
-1. **Cabeçalhos.** Edite `meuapp.sev`, abra **Avançado › Regras** e adicione na ida `X-Tenant: loja` e na volta `Cache-Control: no-store`. Salve e abra a rota.
+1. **Cabeçalhos.** Edite `meuapp.sev`, abra **Regras** e adicione na ida `X-Tenant: loja` e na volta `Cache-Control: no-store`. Salve e abra a rota.
    - Esperado: no card, os selos **+2 cabeçalhos**. Na aba Requisições, os detalhes mostram `Cache-Control: no-store` na volta. Se o seu servidor mostra os cabeçalhos recebidos, `X-Tenant: loja` está lá.
 2. **Tirar um cabeçalho.** Na volta, adicione um cabeçalho que o servidor manda (como `X-Powered-By`) com o valor vazio.
    - Esperado: ele some da resposta.

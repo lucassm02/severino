@@ -85,7 +85,7 @@
     <value>O Severino respondeu {1} por {0} de propósito: a rota falha em {2}% das requisições.</value>
   </data>
   <data name="Error_SimulatedText" xml:space="preserve">
-    <value>Para parar, edite a rota no Severino: Avançado › Regras.</value>
+    <value>Para parar, edite a rota no Severino: Regras.</value>
   </data>
   <data name="Error_FolderMissingTitle" xml:space="preserve">
     <value>A pasta não está lá</value>

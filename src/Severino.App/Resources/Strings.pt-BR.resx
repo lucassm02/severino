@@ -1643,10 +1643,10 @@ Adicionar esses domínios às exceções do proxy? Eles entram na mesma lista de
     <value>Parada. Recebe os nomes quando iniciar.</value>
   </data>
   <data name="Requests_KeepBodies" xml:space="preserve">
-    <value>Guardar corpos</value>
+    <value>Capturar conteúdo</value>
   </data>
   <data name="Requests_KeepBodiesTip" xml:space="preserve">
-    <value>Guarda os primeiros 64 KB dos corpos de texto, na ida e na volta, a partir das próximas requisições. Só na memória, como o resto do log.</value>
+    <value>Guarda até 64 KB do conteúdo de texto de cada requisição e resposta daqui em diante, só na memória, como o resto do log.</value>
   </data>
   <data name="Requests_ExportHar" xml:space="preserve">
     <value>Exportar HAR</value>
@@ -1679,7 +1679,7 @@ Adicionar esses domínios às exceções do proxy? Eles entram na mesma lista de
     <value>Manda a mesma requisição de novo pelo Severino; ela aparece como uma linha nova</value>
   </data>
   <data name="Requests_CannotRepeat" xml:space="preserve">
-    <value>O corpo dela não foi guardado, então não dá para mandar igual. Ligue “Guardar corpos” e tente com a próxima.</value>
+    <value>O conteúdo dela não foi capturado, então não dá para mandar igual. Ligue a captura e tente com a próxima.</value>
   </data>
   <data name="Requests_Repeated" xml:space="preserve">
     <value>Mandada de novo: {0}.</value>
@@ -1694,7 +1694,7 @@ Adicionar esses domínios às exceções do proxy? Eles entram na mesma lista de
     <value>Cabeçalhos</value>
   </data>
   <data name="Requests_TabBody" xml:space="preserve">
-    <value>Corpo</value>
+    <value>Conteúdo</value>
   </data>
   <data name="Requests_Sent" xml:space="preserve">
     <value>Ida</value>
@@ -1730,16 +1730,16 @@ Adicionar esses domínios às exceções do proxy? Eles entram na mesma lista de
     <value>Uma conexão de serviço passa bytes, não HTTP: não há cabeçalhos nem corpo para mostrar.</value>
   </data>
   <data name="Requests_BodyOff" xml:space="preserve">
-    <value>Os corpos não estão sendo guardados. Ligue “Guardar corpos” para vê-los a partir das próximas requisições.</value>
+    <value>O conteúdo não está sendo capturado.</value>
   </data>
   <data name="Requests_BodyNotKept" xml:space="preserve">
-    <value>Não foi guardado: passou antes de “Guardar corpos” ser ligado.</value>
+    <value>Não capturado: passou antes da captura ser ligada.</value>
   </data>
   <data name="Requests_BodyEmpty" xml:space="preserve">
     <value>Sem corpo.</value>
   </data>
   <data name="Requests_BodyNotText" xml:space="preserve">
-    <value>{0}, {1}: não é texto, então não foi guardado.</value>
+    <value>{0}, {1}: não é texto, então não foi capturado.</value>
   </data>
   <data name="Requests_BodyCut" xml:space="preserve">
     <value>Os primeiros 64 KB de {0}.</value>
@@ -1853,7 +1853,7 @@ Adicionar esses domínios às exceções do proxy? Eles entram na mesma lista de
     <value>falha {0}% com {1}</value>
   </data>
   <data name="Rules_BadgeTip" xml:space="preserve">
-    <value>As regras da rota, em Editar › Avançado</value>
+    <value>As regras da rota, no editor dela</value>
   </data>
   <data name="RouteForm_TargetServer" xml:space="preserve">
     <value>Servidor</value>
@@ -2025,5 +2025,14 @@ Adicionar esses domínios às exceções do proxy? Eles entram na mesma lista de
   </data>
   <data name="WslTrust_Failed" xml:space="preserve">
     <value>Não deu para instalar a CA local: {0}</value>
+  </data>
+  <data name="Requests_Capturing" xml:space="preserve">
+    <value>Capturando conteúdo</value>
+  </data>
+  <data name="Requests_CapturingTip" xml:space="preserve">
+    <value>Até 64 KB do conteúdo de texto de cada uma, só na memória. Clique para parar.</value>
+  </data>
+  <data name="Requests_StartCapture" xml:space="preserve">
+    <value>Capturar a partir das próximas</value>
   </data>
 </root>

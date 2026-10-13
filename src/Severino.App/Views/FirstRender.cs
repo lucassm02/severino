@@ -22,4 +22,7 @@ internal static class FirstRender
         }
         window.ContentRendered += OnRendered;
     }
+
+    /// <summary>A dialog sized by its content never grows past the screen: its form scrolls instead.</summary>
+    public static void FitScreen(Window window) => window.MaxHeight = SystemParameters.WorkArea.Height - 32;
 }

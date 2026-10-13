@@ -139,7 +139,7 @@ public sealed class RequestLogTests
         Assert.Equal("Bearer it's", details.RequestHeaders.Single(h => h.Name == "Authorization").Shown);
 
         Assert.Null(details.RequestBodyText);
-        Assert.Contains("Guardar corpos", details.RequestBodyNote);
+        Assert.Equal("O conteúdo não está sendo capturado.", details.RequestBodyNote);
         Assert.Contains("\"id\": 7", details.ResponseBodyText);
         Assert.Contains(details.General, l => l.Value == "meuapp.sev/api");
         Assert.False(details.CanReplay);

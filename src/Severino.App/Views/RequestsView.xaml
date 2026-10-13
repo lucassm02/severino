@@ -100,13 +100,19 @@
                 Text="{Binding HeldText}"
                 Visibility="{Binding HeldText, Converter={StaticResource NullToCollapsed}}"
                 AutomationProperties.LiveSetting="Polite" />
-            <ui:ToggleSwitch
+            <!-- Only while capturing: says so, and a click stops it. Turned on in the ⋯ menu or a request's Content tab. -->
+            <ui:Button
                 Grid.Column="2"
-                Margin="0,0,16,0"
+                Margin="0,0,12,0"
+                Padding="8,4"
                 VerticalAlignment="Center"
-                Content="{x:Static res:Strings.Requests_KeepBodies}"
-                ToolTip="{x:Static res:Strings.Requests_KeepBodiesTip}"
-                IsChecked="{Binding CaptureBodies}" />
+                Appearance="Transparent"
+                Foreground="{DynamicResource AccentTextFillColorPrimaryBrush}"
+                Icon="{ui:SymbolIcon Record16, Filled=True}"
+                Content="{x:Static res:Strings.Requests_Capturing}"
+                ToolTip="{x:Static res:Strings.Requests_CapturingTip}"
+                Command="{Binding ToggleCaptureCommand}"
+                Visibility="{Binding CaptureBodies, Converter={StaticResource TrueToVisible}}" />
             <ComboBox
                 Grid.Column="3"
                 MinWidth="200"
@@ -149,6 +155,12 @@
                 Click="OnMoreClick">
                 <ui:Button.ContextMenu>
                     <ContextMenu>
+                        <MenuItem
+                            Header="{x:Static res:Strings.Requests_KeepBodies}"
+                            ToolTip="{x:Static res:Strings.Requests_KeepBodiesTip}"
+                            IsCheckable="True"
+                            IsChecked="{Binding Data.CaptureBodies, Source={StaticResource Root}}" />
+                        <Separator />
                         <MenuItem
                             Header="{x:Static res:Strings.Requests_ExportHar}"
                             ToolTip="{x:Static res:Strings.Requests_ExportHarTip}"
@@ -410,6 +422,12 @@
                                         Style="{StaticResource DetailLabel}"
                                         Text="{Binding RequestBodyNote}"
                                         Visibility="{Binding RequestBodyNote, Converter={StaticResource NullToCollapsed}}" />
+                                    <ui:Button
+                                        Margin="0,6,0,0"
+                                        Icon="{ui:SymbolIcon Record16}"
+                                        Content="{x:Static res:Strings.Requests_StartCapture}"
+                                        Command="{Binding Data.ToggleCaptureCommand, Source={StaticResource Root}}"
+                                        Visibility="{Binding Data.CaptureBodies, Source={StaticResource Root}, Converter={StaticResource FalseToVisible}}" />
                                 </StackPanel>
                                 <TextBox
                                     Grid.Row="1"

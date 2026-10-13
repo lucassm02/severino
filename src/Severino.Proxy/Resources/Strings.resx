@@ -85,7 +85,7 @@
     <value>Severino answered {1} for {0} on purpose: the route fails {2}% of the requests.</value>
   </data>
   <data name="Error_SimulatedText" xml:space="preserve">
-    <value>To stop it, edit the route in Severino: Advanced › Rules.</value>
+    <value>To stop it, edit the route in Severino: Rules.</value>
   </data>
   <data name="Error_FolderMissingTitle" xml:space="preserve">
     <value>The folder is not there</value>

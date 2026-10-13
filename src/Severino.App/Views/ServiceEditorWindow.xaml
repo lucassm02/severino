@@ -19,143 +19,153 @@
     Icon="/Assets/severino.ico"
     ExtendsContentIntoTitleBar="True">
 
-    <StackPanel>
-        <ui:TitleBar Title="{Binding Title}" ShowMaximize="False" ShowMinimize="False" />
+    <!-- The form scrolls when it outgrows the screen; the buttons stay in sight below it. -->
+    <DockPanel>
+        <ui:TitleBar DockPanel.Dock="Top" Title="{Binding Title}" ShowMaximize="False" ShowMinimize="False" />
 
-        <StackPanel Margin="24,8,24,24">
-            <TextBlock
-                Margin="0,0,0,12"
-                FontSize="12"
-                TextWrapping="Wrap"
-                Foreground="{DynamicResource TextFillColorSecondaryBrush}"
-                Text="{Binding OriginText}"
-                Visibility="{Binding OriginText, Converter={StaticResource NullToCollapsed}}" />
+        <Border
+            DockPanel.Dock="Bottom"
+            Padding="24,12,24,16"
+            BorderThickness="0,1,0,0"
+            BorderBrush="{DynamicResource ControlStrokeColorDefaultBrush}">
+                <StackPanel HorizontalAlignment="Right" Orientation="Horizontal">
+                    <ui:Button MinWidth="96" Content="{x:Static res:Strings.Common_Cancel}" IsCancel="True" Command="{Binding CancelCommand}" />
+                    <ui:Button
+                        MinWidth="96"
+                        Margin="8,0,0,0"
+                        Appearance="Primary"
+                        Content="{Binding SaveLabel}"
+                        Command="{Binding SaveCommand}" />
+                </StackPanel>
+        </Border>
 
-            <TextBlock Margin="0,0,0,4" Text="{x:Static res:Strings.ServiceEditor_Names}" />
-            <ui:TextBox
-                x:Name="Names"
-                Height="96"
-                AcceptsReturn="True"
-                VerticalScrollBarVisibility="Auto"
-                PlaceholderText="pedidos&#x0a;pedidos.loja"
-                AutomationProperties.Name="{x:Static res:Strings.ServiceEditor_NamesName}"
-                Text="{Binding NamesText, UpdateSourceTrigger=PropertyChanged}" />
+        <ScrollViewer Style="{StaticResource PageScroll}">
+            <StackPanel Margin="24,8,24,16">
+                <TextBlock
+                    Margin="0,0,0,12"
+                    FontSize="12"
+                    TextWrapping="Wrap"
+                    Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                    Text="{Binding OriginText}"
+                    Visibility="{Binding OriginText, Converter={StaticResource NullToCollapsed}}" />
 
-            <!-- One row per port: what the app calls, then where the service answers. -->
-            <Grid Margin="0,12,0,4">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="88" />
-                    <ColumnDefinition Width="28" />
-                    <ColumnDefinition Width="*" />
-                    <ColumnDefinition Width="14" />
-                    <ColumnDefinition Width="88" />
-                    <ColumnDefinition Width="40" />
-                </Grid.ColumnDefinitions>
-                <TextBlock Grid.Column="0" Text="{x:Static res:Strings.ServiceEditor_Port}" ToolTip="{x:Static res:Strings.ServiceEditor_PortTip}" />
-                <TextBlock Grid.Column="2" Text="{x:Static res:Strings.ServiceEditor_Target}" ToolTip="{x:Static res:Strings.ServiceEditor_TargetTip}" />
-                <TextBlock Grid.Column="4" Text="{x:Static res:Strings.ServiceEditor_TargetPort}" ToolTip="{x:Static res:Strings.ServiceEditor_TargetPortTip}" />
-            </Grid>
-            <ItemsControl ItemsSource="{Binding Ports}">
-                <ItemsControl.ItemTemplate>
-                    <DataTemplate DataType="{x:Type vm:ServicePortRow}">
-                        <Grid Margin="0,0,0,6">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="88" />
-                                <ColumnDefinition Width="28" />
-                                <ColumnDefinition Width="*" />
-                                <ColumnDefinition Width="14" />
-                                <ColumnDefinition Width="88" />
-                                <ColumnDefinition Width="40" />
-                            </Grid.ColumnDefinitions>
-                            <ui:TextBox Grid.Column="0" PlaceholderText="80" AutomationProperties.Name="{x:Static res:Strings.ServiceEditor_PortName}" Text="{Binding Port, UpdateSourceTrigger=PropertyChanged}" />
-                            <TextBlock Grid.Column="1" HorizontalAlignment="Center" VerticalAlignment="Center" Text="→" />
-                            <ComboBox
-                                Grid.Column="2"
-                                IsEditable="True"
-                                IsTextSearchEnabled="False"
-                                TextSearch.TextPath="Name"
-                                ItemsSource="{Binding DataContext.HostSuggestions, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
-                                Text="{Binding Host, UpdateSourceTrigger=PropertyChanged}"
-                                ToolTip="{x:Static res:Strings.ServiceEditor_HostTip}"
-                                AutomationProperties.Name="{x:Static res:Strings.ServiceEditor_Target}">
-                                <ComboBox.ItemTemplate>
-                                    <DataTemplate>
-                                        <StackPanel>
-                                            <TextBlock Text="{Binding Name}" />
-                                            <TextBlock FontSize="11" Foreground="{DynamicResource TextFillColorSecondaryBrush}" Text="{Binding Detail}" />
-                                        </StackPanel>
-                                    </DataTemplate>
-                                </ComboBox.ItemTemplate>
-                            </ComboBox>
-                            <TextBlock Grid.Column="3" HorizontalAlignment="Center" VerticalAlignment="Center" Text=":" />
-                            <ui:TextBox Grid.Column="4" PlaceholderText="30080" AutomationProperties.Name="{x:Static res:Strings.ServiceEditor_TargetPortName}" Text="{Binding TargetPort, UpdateSourceTrigger=PropertyChanged}" />
-                            <ui:Button
-                                Grid.Column="5"
-                                Margin="4,0,0,0"
-                                Appearance="Transparent"
-                                Icon="{ui:SymbolIcon Dismiss24}"
-                                ToolTip="{x:Static res:Strings.ServiceEditor_RemovePort}"
-                                AutomationProperties.Name="{x:Static res:Strings.ServiceEditor_RemovePort}"
-                                Command="{Binding DataContext.RemovePortCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
-                                CommandParameter="{Binding}" />
-                        </Grid>
-                    </DataTemplate>
-                </ItemsControl.ItemTemplate>
-            </ItemsControl>
-            <ui:Button
-                HorizontalAlignment="Left"
-                Appearance="Transparent"
-                Icon="{ui:SymbolIcon Add24}"
-                Content="{x:Static res:Strings.ServiceEditor_AddPort}"
-                Command="{Binding AddPortCommand}" />
-            <TextBlock
-                Margin="0,4,0,0"
-                FontSize="12"
-                TextWrapping="Wrap"
-                Foreground="{DynamicResource TextFillColorSecondaryBrush}"
-                Text="{Binding AddressText}" />
+                <TextBlock Margin="0,0,0,4" Text="{x:Static res:Strings.ServiceEditor_Names}" />
+                <ui:TextBox
+                    x:Name="Names"
+                    Height="96"
+                    AcceptsReturn="True"
+                    VerticalScrollBarVisibility="Auto"
+                    PlaceholderText="pedidos&#x0a;pedidos.loja"
+                    AutomationProperties.Name="{x:Static res:Strings.ServiceEditor_NamesName}"
+                    Text="{Binding NamesText, UpdateSourceTrigger=PropertyChanged}" />
 
-            <ui:TextBlock Margin="0,12,0,4" FontTypography="BodyStrong" Text="{x:Static res:Strings.Env_Field}" />
-            <ComboBox
-                IsEditable="True"
-                IsTextSearchEnabled="False"
-                ItemsSource="{Binding EnvironmentSuggestions}"
-                Text="{Binding Environment, UpdateSourceTrigger=PropertyChanged}"
-                AutomationProperties.Name="{x:Static res:Strings.Env_FieldName}" />
-            <ui:TextBlock
-                Margin="0,4,0,0"
-                TextWrapping="Wrap"
-                FontTypography="Caption"
-                Foreground="{DynamicResource TextFillColorSecondaryBrush}"
-                Text="{x:Static res:Strings.Env_FieldHint}" />
-
-            <CheckBox Margin="0,12,0,0" Content="{x:Static res:Strings.Health_Notify}" IsChecked="{Binding NotifyHealth}" />
-            <TextBlock
-                Margin="28,0,0,0"
-                FontSize="12"
-                TextWrapping="Wrap"
-                Foreground="{DynamicResource TextFillColorSecondaryBrush}"
-                Text="{x:Static res:Strings.Health_NotifyHint}" />
-
-            <TextBlock Margin="0,12,0,4" Text="{x:Static res:Strings.Common_Notes}" />
-            <ui:TextBox AutomationProperties.Name="{x:Static res:Strings.Common_Notes}" Text="{Binding Notes, UpdateSourceTrigger=PropertyChanged}" />
-
-            <TextBlock
-                Margin="0,12,0,0"
-                TextWrapping="Wrap"
-                Foreground="{DynamicResource SystemFillColorCautionBrush}"
-                Text="{Binding Error}"
-                Visibility="{Binding Error, Converter={StaticResource NullToCollapsed}}" />
-
-            <StackPanel Margin="0,24,0,0" HorizontalAlignment="Right" Orientation="Horizontal">
-                <ui:Button MinWidth="96" Content="{x:Static res:Strings.Common_Cancel}" IsCancel="True" Command="{Binding CancelCommand}" />
+                <!-- One row per port: what the app calls, then where the service answers. -->
+                <Grid Margin="0,12,0,4">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="88" />
+                        <ColumnDefinition Width="28" />
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="14" />
+                        <ColumnDefinition Width="88" />
+                        <ColumnDefinition Width="40" />
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Grid.Column="0" Text="{x:Static res:Strings.ServiceEditor_Port}" ToolTip="{x:Static res:Strings.ServiceEditor_PortTip}" />
+                    <TextBlock Grid.Column="2" Text="{x:Static res:Strings.ServiceEditor_Target}" ToolTip="{x:Static res:Strings.ServiceEditor_TargetTip}" />
+                    <TextBlock Grid.Column="4" Text="{x:Static res:Strings.ServiceEditor_TargetPort}" ToolTip="{x:Static res:Strings.ServiceEditor_TargetPortTip}" />
+                </Grid>
+                <ItemsControl ItemsSource="{Binding Ports}">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate DataType="{x:Type vm:ServicePortRow}">
+                            <Grid Margin="0,0,0,6">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="88" />
+                                    <ColumnDefinition Width="28" />
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="14" />
+                                    <ColumnDefinition Width="88" />
+                                    <ColumnDefinition Width="40" />
+                                </Grid.ColumnDefinitions>
+                                <ui:TextBox Grid.Column="0" PlaceholderText="80" AutomationProperties.Name="{x:Static res:Strings.ServiceEditor_PortName}" Text="{Binding Port, UpdateSourceTrigger=PropertyChanged}" />
+                                <TextBlock Grid.Column="1" HorizontalAlignment="Center" VerticalAlignment="Center" Text="→" />
+                                <ComboBox
+                                    Grid.Column="2"
+                                    IsEditable="True"
+                                    IsTextSearchEnabled="False"
+                                    TextSearch.TextPath="Name"
+                                    ItemsSource="{Binding DataContext.HostSuggestions, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
+                                    Text="{Binding Host, UpdateSourceTrigger=PropertyChanged}"
+                                    ToolTip="{x:Static res:Strings.ServiceEditor_HostTip}"
+                                    AutomationProperties.Name="{x:Static res:Strings.ServiceEditor_Target}">
+                                    <ComboBox.ItemTemplate>
+                                        <DataTemplate>
+                                            <StackPanel>
+                                                <TextBlock Text="{Binding Name}" />
+                                                <TextBlock FontSize="11" Foreground="{DynamicResource TextFillColorSecondaryBrush}" Text="{Binding Detail}" />
+                                            </StackPanel>
+                                        </DataTemplate>
+                                    </ComboBox.ItemTemplate>
+                                </ComboBox>
+                                <TextBlock Grid.Column="3" HorizontalAlignment="Center" VerticalAlignment="Center" Text=":" />
+                                <ui:TextBox Grid.Column="4" PlaceholderText="30080" AutomationProperties.Name="{x:Static res:Strings.ServiceEditor_TargetPortName}" Text="{Binding TargetPort, UpdateSourceTrigger=PropertyChanged}" />
+                                <ui:Button
+                                    Grid.Column="5"
+                                    Margin="4,0,0,0"
+                                    Appearance="Transparent"
+                                    Icon="{ui:SymbolIcon Dismiss24}"
+                                    ToolTip="{x:Static res:Strings.ServiceEditor_RemovePort}"
+                                    AutomationProperties.Name="{x:Static res:Strings.ServiceEditor_RemovePort}"
+                                    Command="{Binding DataContext.RemovePortCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
+                                    CommandParameter="{Binding}" />
+                            </Grid>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
                 <ui:Button
-                    MinWidth="96"
-                    Margin="8,0,0,0"
-                    Appearance="Primary"
-                    Content="{Binding SaveLabel}"
-                    Command="{Binding SaveCommand}" />
+                    HorizontalAlignment="Left"
+                    Appearance="Transparent"
+                    Icon="{ui:SymbolIcon Add24}"
+                    Content="{x:Static res:Strings.ServiceEditor_AddPort}"
+                    Command="{Binding AddPortCommand}" />
+                <TextBlock
+                    Margin="0,4,0,0"
+                    FontSize="12"
+                    TextWrapping="Wrap"
+                    Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                    Text="{Binding AddressText}" />
+
+                <ui:TextBlock Margin="0,12,0,4" FontTypography="BodyStrong" Text="{x:Static res:Strings.Env_Field}" />
+                <ComboBox
+                    IsEditable="True"
+                    IsTextSearchEnabled="False"
+                    ItemsSource="{Binding EnvironmentSuggestions}"
+                    Text="{Binding Environment, UpdateSourceTrigger=PropertyChanged}"
+                    AutomationProperties.Name="{x:Static res:Strings.Env_FieldName}" />
+                <ui:TextBlock
+                    Margin="0,4,0,0"
+                    TextWrapping="Wrap"
+                    FontTypography="Caption"
+                    Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                    Text="{x:Static res:Strings.Env_FieldHint}" />
+
+                <CheckBox Margin="0,12,0,0" Content="{x:Static res:Strings.Health_Notify}" IsChecked="{Binding NotifyHealth}" />
+                <TextBlock
+                    Margin="28,0,0,0"
+                    FontSize="12"
+                    TextWrapping="Wrap"
+                    Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                    Text="{x:Static res:Strings.Health_NotifyHint}" />
+
+                <TextBlock Margin="0,12,0,4" Text="{x:Static res:Strings.Common_Notes}" />
+                <ui:TextBox AutomationProperties.Name="{x:Static res:Strings.Common_Notes}" Text="{Binding Notes, UpdateSourceTrigger=PropertyChanged}" />
+
+                <TextBlock
+                    Margin="0,12,0,0"
+                    TextWrapping="Wrap"
+                    Foreground="{DynamicResource SystemFillColorCautionBrush}"
+                    Text="{Binding Error}"
+                    Visibility="{Binding Error, Converter={StaticResource NullToCollapsed}}" />
+
             </StackPanel>
-        </StackPanel>
-    </StackPanel>
+        </ScrollViewer>
+    </DockPanel>
 </ui:FluentWindow>

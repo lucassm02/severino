@@ -178,8 +178,20 @@ public sealed partial class RequestsViewModel : ObservableObject
     [ObservableProperty]
     public partial int DetailsTab { get; set; }
 
-    partial void OnSelectedChanged(RequestItemViewModel? value) =>
+    /// <summary>The tab chosen on an HTTP row; a TCP connection only has General, and the choice waits for the next HTTP one.</summary>
+    private int _chosenTab;
+
+    partial void OnDetailsTabChanged(int value)
+    {
+        if (Details?.IsHttp == true)
+            _chosenTab = value;
+    }
+
+    partial void OnSelectedChanged(RequestItemViewModel? value)
+    {
         Details = value is null ? null : new RequestDetailsViewModel(value, RouteName(value.Entry.Details?.RouteId), CaptureBodies);
+        DetailsTab = Details?.IsHttp == false ? 0 : _chosenTab;
+    }
 
     /// <summary>The log's switch, here so the tab shows it.</summary>
     public bool CaptureBodies
@@ -193,6 +205,9 @@ public sealed partial class RequestsViewModel : ObservableObject
             OnPropertyChanged();
         }
     }
+
+    [RelayCommand]
+    private void ToggleCapture() => CaptureBodies = !CaptureBodies;
 
     [RelayCommand]
     private void CloseDetails() => Selected = null;

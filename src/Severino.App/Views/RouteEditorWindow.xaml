@@ -20,13 +20,16 @@
     Icon="/Assets/severino.ico"
     ExtendsContentIntoTitleBar="True">
 
-    <StackPanel>
-        <ui:TitleBar Title="{Binding Title}" ShowMaximize="False" ShowMinimize="False" />
+    <!-- The form scrolls when it outgrows the screen; the buttons stay in sight below it. -->
+    <DockPanel>
+        <ui:TitleBar DockPanel.Dock="Top" Title="{Binding Title}" ShowMaximize="False" ShowMinimize="False" />
 
-        <StackPanel Margin="24,8,24,24">
-            <views:RouteForm x:Name="Form" />
-
-            <StackPanel Margin="0,24,0,0" HorizontalAlignment="Right" Orientation="Horizontal">
+        <Border
+            DockPanel.Dock="Bottom"
+            Padding="24,12,24,16"
+            BorderThickness="0,1,0,0"
+            BorderBrush="{DynamicResource ControlStrokeColorDefaultBrush}">
+            <StackPanel HorizontalAlignment="Right" Orientation="Horizontal">
                 <ui:Button MinWidth="96" Content="{x:Static res:Strings.Common_Cancel}" IsCancel="True" Command="{Binding CancelCommand}" />
                 <ui:Button
                     MinWidth="96"
@@ -36,6 +39,10 @@
                     Content="{Binding SaveLabel}"
                     Command="{Binding SaveCommand}" />
             </StackPanel>
-        </StackPanel>
-    </StackPanel>
+        </Border>
+
+        <ScrollViewer Style="{StaticResource PageScroll}">
+            <views:RouteForm x:Name="Form" Margin="24,8,24,16" />
+        </ScrollViewer>
+    </DockPanel>
 </ui:FluentWindow>
