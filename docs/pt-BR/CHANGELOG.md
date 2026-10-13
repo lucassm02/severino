@@ -8,6 +8,10 @@ O formato segue o [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/), e
 
 ## [Unreleased]
 
+### Alterado
+
+- Os campos de endereço, destino e porta tiram o que vem junto ao copiar um endereço, ao colar ou ao sair do campo: o `http://` do começo, o caminho, o `:` que sobra depois do IP, a porta com os dois-pontos. A porta que veio com o destino vai para o campo de porta, e `https://` escolhe HTTPS.
+
 ## [0.6.0] - 2026-10-13
 
 ### Adicionado

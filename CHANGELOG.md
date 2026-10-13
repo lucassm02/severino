@@ -8,6 +8,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+### Changed
+
+- Address, host and port fields take out what comes with a copied address, when it is pasted or when the field is left: `http://` in front, a path, a `:` left after an IP, a port with its colon. A port that came with the host goes to the port field, and `https://` picks HTTPS.
+
 ## [0.6.0] - 2026-10-13
 
 ### Added

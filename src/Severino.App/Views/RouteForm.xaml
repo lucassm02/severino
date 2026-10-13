@@ -6,6 +6,7 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
+    xmlns:views="clr-namespace:Severino.App.Views"
     xmlns:vm="clr-namespace:Severino.App.ViewModels"
     mc:Ignorable="d"
     d:DataContext="{d:DesignInstance Type=vm:RouteEditorViewModel}">
@@ -34,6 +35,7 @@
             x:Name="DomainBox"
             PlaceholderText="{x:Static res:Strings.RouteForm_AddressPlaceholder}"
             AutomationProperties.Name="{x:Static res:Strings.RouteForm_Address}"
+            views:Cleanup.As="Address"
             Text="{Binding Domain, UpdateSourceTrigger=PropertyChanged}" />
         <ui:TextBlock
             Style="{StaticResource Hint}"
@@ -94,7 +96,7 @@
                 <ColumnDefinition Width="Auto" />
                 <ColumnDefinition Width="96" />
             </Grid.ColumnDefinitions>
-            <ComboBox Grid.Column="0" ItemsSource="{Binding Schemes}" SelectedItem="{Binding Scheme}" AutomationProperties.Name="{x:Static res:Strings.RouteForm_SchemeName}" />
+            <ComboBox x:Name="SchemeBox" Grid.Column="0" ItemsSource="{Binding Schemes}" SelectedItem="{Binding Scheme}" AutomationProperties.Name="{x:Static res:Strings.RouteForm_SchemeName}" />
             <ui:TextBlock Grid.Column="1" Margin="6,0" VerticalAlignment="Center" Text="://" />
             <!-- Editable, with the names in the hosts as suggestions: a route to a DNS name follows
                  it when its address changes in the DNS tab. -->
@@ -105,6 +107,9 @@
                 TextSearch.TextPath="Name"
                 ItemsSource="{Binding HostSuggestions}"
                 Text="{Binding TargetHost, UpdateSourceTrigger=PropertyChanged}"
+                views:Cleanup.As="Host"
+                views:Cleanup.PortBox="{Binding ElementName=TargetPortBox}"
+                views:Cleanup.SchemeBox="{Binding ElementName=SchemeBox}"
                 ToolTip="{x:Static res:Strings.RouteForm_HostTip}"
                 AutomationProperties.Name="{x:Static res:Strings.RouteForm_HostName}">
                 <ComboBox.ItemTemplate>
@@ -120,7 +125,9 @@
             <!-- Editable: any number works; the list only saves remembering it. No autocomplete,
                  which would turn a typed "50" into "5000". -->
             <ComboBox
+                x:Name="TargetPortBox"
                 Grid.Column="4"
+                views:Cleanup.As="Port"
                 IsEditable="True"
                 IsTextSearchEnabled="False"
                 TextSearch.TextPath="PortText"

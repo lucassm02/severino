@@ -6,6 +6,7 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
+    xmlns:views="clr-namespace:Severino.App.Views"
     xmlns:vm="clr-namespace:Severino.App.ViewModels"
     mc:Ignorable="d"
     d:DataContext="{d:DesignInstance Type=vm:DnsEditorViewModel}"
@@ -62,6 +63,7 @@
                 VerticalScrollBarVisibility="Auto"
                 PlaceholderText="sql.interno&#x0a;sql"
                 AutomationProperties.Name="{x:Static res:Strings.ServiceEditor_NamesName}"
+                views:Cleanup.As="Names"
                 Text="{Binding NamesText, UpdateSourceTrigger=PropertyChanged}" />
             <TextBlock
                 Margin="0,4,0,0"
@@ -75,6 +77,7 @@
             <ui:TextBox
                 PlaceholderText="10.0.0.8"
                 AutomationProperties.Name="{x:Static res:Strings.DnsEditor_Address}"
+                views:Cleanup.As="Host"
                 Text="{Binding Address, UpdateSourceTrigger=PropertyChanged}" />
             <TextBlock
                 Margin="0,4,0,0"

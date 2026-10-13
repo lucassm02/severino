@@ -6,6 +6,7 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
+    xmlns:views="clr-namespace:Severino.App.Views"
     xmlns:vm="clr-namespace:Severino.App.ViewModels"
     mc:Ignorable="d"
     d:DataContext="{d:DesignInstance Type=vm:ImportServicesViewModel}"
@@ -162,6 +163,7 @@
                     <ui:TextBox
                         PlaceholderText="{x:Static res:Strings.Import_NodePlaceholder}"
                         AutomationProperties.Name="{x:Static res:Strings.Import_NodeName}"
+                        views:Cleanup.As="Host"
                         Text="{Binding PasteNode, UpdateSourceTrigger=PropertyChanged}" />
                 </DockPanel>
                 <TextBlock Margin="0,6,0,0" Style="{StaticResource Caution}" Text="{Binding PasteError}" Visibility="{Binding PasteError, Converter={StaticResource NullToCollapsed}}" />

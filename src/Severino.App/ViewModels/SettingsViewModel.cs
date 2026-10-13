@@ -194,7 +194,7 @@ public sealed partial class SettingsViewModel : ObservableObject
 
     private static string? ParsePort(string? text, int otherPort, out int port)
     {
-        if (!int.TryParse(text?.Trim(), out port) || port is < 1 or > 65535)
+        if (!int.TryParse(Severino.Core.Network.InputCleanup.Port(text), out port) || port is < 1 or > 65535)
             return Strings.Settings_PortRange;
         if (port == otherPort)
             return Strings.Settings_PortsDiffer;

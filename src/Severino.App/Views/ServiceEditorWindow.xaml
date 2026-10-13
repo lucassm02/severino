@@ -6,6 +6,7 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
+    xmlns:views="clr-namespace:Severino.App.Views"
     xmlns:vm="clr-namespace:Severino.App.ViewModels"
     mc:Ignorable="d"
     d:DataContext="{d:DesignInstance Type=vm:ServiceEditorViewModel}"
@@ -57,6 +58,7 @@
                     VerticalScrollBarVisibility="Auto"
                     PlaceholderText="pedidos&#x0a;pedidos.loja"
                     AutomationProperties.Name="{x:Static res:Strings.ServiceEditor_NamesName}"
+                    views:Cleanup.As="Names"
                     Text="{Binding NamesText, UpdateSourceTrigger=PropertyChanged}" />
 
                 <!-- One row per port: what the app calls, then where the service answers. -->
@@ -85,7 +87,7 @@
                                     <ColumnDefinition Width="88" />
                                     <ColumnDefinition Width="40" />
                                 </Grid.ColumnDefinitions>
-                                <ui:TextBox Grid.Column="0" PlaceholderText="80" AutomationProperties.Name="{x:Static res:Strings.ServiceEditor_PortName}" Text="{Binding Port, UpdateSourceTrigger=PropertyChanged}" />
+                                <ui:TextBox Grid.Column="0" views:Cleanup.As="Port" PlaceholderText="80" AutomationProperties.Name="{x:Static res:Strings.ServiceEditor_PortName}" Text="{Binding Port, UpdateSourceTrigger=PropertyChanged}" />
                                 <TextBlock Grid.Column="1" HorizontalAlignment="Center" VerticalAlignment="Center" Text="→" />
                                 <ComboBox
                                     Grid.Column="2"
@@ -94,6 +96,8 @@
                                     TextSearch.TextPath="Name"
                                     ItemsSource="{Binding DataContext.HostSuggestions, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
                                     Text="{Binding Host, UpdateSourceTrigger=PropertyChanged}"
+                                    views:Cleanup.As="Host"
+                                    views:Cleanup.PortBox="{Binding ElementName=TargetPortBox}"
                                     ToolTip="{x:Static res:Strings.ServiceEditor_HostTip}"
                                     AutomationProperties.Name="{x:Static res:Strings.ServiceEditor_Target}">
                                     <ComboBox.ItemTemplate>
@@ -106,7 +110,7 @@
                                     </ComboBox.ItemTemplate>
                                 </ComboBox>
                                 <TextBlock Grid.Column="3" HorizontalAlignment="Center" VerticalAlignment="Center" Text=":" />
-                                <ui:TextBox Grid.Column="4" PlaceholderText="30080" AutomationProperties.Name="{x:Static res:Strings.ServiceEditor_TargetPortName}" Text="{Binding TargetPort, UpdateSourceTrigger=PropertyChanged}" />
+                                <ui:TextBox x:Name="TargetPortBox" Grid.Column="4" views:Cleanup.As="Port" PlaceholderText="30080" AutomationProperties.Name="{x:Static res:Strings.ServiceEditor_TargetPortName}" Text="{Binding TargetPort, UpdateSourceTrigger=PropertyChanged}" />
                                 <ui:Button
                                     Grid.Column="5"
                                     Margin="4,0,0,0"

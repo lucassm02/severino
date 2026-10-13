@@ -6,6 +6,7 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
+    xmlns:views="clr-namespace:Severino.App.Views"
     xmlns:vm="clr-namespace:Severino.App.ViewModels"
     mc:Ignorable="d"
     d:DataContext="{d:DesignInstance Type=vm:SettingsViewModel}">
@@ -27,6 +28,7 @@
                 <StackPanel Orientation="Horizontal">
                     <ui:TextBox
                         Width="96"
+                        views:Cleanup.As="Port"
                         Text="{Binding HttpPort, UpdateSourceTrigger=PropertyChanged}"
                         AutomationProperties.Name="{x:Static res:Strings.Settings_HttpPortName}">
                         <ui:TextBox.InputBindings>
@@ -51,6 +53,7 @@
                 <StackPanel Orientation="Horizontal">
                     <ui:TextBox
                         Width="96"
+                        views:Cleanup.As="Port"
                         Text="{Binding HttpsPort, UpdateSourceTrigger=PropertyChanged}"
                         AutomationProperties.Name="{x:Static res:Strings.Settings_HttpsPortName}">
                         <ui:TextBox.InputBindings>
