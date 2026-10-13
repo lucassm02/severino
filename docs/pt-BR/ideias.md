@@ -62,10 +62,23 @@ Cada sistema tem o seu porteiro, e nenhum atravessa para o outro.
 - **Rotas no WSL.** `meuapp.sev` abre de dentro da distro, com HTTPS, regras e segurança.
 - **Escolha por serviço.** Uma opção "no WSL: direto ou pelo Windows". Direto é mais rápido; pelo Windows traz HTTPS, regras, segurança e Requisições.
 
-### Recomendação da conversa
+### A mais promissora
 
-- **Apps no WSL** (Node, Python ou Go na distro): o agente (5). Uma ponte faria a requisição ir ao Windows e voltar.
-- **Apps no Windows ou no cluster:** a ideia 1, para quem usa o modo espelhado, e uma prova de conceito da ponte por hvsocket (3), com a do interop (2) como reserva.
+O agente na distro (5), junto com a detecção do modo de rede (1): no modo espelhado, o proxy do Windows atende; no modo NAT, o agente. O desenho completo fica "espelhado usa o Windows, NAT usa o agente".
+
+- **Funciona no NAT, o padrão,** sem firewall, sem registro, sem administrador e sem escutar fora do loopback. A decisão de escutar só no loopback continua de pé: cada sistema escuta no seu.
+- **O canal já está provado.** O Severino já fala com as distros pelo `wsl.exe` para os scripts de iptables e para a CA no WSL. Manter um processo com entrada e saída abertas é um passo curto a partir disso.
+- **Nenhum salto a mais.** Com o app no WSL, a requisição vai direto do agente ao destino; qualquer ponte iria ao Windows e voltaria.
+- **Traz as rotas para o WSL**, e não só os serviços.
+- **A ponte por hvsocket (3) também leva um binário à distro,** o repassador. Já que vai haver um binário de qualquer jeito, o agente aproveita melhor esse custo.
+- **Ordem:** primeiro a detecção e o modo espelhado (1), que são baratos; depois o agente.
+
+**O que pesa:**
+- A refatoração do proxy para rodar também no Linux, que separa de vez o que é comum do que é só Windows.
+- Uns 40 MB por distro.
+- Certificados de cada nome gravados na distro; a chave da CA não sai do Windows.
+
+**Quando a escolha muda:** se os apps rodam no Windows e não no WSL. No NAT, o agente não alcança o localhost do Windows, e aí a ponte por hvsocket (3) ganha, porque leva a distro até o proxy do Windows. A ponte pelo interop (2) fica como reserva.
 
 ## Segurança
 
