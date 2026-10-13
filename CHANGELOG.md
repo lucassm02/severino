@@ -8,6 +8,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+## [0.7.0] - 2026-10-13
+
 ### Added
 
 - HTTP ports in services: a port marked **HTTP** goes through the proxy and gets HTTPS from the local CA (`https://name` answers for the main HTTP port, and each HTTP port takes TLS on its own number), the route rules, and its requests with details in Requests. The app's Host still reaches the destination. Docker and Kubernetes refreshes keep the marks. In WSL the ports still go straight to the destination.
@@ -78,7 +80,8 @@ First published version.
 - Installer for Windows 10 and 11, 64-bit.
 - Website at <https://lucassm02.github.io/severino/>, in English and Portuguese, with an intro video and social media images.
 
-[Unreleased]: https://github.com/lucassm02/severino/compare/v0.6.0...HEAD
+[Unreleased]: https://github.com/lucassm02/severino/compare/v0.7.0...HEAD
+[0.7.0]: https://github.com/lucassm02/severino/compare/v0.6.0...v0.7.0
 [0.6.0]: https://github.com/lucassm02/severino/compare/v0.5.1...v0.6.0
 [0.5.1]: https://github.com/lucassm02/severino/compare/v0.5.0...v0.5.1
 [0.5.0]: https://github.com/lucassm02/severino/releases/tag/v0.5.0

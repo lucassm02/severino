@@ -8,6 +8,8 @@ O formato segue o [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/), e
 
 ## [Unreleased]
 
+## [0.7.0] - 2026-10-13
+
 ### Adicionado
 
 - Portas HTTP nos serviços: uma porta marcada como **HTTP** passa pelo proxy e ganha HTTPS pela CA local (`https://nome` responde pela porta HTTP principal, e cada porta HTTP aceita TLS no próprio número), as regras das rotas e as requisições com detalhes em Requisições. O Host do app continua chegando ao destino. Atualizar do Docker e do Kubernetes mantém as marcas. No WSL as portas continuam indo direto ao destino.
@@ -78,7 +80,8 @@ Primeira versão publicada.
 - Instalador para Windows 10 e 11, 64 bits.
 - Site em <https://lucassm02.github.io/severino/>, em inglês e em português, com vídeo de apresentação e imagens para redes sociais.
 
-[Unreleased]: https://github.com/lucassm02/severino/compare/v0.6.0...HEAD
+[Unreleased]: https://github.com/lucassm02/severino/compare/v0.7.0...HEAD
+[0.7.0]: https://github.com/lucassm02/severino/compare/v0.6.0...v0.7.0
 [0.6.0]: https://github.com/lucassm02/severino/compare/v0.5.1...v0.6.0
 [0.5.1]: https://github.com/lucassm02/severino/compare/v0.5.0...v0.5.1
 [0.5.0]: https://github.com/lucassm02/severino/releases/tag/v0.5.0
