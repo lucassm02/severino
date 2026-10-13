@@ -8,6 +8,10 @@ O formato segue o [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/), e
 
 ## [Unreleased]
 
+### Corrigido
+
+- O editor de serviço avisava que um nome de uma parte só, como `pedidos`, estava fora da CA mesmo quando a CA o cobria.
+
 ## [0.7.0] - 2026-10-13
 
 ### Adicionado

@@ -109,7 +109,7 @@
     <value>Sign in</value>
   </data>
   <data name="Access_LoginBadge" xml:space="preserve">
-    <value>sign in</value>
+    <value>login</value>
   </data>
   <data name="Access_LoginLead" xml:space="preserve">
     <value>{0} asks for a password.</value>

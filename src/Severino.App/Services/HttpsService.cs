@@ -46,7 +46,10 @@ public sealed class HttpsService(ConfigService config, LocalCa ca, TldDirectory 
     }
 
     /// <summary>True when the current CA can sign for <paramref name="domain"/>.</summary>
-    public bool Covers(string domain) => RouteRules.Normalize(domain) is { } normalized && ca.Covers(normalized);
+    /// <remarks>Routes' domains, wildcards included, and services' names, which may have one label (catalogoapi).</remarks>
+    public bool Covers(string domain) =>
+        (RouteRules.Normalize(domain) ?? (Severino.Contracts.DomainName.TryNormalize(domain, out var name, out _, allowSingleLabel: true) ? name : null)) is { } normalized
+        && ca.Covers(normalized);
 
     /// <summary>Domains of HTTPS routes and services the current CA cannot sign for.</summary>
     public IReadOnlyList<string> Uncovered() =>

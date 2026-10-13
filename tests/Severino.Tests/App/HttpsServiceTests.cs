@@ -115,6 +115,24 @@ public sealed class HttpsServiceTests : IDisposable
     }
 
     [Fact]
+    public async Task A_one_label_service_name_counts_as_covered_by_its_own_name()
+    {
+        AddRoute("a.sev");
+        await _https.ActivateAsync(Accept);
+        _config.Update(c => c with
+        {
+            Services = [new ServiceRoute { Names = ["catalogoapi"], Address = "127.77.0.2", Https = true, Ports = [new ServicePort { Port = 80, TargetHost = "127.0.0.1", TargetPort = 3000, Http = true }] }],
+        });
+        Assert.False(_https.Covers("catalogoapi"));
+        Assert.Equal(["catalogoapi"], _https.Uncovered());
+
+        Assert.Equal(HttpsActionResult.Done, await _https.ReissueAsync(Accept));
+
+        Assert.True(_https.Covers("catalogoapi"));
+        Assert.Empty(_https.Uncovered());
+    }
+
+    [Fact]
     public async Task Reissue_adds_new_domains_and_drops_removed_ones()
     {
         AddRoute("a.sev");
