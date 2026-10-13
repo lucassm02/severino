@@ -8,6 +8,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+## [0.6.0] - 2026-10-13
+
 ### Added
 
 - Request details: clicking a line in Requests opens its headers, sizes, where it went and, with **Capture bodies** on, the first 64 KB of each text body. **Copy as curl** (PowerShell or bash), **Repeat** and **Export HAR**.
@@ -66,6 +68,7 @@ First published version.
 - Installer for Windows 10 and 11, 64-bit.
 - Website at <https://lucassm02.github.io/severino/>, in English and Portuguese, with an intro video and social media images.
 
-[Unreleased]: https://github.com/lucassm02/severino/compare/v0.5.1...HEAD
+[Unreleased]: https://github.com/lucassm02/severino/compare/v0.6.0...HEAD
+[0.6.0]: https://github.com/lucassm02/severino/compare/v0.5.1...v0.6.0
 [0.5.1]: https://github.com/lucassm02/severino/compare/v0.5.0...v0.5.1
 [0.5.0]: https://github.com/lucassm02/severino/releases/tag/v0.5.0
