@@ -106,6 +106,15 @@ public sealed partial class RouteItemViewModel : ObservableObject
     /// <summary>One per rule on, so nobody forgets a delay or a simulated failure.</summary>
     public IReadOnlyList<RuleBadge> RuleBadges => RuleBadge.For(Route.Rules);
 
+    /// <summary>"senha", "basic" or "chave" while the route asks for a credential; null when open.</summary>
+    public string? AccessBadge => Route.Access.Mode switch
+    {
+        AccessMode.Login => Strings.Access_BadgeLogin,
+        AccessMode.Basic => Strings.Access_BadgeBasic,
+        AccessMode.Header => Strings.Access_BadgeHeader,
+        _ => null,
+    };
+
     public string HttpsBadgeText => HttpsState == RouteHttpsState.Uncovered ? "https ⚠" : "https";
 
     public string HttpsBadgeTooltip => HttpsState == RouteHttpsState.Uncovered

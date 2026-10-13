@@ -12,6 +12,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 - HTTP ports in services: a port marked **HTTP** goes through the proxy and gets HTTPS from the local CA (`https://name` answers for the main HTTP port, and each HTTP port takes TLS on its own number), the route rules, and its requests with details in Requests. The app's Host still reaches the destination. Docker and Kubernetes refreshes keep the marks. In WSL the ports still go straight to the destination.
 - Clicking a service's name opens it in the browser, like a route; with several web ports, a menu lists them, and the card's ⋯ menu has **Open in browser**. Database and queue ports are left out.
+- Security for routes, in the route editor: open, Severino's password page (a session cookie until the browser closes, 12 hours at most), Basic Auth, or a required header like `X-Api-Key`. Only hashes of the password and of the key are kept. The route's card shows the mode, and folder routes are covered too.
 
 ### Changed
 

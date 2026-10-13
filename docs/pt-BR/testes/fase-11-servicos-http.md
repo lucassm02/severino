@@ -66,3 +66,22 @@ Roteiro manual para fechar a Fase 11. Cobre os critérios de pronto do [spec](..
     - Esperado: `9090`.
 16. **Nomes.** No editor de serviço ou DNS, cole `http://pedidos:8080/, pedidos.loja.` nos nomes e saia do campo.
     - Esperado: `pedidos` e `pedidos.loja`, um por linha.
+
+## Segurança nas rotas
+
+Com uma rota `meuapp.sev → localhost:3000`.
+
+17. **Tela de senha.** No editor, em **Segurança**, escolha **Tela de senha do Severino**, usuário `ana`, senha `segredo`, e salve. Abra `http://meuapp.sev/pagina?x=1`.
+    - Esperado: a página do Severino pede usuário e senha. Com a senha errada, "Usuário ou senha errados."; com a certa, volta para `/pagina?x=1`. O card mostra o selo `senha`.
+18. **Fora do navegador.** `curl.exe -i http://meuapp.sev/`.
+    - Esperado: 401 em texto, com o endereço da tela; em Requisições, o selo Severino.
+19. **Senha nova encerra a sessão.** Edite a rota e digite outra senha. Recarregue a página no navegador.
+    - Esperado: a tela de senha de novo. Editar sem digitar senha mantém a atual.
+20. **Sair.** Abra `http://meuapp.sev/.severino/logout`.
+    - Esperado: volta para a tela de senha.
+21. **Basic Auth.** Troque para **Basic Auth** e abra a rota.
+    - Esperado: o navegador pergunta usuário e senha; `curl.exe -u ana:segredo http://meuapp.sev/` responde.
+22. **Cabeçalho.** Troque para **Cabeçalho obrigatório**, `X-Api-Key` com `chave-123`.
+    - Esperado: `curl.exe -i http://meuapp.sev/` dá 401; `curl.exe -i -H "X-Api-Key: chave-123" http://meuapp.sev/` responde, e o destino recebe o cabeçalho.
+23. **Sem senha em texto.** Abra `%LOCALAPPDATA%\Severino\config.json`.
+    - Esperado: só `passwordHash` e `headerHash`; nem `segredo` nem `chave-123` aparecem.

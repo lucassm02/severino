@@ -12,6 +12,7 @@ O formato segue o [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/), e
 
 - Portas HTTP nos serviços: uma porta marcada como **HTTP** passa pelo proxy e ganha HTTPS pela CA local (`https://nome` responde pela porta HTTP principal, e cada porta HTTP aceita TLS no próprio número), as regras das rotas e as requisições com detalhes em Requisições. O Host do app continua chegando ao destino. Atualizar do Docker e do Kubernetes mantém as marcas. No WSL as portas continuam indo direto ao destino.
 - Clicar no nome de um serviço abre no navegador, como numa rota; com várias portas web, um menu lista os endereços, e o menu ⋯ do card ganha **Abrir no navegador**. Portas de banco e de fila ficam de fora.
+- Segurança nas rotas, no editor da rota: aberta, tela de senha do Severino (cookie de sessão até o navegador fechar, no máximo 12 horas), Basic Auth ou cabeçalho obrigatório, como `X-Api-Key`. Só ficam guardados hashes da senha e da chave. O card da rota mostra o modo, e rotas de pasta também ficam protegidas.
 
 ### Alterado
 

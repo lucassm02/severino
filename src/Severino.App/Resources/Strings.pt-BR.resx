@@ -2065,4 +2065,64 @@ Adicionar esses domínios às exceções do proxy? Eles entram na mesma lista de
   <data name="Services_HttpsTip" xml:space="preserve">
     <value>As portas HTTP também respondem HTTPS, com a CA local</value>
   </data>
+  <data name="Access_Title" xml:space="preserve">
+    <value>Segurança</value>
+  </data>
+  <data name="Access_Open" xml:space="preserve">
+    <value>Aberta</value>
+  </data>
+  <data name="Access_Login" xml:space="preserve">
+    <value>Tela de senha do Severino</value>
+  </data>
+  <data name="Access_Basic" xml:space="preserve">
+    <value>Basic Auth</value>
+  </data>
+  <data name="Access_Header" xml:space="preserve">
+    <value>Cabeçalho obrigatório</value>
+  </data>
+  <data name="Access_OpenHint" xml:space="preserve">
+    <value>Quem estiver nesta máquina chega à rota, como hoje.</value>
+  </data>
+  <data name="Access_LoginHint" xml:space="preserve">
+    <value>O navegador recebe uma página do Severino pedindo usuário e senha, e uma sessão até fechar, no máximo 12 horas. Requisições que não são de página recebem 401.</value>
+  </data>
+  <data name="Access_BasicHint" xml:space="preserve">
+    <value>O próprio navegador pergunta usuário e senha; outros clientes mandam Authorization: Basic.</value>
+  </data>
+  <data name="Access_HeaderHint" xml:space="preserve">
+    <value>Só passam requisições com o cabeçalho e o valor certo, como atrás de um gateway de API. O cabeçalho segue para o destino.</value>
+  </data>
+  <data name="Access_UserName" xml:space="preserve">
+    <value>Usuário</value>
+  </data>
+  <data name="Access_PasswordName" xml:space="preserve">
+    <value>Senha</value>
+  </data>
+  <data name="Access_KeepPassword" xml:space="preserve">
+    <value>Mantida; digite outra</value>
+  </data>
+  <data name="Access_HeaderNameLabel" xml:space="preserve">
+    <value>Cabeçalho</value>
+  </data>
+  <data name="Access_KeyName" xml:space="preserve">
+    <value>Valor</value>
+  </data>
+  <data name="Access_KeepKey" xml:space="preserve">
+    <value>Mantido; digite outro</value>
+  </data>
+  <data name="Access_SecretsHint" xml:space="preserve">
+    <value>O Severino guarda só um hash da senha e do valor: não consegue mostrá-los de novo.</value>
+  </data>
+  <data name="Access_BadgeLogin" xml:space="preserve">
+    <value>senha</value>
+  </data>
+  <data name="Access_BadgeBasic" xml:space="preserve">
+    <value>basic</value>
+  </data>
+  <data name="Access_BadgeHeader" xml:space="preserve">
+    <value>chave</value>
+  </data>
+  <data name="Access_BadgeTip" xml:space="preserve">
+    <value>A rota pede credencial: Segurança, no editor dela</value>
+  </data>
 </root>

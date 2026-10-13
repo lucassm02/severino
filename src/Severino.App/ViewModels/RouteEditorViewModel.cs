@@ -82,6 +82,11 @@ public sealed partial class RouteEditorViewModel : ObservableObject
         IgnoreTargetCertErrors = _original.IgnoreTargetCertErrors;
         NotifyHealth = _original.NotifyHealth;
         Rules = new RulesEditorViewModel(_original.Rules);
+        var access = _original.Access;
+        AccessMode = access.Mode;
+        AccessUser = access.User;
+        AccessHeaderName = access.HeaderName;
+        ShowAccess = access.Mode != AccessMode.Open;
         Notes = _original.Notes;
         StripPath = _original.StripPath;
         Group = _original.Group;
@@ -204,6 +209,73 @@ public sealed partial class RouteEditorViewModel : ObservableObject
 
     /// <summary>CORS, headers, delay and simulated failure.</summary>
     public RulesEditorViewModel Rules { get; }
+
+    /// <summary>Who may go through: anyone, a password on Severino's page or Basic Auth, or a header.</summary>
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(IsOpenAccess), nameof(IsLoginAccess), nameof(IsBasicAccess), nameof(IsHeaderAccess),
+        nameof(AsksPassword), nameof(AccessHint), nameof(PasswordPlaceholder), nameof(KeyPlaceholder))]
+    public partial AccessMode AccessMode { get; set; }
+
+    public bool IsOpenAccess { get => AccessMode == AccessMode.Open; set { if (value) AccessMode = AccessMode.Open; } }
+    public bool IsLoginAccess { get => AccessMode == AccessMode.Login; set { if (value) AccessMode = AccessMode.Login; } }
+    public bool IsBasicAccess { get => AccessMode == AccessMode.Basic; set { if (value) AccessMode = AccessMode.Basic; } }
+    public bool IsHeaderAccess { get => AccessMode == AccessMode.Header; set { if (value) AccessMode = AccessMode.Header; } }
+
+    public bool AsksPassword => AccessMode is AccessMode.Login or AccessMode.Basic;
+
+    public string AccessHint => AccessMode switch
+    {
+        AccessMode.Login => Strings.Access_LoginHint,
+        AccessMode.Basic => Strings.Access_BasicHint,
+        AccessMode.Header => Strings.Access_HeaderHint,
+        _ => Strings.Access_OpenHint,
+    };
+
+    [ObservableProperty]
+    public partial string AccessUser { get; set; } = "";
+
+    /// <summary>Typed now; empty keeps the one saved, which is only a hash.</summary>
+    [ObservableProperty]
+    public partial string AccessPassword { get; set; } = "";
+
+    [ObservableProperty]
+    public partial string AccessHeaderName { get; set; } = "";
+
+    [ObservableProperty]
+    public partial string AccessHeaderValue { get; set; } = "";
+
+    public string PasswordPlaceholder => KeepsPassword ? Strings.Access_KeepPassword : Strings.Access_PasswordName;
+
+    public string KeyPlaceholder => KeepsKey ? Strings.Access_KeepKey : Strings.Access_KeyName;
+
+    private bool KeepsPassword => AccessSecrets.IsPasswordHash(_original.Access.PasswordHash);
+
+    private bool KeepsKey => AccessSecrets.IsKeyHash(_original.Access.HeaderHash);
+
+    [ObservableProperty]
+    public partial string? AccessError { get; set; }
+
+    /// <summary>The section opens by itself when the route asks for something.</summary>
+    [ObservableProperty]
+    public partial bool ShowAccess { get; set; }
+
+    /// <summary>The access as it will be saved: what was typed hashed now, the rest as it was.</summary>
+    private RouteAccess BuildAccess() => AccessMode switch
+    {
+        AccessMode.Login or AccessMode.Basic => new RouteAccess
+        {
+            Mode = AccessMode,
+            User = (AccessUser ?? "").Trim(),
+            PasswordHash = string.IsNullOrEmpty(AccessPassword) ? _original.Access.PasswordHash : AccessSecrets.HashPassword(AccessPassword),
+        },
+        AccessMode.Header => new RouteAccess
+        {
+            Mode = AccessMode.Header,
+            HeaderName = (AccessHeaderName ?? "").Trim(),
+            HeaderHash = string.IsNullOrEmpty(AccessHeaderValue) ? _original.Access.HeaderHash : AccessSecrets.HashKey(AccessHeaderValue),
+        },
+        _ => new RouteAccess(),
+    };
 
     [ObservableProperty]
     public partial string Notes { get; set; }
@@ -355,13 +427,17 @@ public sealed partial class RouteEditorViewModel : ObservableObject
     [RelayCommand]
     private async Task SaveAsync()
     {
-        var route = Build();
+        // Secrets are hashed only here: Build runs on every keystroke of the target.
+        var route = Build() with { Access = BuildAccess() };
         var errors = _routes.Validate(route);
         DomainError = errors.Domain ?? errors.Path;
         TargetError = IsFolder && !System.IO.Path.IsPathFullyQualified(FolderPath?.Trim() ?? "") ? Strings.RouteForm_FolderNotFull : errors.Target;
         Rules.Error = errors.Rules;
         if (errors.Rules is not null)
             ShowRules = true;
+        AccessError = errors.Access;
+        if (errors.Access is not null)
+            ShowAccess = true;
         if (!errors.IsValid || TargetError is not null)
             return;
 

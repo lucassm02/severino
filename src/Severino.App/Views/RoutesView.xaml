@@ -160,6 +160,15 @@
                                                                 </Border>
                                                             </InlineUIContainer>
                                                             <InlineUIContainer BaselineAlignment="Center">
+                                                                <Border
+                                                                    Style="{StaticResource Badge}"
+                                                                    ToolTip="{x:Static res:Strings.Access_BadgeTip}"
+                                                                    AutomationProperties.Name="{x:Static res:Strings.Access_BadgeTip}"
+                                                                    Visibility="{Binding AccessBadge, Converter={StaticResource NullToCollapsed}}">
+                                                                    <TextBlock Style="{StaticResource BadgeText}" Text="{Binding AccessBadge}" />
+                                                                </Border>
+                                                            </InlineUIContainer>
+                                                            <InlineUIContainer BaselineAlignment="Center">
                                                                 <ItemsControl ItemsSource="{Binding RuleBadges}" Focusable="False" ToolTip="{x:Static res:Strings.Rules_BadgeTip}">
                                                                     <ItemsControl.ItemsPanel>
                                                                         <ItemsPanelTemplate>

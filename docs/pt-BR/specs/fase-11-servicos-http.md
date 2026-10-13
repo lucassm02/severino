@@ -46,7 +46,7 @@ O serviço continua com o seu endereço de loopback (`127.77.x.y`) e escutando n
 
 ## Parte 2. Acesso às rotas
 
-Pedida em 2026-10-13. Uma rota pode pedir credencial antes de repassar. Serve para simular um ambiente protegido, como um staging atrás de login ou uma API atrás de gateway, e para não deixar uma rota aberta a qualquer página do navegador. Não substitui a autenticação do próprio app: o proxy só escuta na máquina, e quem chega já está nela.
+Pedida e implementada em 2026-10-13. Uma rota pode pedir credencial antes de repassar. Serve para simular um ambiente protegido, como um staging atrás de login ou uma API atrás de gateway, e para não deixar uma rota aberta a qualquer página do navegador. Não substitui a autenticação do próprio app: o proxy só escuta na máquina, e quem chega já está nela.
 
 ### Modos
 

@@ -113,7 +113,7 @@ public static class ErrorPages
         <head>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
-        <title>{{status}} · {{Html.Encode(title)}} · Severino</title>
+        <title>{{(badge is null ? $"{status} · " : "")}}{{Html.Encode(title)}} · Severino</title>
         <link rel="icon" href="{{Face.Value}}">
         <style>
           :root {

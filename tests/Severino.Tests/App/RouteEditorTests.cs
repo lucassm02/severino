@@ -123,4 +123,42 @@ public sealed class RouteEditorTests : IDisposable
         public Task<bool?> TldExistsAsync(string tld, CancellationToken cancellationToken) =>
             Task.FromResult<bool?>(tld != "sev");
     }
+
+    [Fact]
+    public async Task The_password_is_saved_as_a_hash_and_kept_when_left_blank()
+    {
+        var form = Open();
+        form.Domain = "meuapp.sev";
+        form.TargetPort = "3000";
+        form.IsLoginAccess = true;
+        form.AccessUser = "ana";
+        form.AccessPassword = "segredo";
+        await form.SaveCommand.ExecuteAsync(null);
+
+        var saved = Assert.Single(_config.Current.Routes).Access;
+        Assert.Equal((AccessMode.Login, "ana"), (saved.Mode, saved.User));
+        Assert.True(AccessSecrets.VerifyPassword("segredo", saved.PasswordHash));
+        Assert.DoesNotContain("segredo", File.ReadAllText(Path.Combine(_dir, "config", ConfigStore.FileName)));
+
+        var again = Open(_config.Current.Routes[0]);
+        Assert.True(again.ShowAccess);
+        Assert.Equal("", again.AccessPassword);
+        again.IsBasicAccess = true;
+        await again.SaveCommand.ExecuteAsync(null);
+        Assert.Equal((AccessMode.Basic, saved.PasswordHash), (_config.Current.Routes[0].Access.Mode, _config.Current.Routes[0].Access.PasswordHash));
+    }
+
+    [Fact]
+    public async Task A_password_mode_without_a_password_says_so()
+    {
+        var form = Open();
+        form.Domain = "meuapp.sev";
+        form.TargetPort = "3000";
+        form.IsLoginAccess = true;
+        form.AccessUser = "ana";
+        await form.SaveCommand.ExecuteAsync(null);
+
+        Assert.Equal("Preencha a senha.", form.AccessError);
+        Assert.Empty(_config.Current.Routes);
+    }
 }

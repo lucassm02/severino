@@ -250,5 +250,74 @@
         <Expander Margin="0,8,0,0" Header="{x:Static res:Strings.Rules_Title}" IsExpanded="{Binding ShowRules}">
             <views:RulesForm Margin="0,8,0,0" DataContext="{Binding Rules}" />
         </Expander>
+
+        <!-- A credential before the proxy forwards: shown on the route's card while asked. -->
+        <Expander
+            Margin="0,8,0,0"
+            Header="{x:Static res:Strings.Access_Title}"
+            IsExpanded="{Binding ShowAccess}"
+            Visibility="{Binding IsWizard, Converter={StaticResource FalseToVisible}}">
+            <StackPanel Margin="0,8,0,0">
+                <WrapPanel>
+                    <RadioButton Margin="0,0,16,4" GroupName="Access" Content="{x:Static res:Strings.Access_Open}" IsChecked="{Binding IsOpenAccess}" />
+                    <RadioButton Margin="0,0,16,4" GroupName="Access" Content="{x:Static res:Strings.Access_Login}" IsChecked="{Binding IsLoginAccess}" />
+                    <RadioButton Margin="0,0,16,4" GroupName="Access" Content="{x:Static res:Strings.Access_Basic}" IsChecked="{Binding IsBasicAccess}" />
+                    <RadioButton Margin="0,0,16,4" GroupName="Access" Content="{x:Static res:Strings.Access_Header}" IsChecked="{Binding IsHeaderAccess}" />
+                </WrapPanel>
+                <ui:TextBlock Style="{StaticResource Hint}" Text="{Binding AccessHint}" />
+
+                <Grid Margin="0,12,0,0" Visibility="{Binding AsksPassword, Converter={StaticResource TrueToVisible}}">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="16" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+                    <StackPanel Grid.Column="0">
+                        <ui:TextBlock Style="{StaticResource FieldLabel}" Text="{x:Static res:Strings.Access_UserName}" />
+                        <ui:TextBox
+                            AutomationProperties.Name="{x:Static res:Strings.Access_UserName}"
+                            Text="{Binding AccessUser, UpdateSourceTrigger=PropertyChanged}" />
+                    </StackPanel>
+                    <StackPanel Grid.Column="2">
+                        <ui:TextBlock Style="{StaticResource FieldLabel}" Text="{x:Static res:Strings.Access_PasswordName}" />
+                        <ui:PasswordBox
+                            PlaceholderText="{Binding PasswordPlaceholder}"
+                            AutomationProperties.Name="{x:Static res:Strings.Access_PasswordName}"
+                            Password="{Binding AccessPassword, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                    </StackPanel>
+                </Grid>
+
+                <Grid Margin="0,12,0,0" Visibility="{Binding IsHeaderAccess, Converter={StaticResource TrueToVisible}}">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="16" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+                    <StackPanel Grid.Column="0">
+                        <ui:TextBlock Style="{StaticResource FieldLabel}" Text="{x:Static res:Strings.Access_HeaderNameLabel}" />
+                        <ui:TextBox
+                            PlaceholderText="X-Api-Key"
+                            AutomationProperties.Name="{x:Static res:Strings.Access_HeaderNameLabel}"
+                            Text="{Binding AccessHeaderName, UpdateSourceTrigger=PropertyChanged}" />
+                    </StackPanel>
+                    <StackPanel Grid.Column="2">
+                        <ui:TextBlock Style="{StaticResource FieldLabel}" Text="{x:Static res:Strings.Access_KeyName}" />
+                        <ui:PasswordBox
+                            PlaceholderText="{Binding KeyPlaceholder}"
+                            AutomationProperties.Name="{x:Static res:Strings.Access_KeyName}"
+                            Password="{Binding AccessHeaderValue, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                    </StackPanel>
+                </Grid>
+                <ui:TextBlock
+                    Style="{StaticResource Hint}"
+                    Text="{x:Static res:Strings.Access_SecretsHint}"
+                    Visibility="{Binding IsOpenAccess, Converter={StaticResource FalseToVisible}}" />
+                <ui:TextBlock
+                    Style="{StaticResource ErrorText}"
+                    Text="{Binding AccessError}"
+                    Visibility="{Binding AccessError, Converter={StaticResource NullToCollapsed}}"
+                    AutomationProperties.LiveSetting="Assertive" />
+            </StackPanel>
+        </Expander>
     </StackPanel>
 </UserControl>
