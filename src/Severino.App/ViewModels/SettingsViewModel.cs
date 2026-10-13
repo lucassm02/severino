@@ -58,6 +58,7 @@ public sealed partial class SettingsViewModel : ObservableObject
         Language = settings.Language;
         StartWithWindows = autoStart.IsEnabled;
         StartMinimized = settings.StartMinimized;
+        HealthNotifications = settings.HealthNotifications;
         WatchServices = settings.WatchServices;
         HttpPort = settings.HttpPort.ToString();
         HttpsPort = settings.HttpsPort.ToString();
@@ -119,6 +120,13 @@ public sealed partial class SettingsViewModel : ObservableObject
 
     partial void OnStartMinimizedChanged(bool value) =>
         _config.Update(c => c with { Settings = c.Settings with { StartMinimized = value } });
+
+    /// <summary>The tray notices of routes and services that asked for them.</summary>
+    [ObservableProperty]
+    public partial bool HealthNotifications { get; set; }
+
+    partial void OnHealthNotificationsChanged(bool value) =>
+        _config.Update(c => c with { Settings = c.Settings with { HealthNotifications = value } });
 
     /// <summary>Follow imported services on their own: Docker events, Kubernetes every 30 s.</summary>
     [ObservableProperty]

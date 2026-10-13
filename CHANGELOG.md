@@ -11,6 +11,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 ### Added
 
 - Request details: clicking a line in Requests opens its headers, sizes, where it went and, with **Keep bodies** on, the first 64 KB of each text body. **Copy as curl** (PowerShell or bash), **Repeat** and **Export HAR**.
+- Health notices: routes and services with **Tell me when it stops answering** get a tray notice after 15 seconds without an answer, and another when they are back. Clicking it opens the tab. Settings › General turns them all off.
+
+### Changed
+
+- Clicking the new version notice in the tray opens the window.
 
 ### Fixed
 

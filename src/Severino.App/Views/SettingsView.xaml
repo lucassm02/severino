@@ -306,7 +306,16 @@
                     </StackPanel>
                 </ui:CardControl.Header>
                 <ui:ToggleSwitch IsChecked="{Binding StartMinimized}" AutomationProperties.Name="{x:Static res:Strings.Settings_StartMinimized}" />
+            </ui:CardControl>            <ui:CardControl Margin="0,0,0,4" Icon="{ui:SymbolIcon Alert24}">
+                <ui:CardControl.Header>
+                    <StackPanel>
+                        <ui:TextBlock Text="{x:Static res:Strings.Settings_HealthNotifications}" />
+                        <ui:TextBlock Foreground="{DynamicResource TextFillColorSecondaryBrush}" FontTypography="Caption" TextWrapping="Wrap" Text="{x:Static res:Strings.Settings_HealthNotificationsHint}" />
+                    </StackPanel>
+                </ui:CardControl.Header>
+                <ui:ToggleSwitch IsChecked="{Binding HealthNotifications}" AutomationProperties.Name="{x:Static res:Strings.Settings_HealthNotifications}" />
             </ui:CardControl>
+
 
             <ui:TextBlock Margin="0,16,0,8" FontTypography="BodyStrong" Text="{x:Static res:Strings.Settings_Maintenance}" />
             <ui:CardControl Margin="0,0,0,4" Icon="{ui:SymbolIcon Folder24}">

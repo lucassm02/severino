@@ -193,7 +193,7 @@ O guia de testes manuais fica em `docs/pt-BR/testes/fase-10-ambientes-e-depuraca
 
 1. **Por item.** Rotas e serviços ganham **Avisar quando parar de responder** no editor, desligado por padrão.
 2. **Avisa uma vez, sem alarme falso.** Um item que estava respondendo e para por 15 segundos seguidos gera uma notificação na bandeja: "meuapp.sev parou de responder (localhost:3000)". Quando volta, outra: "meuapp.sev voltou". Reinícios rápidos do servidor de desenvolvimento não avisam.
-3. **Agrupa.** Quatro ou mais ao mesmo tempo viram uma notificação só: "4 rotas pararam de responder".
+3. **Agrupa.** Dois ou mais ao mesmo tempo viram uma notificação só, com os nomes: "3 destinos pararam de responder". Os avisos do Windows se substituem um ao outro, então avisos separados esconderiam os primeiros. Se uma queda e uma volta caem juntas, a queda é a notícia.
 4. **Silencioso quando não faz sentido.** Nada é avisado com o Severino pausado, nem de um item que nunca respondeu desde que o app abriu.
 5. **Clicar** na notificação abre a janela na aba do item.
 6. **Desligar tudo.** Configurações › Geral ganha **Avisos de rotas e serviços**, ligado por padrão, que vale para todos os itens.

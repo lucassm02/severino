@@ -56,6 +56,9 @@ public sealed record AppSettings
 
     /// <summary>Ask GitHub once a day for a newer release and offer it.</summary>
     public bool CheckForUpdates { get; set; } = true;
+
+    /// <summary>The tray tells when a route or service with <c>NotifyHealth</c> stops answering, and when it is back.</summary>
+    public bool HealthNotifications { get; set; } = true;
 }
 
 /// <summary>Flags the app records about itself; not shown as settings.</summary>
@@ -107,6 +110,9 @@ public sealed record RouteEntry
 
     /// <summary>A label shared by routes switched on and off together, like "meuapp"; empty for none.</summary>
     public string Group { get; set; } = "";
+
+    /// <summary>A tray notice when the target stops answering, and when it is back.</summary>
+    public bool NotifyHealth { get; set; }
 }
 
 /// <summary>
@@ -137,6 +143,9 @@ public sealed record ServiceRoute
     public bool PortForward { get; set; }
 
     public string Notes { get; set; } = "";
+
+    /// <summary>A tray notice when the destination stops answering, and when it is back.</summary>
+    public bool NotifyHealth { get; set; }
 }
 
 public sealed record ServicePort

@@ -47,7 +47,25 @@ Prova os critérios 1 a 7 da parte 2.
 
 ## Parte 7. Avisos de saúde
 
-Pendente.
+Prova os critérios 1 a 6 da parte 7. Deixe a janela do Severino escondida (feche-a) para ver os avisos como eles aparecem no dia a dia.
+
+1. **Ligar.** Edite a rota `meuapp.sev`, abra **Avançado** e marque **Avisar quando parar de responder**. Salve. Com o servidor da porta 3000 rodando, espere a rota aparecer como respondendo.
+2. **Queda.** Pare o servidor (Ctrl+C) e espere 20 segundos.
+   - Esperado: um aviso na bandeja, "meuapp.sev parou de responder", com "Nada responde em localhost:3000 há 15 segundos."
+3. **Clique.** Clique no aviso.
+   - Esperado: a janela abre na aba Rotas, filtrada por `meuapp.sev`.
+4. **Volta.** Suba o servidor de novo.
+   - Esperado: em até 10 segundos, "meuapp.sev voltou".
+5. **Reinício rápido.** Pare e suba o servidor em menos de 10 segundos.
+   - Esperado: nenhum aviso.
+6. **Vários.** Marque a opção em mais uma rota ou serviço que use o mesmo servidor, e pare o servidor.
+   - Esperado: um aviso só, "2 destinos pararam de responder", com os dois nomes.
+7. **Pausado.** Pause o Severino pela bandeja e pare o servidor.
+   - Esperado: nenhum aviso. Retome com o servidor parado: nenhum aviso também, porque a rota não respondeu desde que voltou.
+8. **Nunca respondeu.** Saia do Severino com o servidor parado e abra de novo.
+   - Esperado: nenhum aviso.
+9. **Desligar tudo.** Em Configurações › Geral, desligue **Avisos de rotas e serviços**, suba e pare o servidor.
+   - Esperado: nenhum aviso. Ligue de novo antes de seguir.
 
 ## Parte 5. Regras por rota
 

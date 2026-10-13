@@ -160,7 +160,7 @@ public sealed partial class UpdatesViewModel : ObservableObject
             return;
         // The window shows the notice already; the tray speaks only when it is hidden.
         if (Application.Current?.MainWindow is not { IsVisible: true })
-            _tray.ShowInfo(string.Format(Strings.Updates_BannerTitle, version), Strings.Updates_TrayMessage);
+            _tray.ShowInfo(string.Format(Strings.Updates_BannerTitle, version), Strings.Updates_TrayMessage, () => _shell.Value.ShowMainWindow());
         _config.Update(c => c with { State = c.State with { NotifiedVersion = version } });
     }
 

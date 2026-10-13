@@ -75,11 +75,12 @@ public sealed partial class RouteEditorViewModel : ObservableObject
         RedirectToHttps = _original.RedirectToHttps;
         PreserveHost = _original.PreserveHost;
         IgnoreTargetCertErrors = _original.IgnoreTargetCertErrors;
+        NotifyHealth = _original.NotifyHealth;
         Notes = _original.Notes;
         StripPath = _original.StripPath;
         Group = _original.Group;
         GroupSuggestions = routes.Groups;
-        ShowAdvanced = PreserveHost || IgnoreTargetCertErrors || Notes.Length > 0;
+        ShowAdvanced = PreserveHost || IgnoreTargetCertErrors || NotifyHealth || Notes.Length > 0;
         UpdateHttpsRules();
         IsReady = true;
         ScheduleChecks();
@@ -157,6 +158,9 @@ public sealed partial class RouteEditorViewModel : ObservableObject
 
     [ObservableProperty]
     public partial bool IgnoreTargetCertErrors { get; set; }
+
+    [ObservableProperty]
+    public partial bool NotifyHealth { get; set; }
 
     [ObservableProperty]
     public partial string Notes { get; set; }

@@ -61,6 +61,7 @@ public sealed partial class ServiceEditorViewModel : ObservableObject
         if (Ports.Count == 0)
             Ports.Add(new ServicePortRow());
         Notes = _original.Notes;
+        NotifyHealth = _original.NotifyHealth;
         HostSuggestions = [new Core.Dns.DnsDestination("127.0.0.1", Strings.Common_ThisMachine, Outside: false), .. destinations ?? []];
     }
 
@@ -89,6 +90,9 @@ public sealed partial class ServiceEditorViewModel : ObservableObject
 
     [ObservableProperty]
     public partial string Notes { get; set; }
+
+    [ObservableProperty]
+    public partial bool NotifyHealth { get; set; }
 
     [ObservableProperty]
     public partial string? Error { get; set; }
@@ -123,7 +127,7 @@ public sealed partial class ServiceEditorViewModel : ObservableObject
             ports.Add(port);
         }
 
-        var route = _original with { Names = names, Ports = ports, Notes = Notes.Trim() };
+        var route = _original with { Names = names, Ports = ports, Notes = Notes.Trim(), NotifyHealth = NotifyHealth };
         var (_, error) = _services.Validate(route);
         if (error is not null)
         {

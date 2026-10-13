@@ -16,6 +16,9 @@ public sealed partial class TrayService(IServiceProvider services) : IDisposable
     private System.Drawing.Icon? _image;
     private TrayViewModel? _viewModel;
 
+    /// <summary>What clicking the notice on screen does; one at a time, like the notices.</summary>
+    private Action? _onClick;
+
     public void Create()
     {
         _icon = (TaskbarIcon)Application.Current.FindResource("TrayIcon");
@@ -24,6 +27,13 @@ public sealed partial class TrayService(IServiceProvider services) : IDisposable
         Bind(_icon, _viewModel);
         _viewModel.PropertyChanged += OnViewModelChanged;
         ShowState(_viewModel.IconState);
+        _icon.TrayBalloonTipClicked += (_, _) =>
+        {
+            var click = _onClick;
+            _onClick = null;
+            click?.Invoke();
+        };
+        _icon.TrayBalloonTipClosed += (_, _) => _onClick = null;
         _icon.ForceCreate(enablesEfficiencyMode: false);
     }
 
@@ -72,11 +82,17 @@ public sealed partial class TrayService(IServiceProvider services) : IDisposable
         return new System.Drawing.Icon(stream, size, size);
     }
 
-    public void ShowInfo(string title, string message) =>
-        _icon?.ShowNotification(title, message, NotificationIcon.Info);
+    public void ShowInfo(string title, string message, Action? onClick = null) => Show(title, message, NotificationIcon.Info, onClick);
 
-    public void ShowWarning(string title, string message) =>
-        _icon?.ShowNotification(title, message, NotificationIcon.Warning);
+    public void ShowWarning(string title, string message, Action? onClick = null) => Show(title, message, NotificationIcon.Warning, onClick);
+
+    private void Show(string title, string message, NotificationIcon icon, Action? onClick)
+    {
+        if (_icon is null)
+            return;
+        _onClick = onClick;
+        _icon.ShowNotification(title, message, icon);
+    }
 
     public void Dispose()
     {

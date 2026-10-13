@@ -115,6 +115,14 @@
                 Foreground="{DynamicResource TextFillColorSecondaryBrush}"
                 Text="{Binding AddressText}" />
 
+            <CheckBox Margin="0,12,0,0" Content="{x:Static res:Strings.Health_Notify}" IsChecked="{Binding NotifyHealth}" />
+            <TextBlock
+                Margin="28,0,0,0"
+                FontSize="12"
+                TextWrapping="Wrap"
+                Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                Text="{x:Static res:Strings.Health_NotifyHint}" />
+
             <TextBlock Margin="0,12,0,4" Text="{x:Static res:Strings.Common_Notes}" />
             <ui:TextBox AutomationProperties.Name="{x:Static res:Strings.Common_Notes}" Text="{Binding Notes, UpdateSourceTrigger=PropertyChanged}" />
 

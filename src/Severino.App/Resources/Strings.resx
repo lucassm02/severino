@@ -1759,4 +1759,37 @@ Add these domains to the proxy exceptions? They go into the same Internet Option
   <data name="Common_SizeMb" xml:space="preserve">
     <value>{0:0.#} MB</value>
   </data>
+  <data name="Health_Notify" xml:space="preserve">
+    <value>Tell me when it stops answering</value>
+  </data>
+  <data name="Health_NotifyHint" xml:space="preserve">
+    <value>A tray notice after 15 seconds without an answer, and another when it is back. A quick restart of the server says nothing.</value>
+  </data>
+  <data name="Health_DownOne" xml:space="preserve">
+    <value>{0} stopped answering</value>
+  </data>
+  <data name="Health_DownOneText" xml:space="preserve">
+    <value>Nothing has answered on {0} for {1} seconds.</value>
+  </data>
+  <data name="Health_BackOne" xml:space="preserve">
+    <value>{0} is back</value>
+  </data>
+  <data name="Health_BackOneText" xml:space="preserve">
+    <value>It answers again on {0}.</value>
+  </data>
+  <data name="Health_DownMany" xml:space="preserve">
+    <value>{0} targets stopped answering</value>
+  </data>
+  <data name="Health_BackMany" xml:space="preserve">
+    <value>{0} targets are back</value>
+  </data>
+  <data name="Health_AndMore" xml:space="preserve">
+    <value>{0} and {1} more</value>
+  </data>
+  <data name="Settings_HealthNotifications" xml:space="preserve">
+    <value>Route and service notices</value>
+  </data>
+  <data name="Settings_HealthNotificationsHint" xml:space="preserve">
+    <value>For the ones with “Tell me when it stops answering” on, in their editor. Off, none of them notifies.</value>
+  </data>
 </root>

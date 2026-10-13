@@ -114,6 +114,7 @@ public partial class App : Application
         _host.Services.GetRequiredService<ControlServer>().Start();
         _ = StartProxyAsync(_host.Services.GetRequiredService<ProxyCoordinator>());
         _host.Services.GetRequiredService<UpdatesViewModel>().Start();
+        _host.Services.GetRequiredService<HealthNotifier>().Start();
     }
 
     protected override void OnExit(ExitEventArgs e)
@@ -286,6 +287,7 @@ public partial class App : Application
         services.AddSingleton<SystemCleanup>();
         services.AddSingleton(sp => new SystemProxy(sp.GetRequiredService<ConfigService>(), sp.GetRequiredService<TldDirectory>()));
         services.AddSingleton<TrayService>();
+        services.AddSingleton<HealthNotifier>();
         services.AddSingleton<DialogService>();
         services.AddSingleton<HttpsService>();
         services.AddSingleton<Navigation>();

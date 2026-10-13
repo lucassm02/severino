@@ -1759,4 +1759,37 @@ Adicionar esses domínios às exceções do proxy? Eles entram na mesma lista de
   <data name="Common_SizeMb" xml:space="preserve">
     <value>{0:0.#} MB</value>
   </data>
+  <data name="Health_Notify" xml:space="preserve">
+    <value>Avisar quando parar de responder</value>
+  </data>
+  <data name="Health_NotifyHint" xml:space="preserve">
+    <value>Um aviso na bandeja depois de 15 segundos sem resposta, e outro quando voltar. Um reinício rápido do servidor não avisa.</value>
+  </data>
+  <data name="Health_DownOne" xml:space="preserve">
+    <value>{0} parou de responder</value>
+  </data>
+  <data name="Health_DownOneText" xml:space="preserve">
+    <value>Nada responde em {0} há {1} segundos.</value>
+  </data>
+  <data name="Health_BackOne" xml:space="preserve">
+    <value>{0} voltou</value>
+  </data>
+  <data name="Health_BackOneText" xml:space="preserve">
+    <value>Responde de novo em {0}.</value>
+  </data>
+  <data name="Health_DownMany" xml:space="preserve">
+    <value>{0} destinos pararam de responder</value>
+  </data>
+  <data name="Health_BackMany" xml:space="preserve">
+    <value>{0} destinos voltaram</value>
+  </data>
+  <data name="Health_AndMore" xml:space="preserve">
+    <value>{0} e mais {1}</value>
+  </data>
+  <data name="Settings_HealthNotifications" xml:space="preserve">
+    <value>Avisos de rotas e serviços</value>
+  </data>
+  <data name="Settings_HealthNotificationsHint" xml:space="preserve">
+    <value>Para os que têm “Avisar quando parar de responder” ligado, no editor de cada um. Desligado, nenhum avisa.</value>
+  </data>
 </root>

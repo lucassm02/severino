@@ -11,6 +11,11 @@ O formato segue o [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/), e
 ### Adicionado
 
 - Detalhes da requisição: clicar numa linha de Requisições abre os cabeçalhos, os tamanhos, para onde ela foi e, com **Guardar corpos** ligado, os primeiros 64 KB de cada corpo de texto. **Copiar como curl** (PowerShell ou bash), **Repetir** e **Exportar HAR**.
+- Avisos de saúde: rotas e serviços com **Avisar quando parar de responder** ganham um aviso na bandeja depois de 15 segundos sem resposta, e outro quando voltam. Clicar abre a aba. Configurações › Geral desliga todos.
+
+### Alterado
+
+- Clicar no aviso de versão nova na bandeja abre a janela.
 
 ### Corrigido
 
