@@ -9,6 +9,7 @@ public partial class RouteEditorWindow : FluentWindow
     {
         DataContext = viewModel;
         InitializeComponent();
+        FirstRender.Repaint(this);
         viewModel.CloseRequested += (_, saved) => DialogResult = saved;
         Loaded += (_, _) => Form.FocusDomain();
     }

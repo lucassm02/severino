@@ -12,6 +12,7 @@ public partial class FirstRunWindow : FluentWindow
     {
         DataContext = viewModel;
         InitializeComponent();
+        FirstRender.Repaint(this);
         viewModel.PropertyChanged += (_, e) =>
         {
             if (e.PropertyName == nameof(FirstRunViewModel.IsRouteStep) && viewModel.IsRouteStep)

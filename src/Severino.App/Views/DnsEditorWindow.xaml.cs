@@ -9,6 +9,7 @@ public partial class DnsEditorWindow : FluentWindow
     {
         DataContext = viewModel;
         InitializeComponent();
+        FirstRender.Repaint(this);
         viewModel.CloseRequested += (_, saved) => DialogResult = saved;
         Loaded += (_, _) => Names.Focus();
     }

@@ -8,6 +8,10 @@ O formato segue o [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/), e
 
 ## [Unreleased]
 
+### Corrigido
+
+- Os editores (rota, serviço, entrada DNS) e o assistente de primeiro uso às vezes abriam em branco, só com a moldura e o cursor de texto.
+
 ## [0.5.1] - 2026-10-11
 
 ### Corrigido

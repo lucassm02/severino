@@ -8,6 +8,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+### Fixed
+
+- The editors (route, service, DNS entry) and the first-run wizard sometimes opened blank, with only the frame and the text cursor.
+
 ## [0.5.1] - 2026-10-11
 
 ### Fixed
