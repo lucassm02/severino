@@ -240,4 +240,22 @@
   <data name="Watcher_Updated" xml:space="preserve">
     <value>{0} with new ports, updated on its own.</value>
   </data>
+  <data name="Rules_BadHeader" xml:space="preserve">
+    <value>“{0}” is not a header name: letters, digits and - only, no spaces.</value>
+  </data>
+  <data name="Rules_FixedHeader" xml:space="preserve">
+    <value>{0} cannot be changed: the connection and the route decide it.</value>
+  </data>
+  <data name="Rules_BadHeaderValue" xml:space="preserve">
+    <value>The value of {0} cannot have line breaks.</value>
+  </data>
+  <data name="Rules_BadDelay" xml:space="preserve">
+    <value>The delay goes from 0 to {0} ms.</value>
+  </data>
+  <data name="Rules_BadPercent" xml:space="preserve">
+    <value>The failure percentage goes from 0 to 100.</value>
+  </data>
+  <data name="Rules_BadStatus" xml:space="preserve">
+    <value>A simulated failure answers with one of: {0}.</value>
+  </data>
 </root>

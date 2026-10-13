@@ -12,6 +12,7 @@ O formato segue o [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/), e
 
 - Detalhes da requisição: clicar numa linha de Requisições abre os cabeçalhos, os tamanhos, para onde ela foi e, com **Guardar corpos** ligado, os primeiros 64 KB de cada corpo de texto. **Copiar como curl** (PowerShell ou bash), **Repetir** e **Exportar HAR**.
 - Avisos de saúde: rotas e serviços com **Avisar quando parar de responder** ganham um aviso na bandeja depois de 15 segundos sem resposta, e outro quando voltam. Clicar abre a aba. Configurações › Geral desliga todos.
+- Regras por rota, no **Avançado** da rota: liberar CORS (o Severino responde o preflight), pôr ou tirar cabeçalhos na ida e na volta, esperar antes de repassar e falhar de propósito com 429, 500, 502, 503 ou 504 em parte das requisições. Cada regra ligada aparece como selo no card da rota.
 
 ### Alterado
 

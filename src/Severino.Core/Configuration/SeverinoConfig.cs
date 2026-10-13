@@ -113,6 +113,46 @@ public sealed record RouteEntry
 
     /// <summary>A tray notice when the target stops answering, and when it is back.</summary>
     public bool NotifyHealth { get; set; }
+
+    /// <summary>CORS, headers, delay and simulated failure, applied by the proxy on the way.</summary>
+    public TrafficRules Rules { get; set; } = new();
+}
+
+/// <summary>What the proxy does to a route's traffic beyond forwarding it. All off by default.</summary>
+public sealed record TrafficRules
+{
+    /// <summary>Answers CORS preflights and lets the requesting origin read the answers, with credentials.</summary>
+    public bool Cors { get; set; }
+
+    /// <summary>Set on the way to the server; an empty value removes the header.</summary>
+    public IReadOnlyList<HeaderRule> RequestHeaders { get; set; } = [];
+
+    /// <summary>Set on the way back to the browser; an empty value removes the header.</summary>
+    public IReadOnlyList<HeaderRule> ResponseHeaders { get; set; } = [];
+
+    /// <summary>Waited before forwarding, up to 30 s.</summary>
+    public int DelayMs { get; set; }
+
+    /// <summary>The status a simulated failure answers with: 429, 500, 502, 503 or 504.</summary>
+    public int FailStatus { get; set; } = 503;
+
+    /// <summary>How many requests in a hundred fail on purpose; 0 for none.</summary>
+    public int FailPercent { get; set; }
+
+    public bool HasAny() => Cors || RequestHeaders.Count > 0 || ResponseHeaders.Count > 0 || DelayMs > 0 || FailPercent > 0;
+
+    // The header lists by their contents, not by reference: a route read back from disk equals the one saved.
+    public bool Equals(TrafficRules? other) =>
+        other is not null && Cors == other.Cors && DelayMs == other.DelayMs && FailStatus == other.FailStatus && FailPercent == other.FailPercent
+        && RequestHeaders.SequenceEqual(other.RequestHeaders) && ResponseHeaders.SequenceEqual(other.ResponseHeaders);
+
+    public override int GetHashCode() => HashCode.Combine(Cors, DelayMs, FailStatus, FailPercent, RequestHeaders.Count, ResponseHeaders.Count);
+}
+
+public sealed record HeaderRule
+{
+    public string Name { get; set; } = "";
+    public string Value { get; set; } = "";
 }
 
 /// <summary>

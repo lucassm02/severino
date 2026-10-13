@@ -240,4 +240,22 @@
   <data name="Watcher_Updated" xml:space="preserve">
     <value>{0} com portas novas, atualizado sozinho.</value>
   </data>
+  <data name="Rules_BadHeader" xml:space="preserve">
+    <value>“{0}” não é um nome de cabeçalho: só letras, números e -, sem espaços.</value>
+  </data>
+  <data name="Rules_FixedHeader" xml:space="preserve">
+    <value>{0} não pode ser mudado: quem decide é a conexão e a rota.</value>
+  </data>
+  <data name="Rules_BadHeaderValue" xml:space="preserve">
+    <value>O valor de {0} não pode ter quebra de linha.</value>
+  </data>
+  <data name="Rules_BadDelay" xml:space="preserve">
+    <value>O atraso vai de 0 a {0} ms.</value>
+  </data>
+  <data name="Rules_BadPercent" xml:space="preserve">
+    <value>A porcentagem de falha vai de 0 a 100.</value>
+  </data>
+  <data name="Rules_BadStatus" xml:space="preserve">
+    <value>Uma falha simulada responde com um destes: {0}.</value>
+  </data>
 </root>

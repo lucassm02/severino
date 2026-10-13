@@ -78,4 +78,13 @@
   <data name="Proxy_PortReserved" xml:space="preserve">
     <value>O Windows reservou a porta {0} (costuma ser o Hyper-V ou o WinNAT). Escolha outra porta.</value>
   </data>
+  <data name="Error_SimulatedTitle" xml:space="preserve">
+    <value>Falha simulada</value>
+  </data>
+  <data name="Error_SimulatedLead" xml:space="preserve">
+    <value>O Severino respondeu {1} por {0} de propósito: a rota falha em {2}% das requisições.</value>
+  </data>
+  <data name="Error_SimulatedText" xml:space="preserve">
+    <value>Para parar, edite a rota no Severino: Avançado › Regras.</value>
+  </data>
 </root>

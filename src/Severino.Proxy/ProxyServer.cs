@@ -43,6 +43,9 @@ public sealed class ProxyServer(ILoggerFactory loggerFactory, Func<string, X509C
     private Listener? _http;
     private Listener? _https;
     private IReadOnlyList<RouteEntry> _routes = [];
+
+    /// <summary>CORS, delay and failure of the routes that have them, by YARP route id.</summary>
+    private IReadOnlyDictionary<string, TrafficRules> _rules = new Dictionary<string, TrafficRules>();
     private int? _httpsPort;
     private bool _disposed;
 
@@ -98,6 +101,7 @@ public sealed class ProxyServer(ILoggerFactory loggerFactory, Func<string, X509C
     public void UpdateRoutes(IReadOnlyList<RouteEntry> routes)
     {
         _routes = routes;
+        _rules = RulesOf(routes);
         var (yarpRoutes, clusters) = ProxyConfigMapper.Map(routes, Status.Port, _httpsPort);
         _http?.Config.Update(yarpRoutes, clusters);
         _https?.Config.Update(yarpRoutes, clusters);
@@ -181,7 +185,11 @@ public sealed class ProxyServer(ILoggerFactory loggerFactory, Func<string, X509C
             app.Use(requests.RecordAsync);
         if (!tls)
             app.Use(RedirectToHttpsAsync);
-        app.MapReverseProxy(pipeline => pipeline.Use(WriteErrorPageAsync));
+        app.MapReverseProxy(pipeline =>
+        {
+            pipeline.Use((context, next) => RouteTraffic.ApplyAsync(context, next, _rules));
+            pipeline.Use(WriteErrorPageAsync);
+        });
         app.MapFallback(context => WriteNotFoundAsync(context, tls, port));
 
         try
@@ -241,6 +249,10 @@ public sealed class ProxyServer(ILoggerFactory loggerFactory, Func<string, X509C
 
         return new ProxyStatus(ProxyState.Failed, port, ex.Message);
     }
+
+    private static Dictionary<string, TrafficRules> RulesOf(IReadOnlyList<RouteEntry> routes) =>
+        routes.Where(r => r.Enabled && (r.Rules.Cors || r.Rules.DelayMs > 0 || r.Rules.FailPercent > 0))
+            .ToDictionary(r => r.Id.ToString("N"), r => r.Rules);
 
     private static async Task WriteErrorPageAsync(HttpContext context, Func<Task> next)
     {

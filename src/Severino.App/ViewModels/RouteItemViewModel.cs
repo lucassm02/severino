@@ -92,6 +92,9 @@ public sealed partial class RouteItemViewModel : ObservableObject
 
     public bool HasHttpsBadge => HttpsState != RouteHttpsState.Off;
 
+    /// <summary>One per rule on, so nobody forgets a delay or a simulated failure.</summary>
+    public IReadOnlyList<RuleBadge> RuleBadges => RuleBadge.For(Route.Rules);
+
     public string HttpsBadgeText => HttpsState == RouteHttpsState.Uncovered ? "https ⚠" : "https";
 
     public string HttpsBadgeTooltip => HttpsState == RouteHttpsState.Uncovered

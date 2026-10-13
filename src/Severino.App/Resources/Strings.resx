@@ -1792,4 +1792,67 @@ Add these domains to the proxy exceptions? They go into the same Internet Option
   <data name="Settings_HealthNotificationsHint" xml:space="preserve">
     <value>For the ones with “Tell me when it stops answering” on, in their editor. Off, none of them notifies.</value>
   </data>
+  <data name="Rules_Title" xml:space="preserve">
+    <value>Rules</value>
+  </data>
+  <data name="Rules_Cors" xml:space="preserve">
+    <value>Allow CORS</value>
+  </data>
+  <data name="Rules_CorsHint" xml:space="preserve">
+    <value>Severino answers the preflight and lets the page that asked read the answer, with cookies, whatever the server says.</value>
+  </data>
+  <data name="Rules_RequestHeaders" xml:space="preserve">
+    <value>Headers sent to the server</value>
+  </data>
+  <data name="Rules_ResponseHeaders" xml:space="preserve">
+    <value>Headers sent back to the browser</value>
+  </data>
+  <data name="Rules_HeaderName" xml:space="preserve">
+    <value>Name</value>
+  </data>
+  <data name="Rules_HeaderValue" xml:space="preserve">
+    <value>Value (empty removes it)</value>
+  </data>
+  <data name="Rules_RemoveHeader" xml:space="preserve">
+    <value>Remove {0}</value>
+  </data>
+  <data name="Rules_AddHeader" xml:space="preserve">
+    <value>Add a header</value>
+  </data>
+  <data name="Rules_HeadersHint" xml:space="preserve">
+    <value>A header with a value replaces the one that came; with no value, it is taken out.</value>
+  </data>
+  <data name="Rules_Delay" xml:space="preserve">
+    <value>Wait before forwarding</value>
+  </data>
+  <data name="Rules_Fail" xml:space="preserve">
+    <value>Fail on purpose with</value>
+  </data>
+  <data name="Rules_FailStatus" xml:space="preserve">
+    <value>Status of the simulated failure</value>
+  </data>
+  <data name="Rules_FailIn" xml:space="preserve">
+    <value>in</value>
+  </data>
+  <data name="Rules_FailPercent" xml:space="preserve">
+    <value>Percentage of requests that fail</value>
+  </data>
+  <data name="Rules_FailOf" xml:space="preserve">
+    <value>%</value>
+  </data>
+  <data name="Rules_BadgeHeadersOne" xml:space="preserve">
+    <value>+1 header</value>
+  </data>
+  <data name="Rules_BadgeHeadersMany" xml:space="preserve">
+    <value>+{0} headers</value>
+  </data>
+  <data name="Rules_BadgeDelay" xml:space="preserve">
+    <value>delay {0} ms</value>
+  </data>
+  <data name="Rules_BadgeFail" xml:space="preserve">
+    <value>fails {0}% with {1}</value>
+  </data>
+  <data name="Rules_BadgeTip" xml:space="preserve">
+    <value>The route&apos;s rules, in Edit › Advanced</value>
+  </data>
 </root>

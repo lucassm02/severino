@@ -5,9 +5,9 @@ using Severino.Core.Resources;
 
 namespace Severino.Core.Routes;
 
-public sealed record RouteErrors(string? Domain, string? Target, string? Path = null)
+public sealed record RouteErrors(string? Domain, string? Target, string? Path = null, string? Rules = null)
 {
-    public bool IsValid => Domain is null && Target is null && Path is null;
+    public bool IsValid => Domain is null && Target is null && Path is null && Rules is null;
 }
 
 /// <summary>Validation shared by the route form and the proxy.</summary>
@@ -42,8 +42,44 @@ public static class RouteRules
         else if (IsLoop(target, domain, routes, proxyPort, httpsPort))
             targetError = Strings.Route_Loop;
 
-        return new RouteErrors(domainError, targetError, pathError);
+        return new RouteErrors(domainError, targetError, pathError, ValidateRules(route.Rules));
     }
+
+    /// <summary>The statuses a simulated failure may answer with.</summary>
+    public static readonly IReadOnlyList<int> FailStatuses = [429, 500, 502, 503, 504];
+
+    public const int MaxDelayMs = 30_000;
+
+    /// <summary>The connection's own headers, and Host: the proxy and the route decide those.</summary>
+    private static readonly HashSet<string> FixedHeaders = new(StringComparer.OrdinalIgnoreCase)
+    {
+        "Host", "Connection", "Keep-Alive", "Transfer-Encoding", "Content-Length", "Upgrade", "TE", "Trailer", "Proxy-Connection",
+    };
+
+    /// <summary>Why the rules cannot be used as they are; null when they can.</summary>
+    public static string? ValidateRules(TrafficRules rules)
+    {
+        foreach (var header in rules.RequestHeaders.Concat(rules.ResponseHeaders))
+        {
+            var name = header.Name.Trim();
+            if (name.Length == 0 || !name.All(IsTokenChar))
+                return string.Format(Strings.Rules_BadHeader, name);
+            if (FixedHeaders.Contains(name))
+                return string.Format(Strings.Rules_FixedHeader, name);
+            if (header.Value.Any(c => c is '\r' or '\n'))
+                return string.Format(Strings.Rules_BadHeaderValue, name);
+        }
+        if (rules.DelayMs is < 0 or > MaxDelayMs)
+            return string.Format(Strings.Rules_BadDelay, MaxDelayMs);
+        if (rules.FailPercent is < 0 or > 100)
+            return Strings.Rules_BadPercent;
+        if (rules.FailPercent > 0 && !FailStatuses.Contains(rules.FailStatus))
+            return string.Format(Strings.Rules_BadStatus, string.Join(", ", FailStatuses));
+        return null;
+    }
+
+    // RFC 9110 token: letters, digits and !#$%&'*+-.^_`|~
+    private static bool IsTokenChar(char c) => char.IsAsciiLetterOrDigit(c) || "!#$%&'*+-.^_`|~".Contains(c);
 
     public static bool TryParseTarget(string? value, out Uri target, out string? error)
     {

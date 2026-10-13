@@ -45,6 +45,13 @@ internal static class TestBackend
             $"x-forwarded-proto={r.Headers["X-Forwarded-Proto"]}",
             $"x-forwarded-for={r.Headers["X-Forwarded-For"]}"));
 
+        // Every request header, one per line, and one header of its own on the answer.
+        app.Map("/headers", (HttpContext c) =>
+        {
+            c.Response.Headers["X-Backend"] = "sim";
+            return string.Join('\n', c.Request.Headers.Select(h => $"{h.Key.ToLowerInvariant()}: {h.Value}"));
+        });
+
         app.MapPost("/size", async (HttpRequest r) =>
         {
             long total = 0;

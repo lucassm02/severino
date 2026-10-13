@@ -39,6 +39,7 @@ public sealed record ExportedRoute
     public bool StripPath { get; set; }
     public string Group { get; set; } = "";
     public bool NotifyHealth { get; set; }
+    public TrafficRules Rules { get; set; } = new();
 }
 
 public sealed record InvalidImport(string Domain, string Reason);
@@ -71,6 +72,7 @@ public static class RouteTransfer
                 StripPath = r.StripPath,
                 Group = r.Group,
                 NotifyHealth = r.NotifyHealth,
+                Rules = r.Rules,
             })],
         },
         ConfigJsonContext.Default.RouteFile);
@@ -126,6 +128,7 @@ public static class RouteTransfer
                 StripPath = exported.StripPath,
                 Group = (exported.Group ?? "").Trim(),
                 NotifyHealth = exported.NotifyHealth,
+                Rules = exported.Rules ?? new(),
             };
 
             var domain = RouteRules.Normalize(route.Domain);

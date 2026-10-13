@@ -153,6 +153,32 @@
                                                                     </TextBlock>
                                                                 </Border>
                                                             </InlineUIContainer>
+                                                            <InlineUIContainer BaselineAlignment="Center">
+                                                                <ItemsControl ItemsSource="{Binding RuleBadges}" Focusable="False" ToolTip="{x:Static res:Strings.Rules_BadgeTip}">
+                                                                    <ItemsControl.ItemsPanel>
+                                                                        <ItemsPanelTemplate>
+                                                                            <StackPanel Orientation="Horizontal" />
+                                                                        </ItemsPanelTemplate>
+                                                                    </ItemsControl.ItemsPanel>
+                                                                    <ItemsControl.ItemTemplate>
+                                                                        <DataTemplate DataType="{x:Type vm:RuleBadge}">
+                                                                            <Border Style="{StaticResource Badge}">
+                                                                                <TextBlock Text="{Binding Text}">
+                                                                                    <TextBlock.Style>
+                                                                                        <Style TargetType="TextBlock" BasedOn="{StaticResource BadgeText}">
+                                                                                            <Style.Triggers>
+                                                                                                <DataTrigger Binding="{Binding Caution}" Value="True">
+                                                                                                    <Setter Property="Foreground" Value="{DynamicResource SystemFillColorCautionBrush}" />
+                                                                                                </DataTrigger>
+                                                                                            </Style.Triggers>
+                                                                                        </Style>
+                                                                                    </TextBlock.Style>
+                                                                                </TextBlock>
+                                                                            </Border>
+                                                                        </DataTemplate>
+                                                                    </ItemsControl.ItemTemplate>
+                                                                </ItemsControl>
+                                                            </InlineUIContainer>
                                                         </TextBlock>
                                                         <StackPanel Orientation="Horizontal">
                                                             <TextBlock Style="{StaticResource RowCaption}" Text="{Binding TargetDisplay, StringFormat='→ {0}'}" />

@@ -78,4 +78,13 @@
   <data name="Proxy_PortReserved" xml:space="preserve">
     <value>Windows reserved port {0} (usually Hyper-V or WinNAT). Pick another port.</value>
   </data>
+  <data name="Error_SimulatedTitle" xml:space="preserve">
+    <value>Simulated failure</value>
+  </data>
+  <data name="Error_SimulatedLead" xml:space="preserve">
+    <value>Severino answered {1} for {0} on purpose: the route fails {2}% of the requests.</value>
+  </data>
+  <data name="Error_SimulatedText" xml:space="preserve">
+    <value>To stop it, edit the route in Severino: Advanced › Rules.</value>
+  </data>
 </root>

@@ -1792,4 +1792,67 @@ Adicionar esses domínios às exceções do proxy? Eles entram na mesma lista de
   <data name="Settings_HealthNotificationsHint" xml:space="preserve">
     <value>Para os que têm “Avisar quando parar de responder” ligado, no editor de cada um. Desligado, nenhum avisa.</value>
   </data>
+  <data name="Rules_Title" xml:space="preserve">
+    <value>Regras</value>
+  </data>
+  <data name="Rules_Cors" xml:space="preserve">
+    <value>Liberar CORS</value>
+  </data>
+  <data name="Rules_CorsHint" xml:space="preserve">
+    <value>O Severino responde o preflight e deixa a página que pediu ler a resposta, com cookies, diga o servidor o que disser.</value>
+  </data>
+  <data name="Rules_RequestHeaders" xml:space="preserve">
+    <value>Cabeçalhos na ida, para o servidor</value>
+  </data>
+  <data name="Rules_ResponseHeaders" xml:space="preserve">
+    <value>Cabeçalhos na volta, para o navegador</value>
+  </data>
+  <data name="Rules_HeaderName" xml:space="preserve">
+    <value>Nome</value>
+  </data>
+  <data name="Rules_HeaderValue" xml:space="preserve">
+    <value>Valor (vazio remove)</value>
+  </data>
+  <data name="Rules_RemoveHeader" xml:space="preserve">
+    <value>Tirar {0}</value>
+  </data>
+  <data name="Rules_AddHeader" xml:space="preserve">
+    <value>Adicionar cabeçalho</value>
+  </data>
+  <data name="Rules_HeadersHint" xml:space="preserve">
+    <value>Um cabeçalho com valor substitui o que veio; sem valor, ele é tirado.</value>
+  </data>
+  <data name="Rules_Delay" xml:space="preserve">
+    <value>Esperar antes de repassar</value>
+  </data>
+  <data name="Rules_Fail" xml:space="preserve">
+    <value>Falhar de propósito com</value>
+  </data>
+  <data name="Rules_FailStatus" xml:space="preserve">
+    <value>Status da falha simulada</value>
+  </data>
+  <data name="Rules_FailIn" xml:space="preserve">
+    <value>em</value>
+  </data>
+  <data name="Rules_FailPercent" xml:space="preserve">
+    <value>Porcentagem de requisições que falham</value>
+  </data>
+  <data name="Rules_FailOf" xml:space="preserve">
+    <value>%</value>
+  </data>
+  <data name="Rules_BadgeHeadersOne" xml:space="preserve">
+    <value>+1 cabeçalho</value>
+  </data>
+  <data name="Rules_BadgeHeadersMany" xml:space="preserve">
+    <value>+{0} cabeçalhos</value>
+  </data>
+  <data name="Rules_BadgeDelay" xml:space="preserve">
+    <value>atraso {0} ms</value>
+  </data>
+  <data name="Rules_BadgeFail" xml:space="preserve">
+    <value>falha {0}% com {1}</value>
+  </data>
+  <data name="Rules_BadgeTip" xml:space="preserve">
+    <value>As regras da rota, em Editar › Avançado</value>
+  </data>
 </root>

@@ -38,6 +38,19 @@ public static class ProxyConfigMapper
                 transforms.Add(new Dictionary<string, string> { ["RequestHeaderOriginalHost"] = "true" });
             if (route.StripPath && path.Length > 0)
                 transforms.Add(new Dictionary<string, string> { ["PathRemovePrefix"] = path });
+            // The route's own headers: an empty value takes the header out.
+            foreach (var header in route.Rules.RequestHeaders)
+            {
+                transforms.Add(header.Value.Length == 0
+                    ? new Dictionary<string, string> { ["RequestHeaderRemove"] = header.Name.Trim() }
+                    : new Dictionary<string, string> { ["RequestHeader"] = header.Name.Trim(), ["Set"] = header.Value });
+            }
+            foreach (var header in route.Rules.ResponseHeaders)
+            {
+                transforms.Add(header.Value.Length == 0
+                    ? new Dictionary<string, string> { ["ResponseHeaderRemove"] = header.Name.Trim(), ["When"] = "Always" }
+                    : new Dictionary<string, string> { ["ResponseHeader"] = header.Name.Trim(), ["Set"] = header.Value, ["When"] = "Always" });
+            }
 
             yarpRoutes.Add(new RouteConfig
             {

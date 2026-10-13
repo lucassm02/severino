@@ -53,6 +53,12 @@ public static class ErrorPages
             $"<p class=\"lead\">{Format(Strings.Error_TimeoutLead, $"<strong>{Html.Encode(domain)}</strong>", $"<code>{Html.Encode(Display(target))}</code>", ProxyConfigMapper.ActivityTimeout.TotalMinutes.ToString("0"))}</p>" +
             $"<p>{Html.Encode(Strings.Error_TimeoutText)}</p>");
 
+    /// <summary>A failure the route asked for: it says so, so nobody hunts a bug that is not there.</summary>
+    public static string Simulated(string domain, int status, int percent) =>
+        Page(Strings.Error_SimulatedTitle, status,
+            $"<p class=\"lead\">{Format(Strings.Error_SimulatedLead, $"<strong>{Html.Encode(domain)}</strong>", status, percent)}</p>" +
+            $"<p>{Html.Encode(Strings.Error_SimulatedText)}</p>");
+
     /// <summary>A resource sentence with markup already made for its placeholders; the sentence itself is encoded.</summary>
     private static string Format(string sentence, params object[] markup) => string.Format(Html.Encode(sentence), markup);
 
