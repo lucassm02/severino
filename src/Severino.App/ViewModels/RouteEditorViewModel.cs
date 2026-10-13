@@ -81,15 +81,7 @@ public sealed partial class RouteEditorViewModel : ObservableObject
         PreserveHost = _original.PreserveHost;
         IgnoreTargetCertErrors = _original.IgnoreTargetCertErrors;
         NotifyHealth = _original.NotifyHealth;
-        var rules = _original.Rules;
-        Cors = rules.Cors;
-        foreach (var header in rules.RequestHeaders)
-            RequestHeaders.Add(new HeaderRuleRow { Name = header.Name, Value = header.Value });
-        foreach (var header in rules.ResponseHeaders)
-            ResponseHeaders.Add(new HeaderRuleRow { Name = header.Name, Value = header.Value });
-        DelayText = rules.DelayMs > 0 ? rules.DelayMs.ToString(CultureInfo.InvariantCulture) : "";
-        FailStatus = RouteRules.FailStatuses.Contains(rules.FailStatus) ? rules.FailStatus : 503;
-        FailPercentText = rules.FailPercent > 0 ? rules.FailPercent.ToString(CultureInfo.InvariantCulture) : "";
+        Rules = new RulesEditorViewModel(_original.Rules);
         Notes = _original.Notes;
         StripPath = _original.StripPath;
         Group = _original.Group;
@@ -97,7 +89,7 @@ public sealed partial class RouteEditorViewModel : ObservableObject
         Environment = _original.Environment;
         EnvironmentSuggestions = routes.EnvironmentNames;
         ShowAdvanced = PreserveHost || IgnoreTargetCertErrors || NotifyHealth || Notes.Length > 0;
-        ShowRules = rules.HasAny();
+        ShowRules = _original.Rules.HasAny();
         UpdateHttpsRules();
         IsReady = true;
         ScheduleChecks();
@@ -210,60 +202,8 @@ public sealed partial class RouteEditorViewModel : ObservableObject
     [ObservableProperty]
     public partial bool NotifyHealth { get; set; }
 
-    [ObservableProperty]
-    public partial bool Cors { get; set; }
-
-    public ObservableCollection<HeaderRuleRow> RequestHeaders { get; } = [];
-
-    public ObservableCollection<HeaderRuleRow> ResponseHeaders { get; } = [];
-
-    /// <summary>Milliseconds; empty for none.</summary>
-    [ObservableProperty]
-    public partial string DelayText { get; set; } = "";
-
-    public IReadOnlyList<int> FailStatuses => RouteRules.FailStatuses;
-
-    [ObservableProperty]
-    public partial int FailStatus { get; set; } = 503;
-
-    /// <summary>Requests in a hundred that fail on purpose; empty for none.</summary>
-    [ObservableProperty]
-    public partial string FailPercentText { get; set; } = "";
-
-    [ObservableProperty]
-    public partial string? RulesError { get; set; }
-
-    [RelayCommand]
-    private void AddRequestHeader() => RequestHeaders.Add(new HeaderRuleRow());
-
-    [RelayCommand]
-    private void AddResponseHeader() => ResponseHeaders.Add(new HeaderRuleRow());
-
-    [RelayCommand]
-    private void RemoveHeader(HeaderRuleRow? row)
-    {
-        if (row is not null && !RequestHeaders.Remove(row))
-            ResponseHeaders.Remove(row);
-    }
-
-    private TrafficRules BuildRules() => new()
-    {
-        Cors = Cors,
-        RequestHeaders = Headers(RequestHeaders),
-        ResponseHeaders = Headers(ResponseHeaders),
-        DelayMs = Number(DelayText),
-        FailStatus = FailStatus,
-        FailPercent = Number(FailPercentText),
-    };
-
-    /// <summary>Rows left blank are not rules.</summary>
-    private static IReadOnlyList<HeaderRule> Headers(IEnumerable<HeaderRuleRow> rows) =>
-        [.. rows.Where(r => !string.IsNullOrWhiteSpace(r.Name) || !string.IsNullOrEmpty(r.Value))
-            .Select(r => new HeaderRule { Name = (r.Name ?? "").Trim(), Value = r.Value ?? "" })];
-
-    /// <summary>Empty is none; anything that is not a number is -1, which the rules refuse with a reason.</summary>
-    private static int Number(string? text) =>
-        string.IsNullOrWhiteSpace(text) ? 0 : int.TryParse(text.Trim(), NumberStyles.None, CultureInfo.InvariantCulture, out var value) ? value : -1;
+    /// <summary>CORS, headers, delay and simulated failure.</summary>
+    public RulesEditorViewModel Rules { get; }
 
     [ObservableProperty]
     public partial string Notes { get; set; }
@@ -419,7 +359,7 @@ public sealed partial class RouteEditorViewModel : ObservableObject
         var errors = _routes.Validate(route);
         DomainError = errors.Domain ?? errors.Path;
         TargetError = IsFolder && !System.IO.Path.IsPathFullyQualified(FolderPath?.Trim() ?? "") ? Strings.RouteForm_FolderNotFull : errors.Target;
-        RulesError = errors.Rules;
+        Rules.Error = errors.Rules;
         if (errors.Rules is not null)
             ShowRules = true;
         if (!errors.IsValid || TargetError is not null)
@@ -481,7 +421,7 @@ public sealed partial class RouteEditorViewModel : ObservableObject
         Group = (Group ?? "").Trim(),
         Environment = (Environment ?? "").Trim(),
         NotifyHealth = NotifyHealth,
-        Rules = BuildRules(),
+        Rules = Rules.Build(),
     };
 
     private static string FormatHost(string host) =>

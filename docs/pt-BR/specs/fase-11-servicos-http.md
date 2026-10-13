@@ -1,6 +1,6 @@
 # Spec: Fase 11, Serviços com HTTP
 
-Status: pedida em 2026-10-13, em implementação. As escolhas em "Decisões" são os padrões adotados.
+Status: pedida e implementada em 2026-10-13; falta o roteiro manual do [guia de testes](../testes/fase-11-servicos-http.md). As escolhas em "Decisões" são os padrões adotados.
 
 ## Objetivo
 

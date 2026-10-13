@@ -74,7 +74,7 @@ public sealed class DialogService(RouteService routes, ServiceRouteService servi
     /// <summary>The service form; returns the saved route, or null when cancelled.</summary>
     public ServiceRoute? EditService(ServiceRoute? existing, ServiceRoute? draft = null)
     {
-        var viewModel = new ServiceEditorViewModel(services, existing, dns?.Destinations(), draft);
+        var viewModel = new ServiceEditorViewModel(services, existing, dns?.Destinations(), draft, https);
         var window = new ServiceEditorWindow(viewModel) { Owner = Application.Current.MainWindow };
         return window.ShowDialog() == true ? viewModel.Saved : null;
     }

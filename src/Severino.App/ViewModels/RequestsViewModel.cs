@@ -259,8 +259,11 @@ public sealed partial class RequestsViewModel : ObservableObject
         }
     }
 
-    private string? RouteName(Guid? id) =>
-        id is { } routeId && _config.Current.Routes.FirstOrDefault(r => r.Id == routeId) is { } route ? route.Domain + route.Path : null;
+    /// <summary>The route the request went by, or the service whose HTTP port it came in on.</summary>
+    private string? RouteName(Guid? id) => id is not { } routeId ? null
+        : _config.Current.Routes.FirstOrDefault(r => r.Id == routeId) is { } route ? route.Domain + route.Path
+        : _config.Current.Services.FirstOrDefault(s => s.Id == routeId) is { Names.Count: > 0 } service ? service.Names[0]
+        : null;
 
     [RelayCommand]
     private static void CopyText(string? text)

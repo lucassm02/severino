@@ -2035,4 +2035,34 @@ Add these domains to the proxy exceptions? They go into the same Internet Option
   <data name="Requests_StartCapture" xml:space="preserve">
     <value>Capture from the next ones</value>
   </data>
+  <data name="ServiceEditor_Http" xml:space="preserve">
+    <value>HTTP</value>
+  </data>
+  <data name="ServiceEditor_HttpTip" xml:space="preserve">
+    <value>Speaks HTTP: goes through Severino&apos;s proxy, with HTTPS, rules and the Requests tab</value>
+  </data>
+  <data name="ServiceEditor_HttpName" xml:space="preserve">
+    <value>The port speaks HTTP</value>
+  </data>
+  <data name="ServiceEditor_HttpTitle" xml:space="preserve">
+    <value>HTTP and HTTPS</value>
+  </data>
+  <data name="ServiceEditor_HttpHint" xml:space="preserve">
+    <value>Ports marked HTTP go through Severino&apos;s proxy: they can answer HTTPS, take rules, and their requests show in Requests with details. Apps in WSL still go straight to the destination.</value>
+  </data>
+  <data name="ServiceEditor_NoHttpPort" xml:space="preserve">
+    <value>Mark a port as HTTP to use HTTPS.</value>
+  </data>
+  <data name="ServiceEditor_HttpsMain" xml:space="preserve">
+    <value>https://{0} goes to port {1}, and each HTTP port also takes https:// on its own number.</value>
+  </data>
+  <data name="ServiceEditor_HttpsEachPort" xml:space="preserve">
+    <value>Each HTTP port takes https:// on its own number, like https://{0}:8080; 443 is already the service&apos;s.</value>
+  </data>
+  <data name="Services_OpenIn" xml:space="preserve">
+    <value>Open {0}</value>
+  </data>
+  <data name="Services_HttpsTip" xml:space="preserve">
+    <value>The HTTP ports answer HTTPS too, with the local CA</value>
+  </data>
 </root>

@@ -1,0 +1,140 @@
+<UserControl
+    x:Class="Severino.App.Views.RulesForm"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:res="clr-namespace:Severino.App.Resources"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
+    xmlns:vm="clr-namespace:Severino.App.ViewModels"
+    mc:Ignorable="d"
+    d:DataContext="{d:DesignInstance Type=vm:RulesEditorViewModel}">
+    <UserControl.Resources>
+        <Style x:Key="Hint" TargetType="ui:TextBlock">
+            <Setter Property="Margin" Value="0,4,0,0" />
+            <Setter Property="TextWrapping" Value="Wrap" />
+            <Setter Property="FontTypography" Value="Caption" />
+            <Setter Property="Foreground" Value="{DynamicResource TextFillColorSecondaryBrush}" />
+        </Style>
+    </UserControl.Resources>
+
+    <!-- What the proxy does to the traffic of a route or of a service's HTTP ports: shown on the card while on. -->
+    <StackPanel>
+        <CheckBox Content="{x:Static res:Strings.Rules_Cors}" IsChecked="{Binding Cors}" />
+        <ui:TextBlock
+            Margin="28,0,0,8"
+            Style="{StaticResource Hint}"
+            Text="{x:Static res:Strings.Rules_CorsHint}" />
+        <TextBlock Margin="0,8,0,4" Text="{x:Static res:Strings.Rules_RequestHeaders}" />
+        <ItemsControl ItemsSource="{Binding RequestHeaders}" Focusable="False">
+            <ItemsControl.ItemTemplate>
+                <DataTemplate DataType="{x:Type vm:HeaderRuleRow}">
+                    <Grid Margin="0,0,0,6">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="2*" />
+                            <ColumnDefinition Width="3*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <ui:TextBox
+                            Margin="0,0,6,0"
+                            PlaceholderText="{x:Static res:Strings.Rules_HeaderName}"
+                            AutomationProperties.Name="{x:Static res:Strings.Rules_HeaderName}"
+                            Text="{Binding Name, UpdateSourceTrigger=PropertyChanged}" />
+                        <ui:TextBox
+                            Grid.Column="1"
+                            PlaceholderText="{x:Static res:Strings.Rules_HeaderValue}"
+                            AutomationProperties.Name="{x:Static res:Strings.Rules_HeaderValue}"
+                            Text="{Binding Value, UpdateSourceTrigger=PropertyChanged}" />
+                        <ui:Button
+                            Grid.Column="2"
+                            Margin="4,0,0,0"
+                            VerticalAlignment="Center"
+                            Appearance="Transparent"
+                            Icon="{ui:SymbolIcon Dismiss16}"
+                            AutomationProperties.Name="{Binding Name, StringFormat={x:Static res:Strings.Rules_RemoveHeader}}"
+                            Command="{Binding DataContext.RemoveHeaderCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                            CommandParameter="{Binding}" />
+                    </Grid>
+                </DataTemplate>
+            </ItemsControl.ItemTemplate>
+        </ItemsControl>
+        <ui:Button
+            HorizontalAlignment="Left"
+            Appearance="Transparent"
+            Icon="{ui:SymbolIcon Add16}"
+            Content="{x:Static res:Strings.Rules_AddHeader}"
+            Command="{Binding AddRequestHeaderCommand}" />
+        <TextBlock Margin="0,8,0,4" Text="{x:Static res:Strings.Rules_ResponseHeaders}" />
+        <ItemsControl ItemsSource="{Binding ResponseHeaders}" Focusable="False">
+            <ItemsControl.ItemTemplate>
+                <DataTemplate DataType="{x:Type vm:HeaderRuleRow}">
+                    <Grid Margin="0,0,0,6">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="2*" />
+                            <ColumnDefinition Width="3*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <ui:TextBox
+                            Margin="0,0,6,0"
+                            PlaceholderText="{x:Static res:Strings.Rules_HeaderName}"
+                            AutomationProperties.Name="{x:Static res:Strings.Rules_HeaderName}"
+                            Text="{Binding Name, UpdateSourceTrigger=PropertyChanged}" />
+                        <ui:TextBox
+                            Grid.Column="1"
+                            PlaceholderText="{x:Static res:Strings.Rules_HeaderValue}"
+                            AutomationProperties.Name="{x:Static res:Strings.Rules_HeaderValue}"
+                            Text="{Binding Value, UpdateSourceTrigger=PropertyChanged}" />
+                        <ui:Button
+                            Grid.Column="2"
+                            Margin="4,0,0,0"
+                            VerticalAlignment="Center"
+                            Appearance="Transparent"
+                            Icon="{ui:SymbolIcon Dismiss16}"
+                            AutomationProperties.Name="{Binding Name, StringFormat={x:Static res:Strings.Rules_RemoveHeader}}"
+                            Command="{Binding DataContext.RemoveHeaderCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                            CommandParameter="{Binding}" />
+                    </Grid>
+                </DataTemplate>
+            </ItemsControl.ItemTemplate>
+        </ItemsControl>
+        <ui:Button
+            HorizontalAlignment="Left"
+            Appearance="Transparent"
+            Icon="{ui:SymbolIcon Add16}"
+            Content="{x:Static res:Strings.Rules_AddHeader}"
+            Command="{Binding AddResponseHeaderCommand}" />
+        <ui:TextBlock Style="{StaticResource Hint}" Text="{x:Static res:Strings.Rules_HeadersHint}" />
+
+        <WrapPanel Margin="0,12,0,0">
+            <TextBlock Margin="0,0,8,0" VerticalAlignment="Center" Text="{x:Static res:Strings.Rules_Delay}" />
+            <ui:TextBox
+                Width="96"
+                PlaceholderText="0"
+                AutomationProperties.Name="{x:Static res:Strings.Rules_Delay}"
+                Text="{Binding DelayText, UpdateSourceTrigger=PropertyChanged}" />
+            <TextBlock Margin="6,0,0,0" VerticalAlignment="Center" Text="ms" />
+        </WrapPanel>
+        <WrapPanel Margin="0,8,0,0">
+            <TextBlock Margin="0,0,8,0" VerticalAlignment="Center" Text="{x:Static res:Strings.Rules_Fail}" />
+            <ComboBox
+                MinWidth="88"
+                ItemsSource="{Binding FailStatuses}"
+                SelectedItem="{Binding FailStatus}"
+                AutomationProperties.Name="{x:Static res:Strings.Rules_FailStatus}" />
+            <TextBlock Margin="8,0" VerticalAlignment="Center" Text="{x:Static res:Strings.Rules_FailIn}" />
+            <ui:TextBox
+                Width="72"
+                PlaceholderText="0"
+                AutomationProperties.Name="{x:Static res:Strings.Rules_FailPercent}"
+                Text="{Binding FailPercentText, UpdateSourceTrigger=PropertyChanged}" />
+            <TextBlock Margin="6,0,0,0" VerticalAlignment="Center" Text="{x:Static res:Strings.Rules_FailOf}" />
+        </WrapPanel>
+        <TextBlock
+            Margin="0,8,0,0"
+            TextWrapping="Wrap"
+            Foreground="{DynamicResource SystemFillColorCautionBrush}"
+            Text="{Binding Error}"
+            Visibility="{Binding Error, Converter={StaticResource NullToCollapsed}}"
+            AutomationProperties.LiveSetting="Assertive" />
+    </StackPanel>
+</UserControl>

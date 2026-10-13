@@ -69,11 +69,13 @@
                         <ColumnDefinition Width="*" />
                         <ColumnDefinition Width="14" />
                         <ColumnDefinition Width="88" />
+                        <ColumnDefinition Width="56" />
                         <ColumnDefinition Width="40" />
                     </Grid.ColumnDefinitions>
                     <TextBlock Grid.Column="0" Text="{x:Static res:Strings.ServiceEditor_Port}" ToolTip="{x:Static res:Strings.ServiceEditor_PortTip}" />
                     <TextBlock Grid.Column="2" Text="{x:Static res:Strings.ServiceEditor_Target}" ToolTip="{x:Static res:Strings.ServiceEditor_TargetTip}" />
                     <TextBlock Grid.Column="4" Text="{x:Static res:Strings.ServiceEditor_TargetPort}" ToolTip="{x:Static res:Strings.ServiceEditor_TargetPortTip}" />
+                    <TextBlock Grid.Column="5" HorizontalAlignment="Center" Text="{x:Static res:Strings.ServiceEditor_Http}" ToolTip="{x:Static res:Strings.ServiceEditor_HttpTip}" />
                 </Grid>
                 <ItemsControl ItemsSource="{Binding Ports}">
                     <ItemsControl.ItemTemplate>
@@ -85,6 +87,7 @@
                                     <ColumnDefinition Width="*" />
                                     <ColumnDefinition Width="14" />
                                     <ColumnDefinition Width="88" />
+                                    <ColumnDefinition Width="56" />
                                     <ColumnDefinition Width="40" />
                                 </Grid.ColumnDefinitions>
                                 <ui:TextBox Grid.Column="0" views:Cleanup.As="Port" PlaceholderText="80" AutomationProperties.Name="{x:Static res:Strings.ServiceEditor_PortName}" Text="{Binding Port, UpdateSourceTrigger=PropertyChanged}" />
@@ -111,8 +114,15 @@
                                 </ComboBox>
                                 <TextBlock Grid.Column="3" HorizontalAlignment="Center" VerticalAlignment="Center" Text=":" />
                                 <ui:TextBox x:Name="TargetPortBox" Grid.Column="4" views:Cleanup.As="Port" PlaceholderText="30080" AutomationProperties.Name="{x:Static res:Strings.ServiceEditor_TargetPortName}" Text="{Binding TargetPort, UpdateSourceTrigger=PropertyChanged}" />
-                                <ui:Button
+                                <CheckBox
                                     Grid.Column="5"
+                                    MinWidth="0"
+                                    HorizontalAlignment="Center"
+                                    IsChecked="{Binding Http}"
+                                    ToolTip="{x:Static res:Strings.ServiceEditor_HttpTip}"
+                                    AutomationProperties.Name="{x:Static res:Strings.ServiceEditor_HttpName}" />
+                                <ui:Button
+                                    Grid.Column="6"
                                     Margin="4,0,0,0"
                                     Appearance="Transparent"
                                     Icon="{ui:SymbolIcon Dismiss24}"
@@ -136,6 +146,40 @@
                     TextWrapping="Wrap"
                     Foreground="{DynamicResource TextFillColorSecondaryBrush}"
                     Text="{Binding AddressText}" />
+
+                <!-- The ports marked HTTP go through the proxy: HTTPS and the rules are theirs. -->
+                <ui:TextBlock Margin="0,16,0,4" FontTypography="BodyStrong" Text="{x:Static res:Strings.ServiceEditor_HttpTitle}" />
+                <ui:TextBlock
+                    TextWrapping="Wrap"
+                    FontTypography="Caption"
+                    Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                    Text="{x:Static res:Strings.ServiceEditor_HttpHint}" />
+                <CheckBox Margin="0,8,0,0" Content="{x:Static res:Strings.RouteForm_UseHttps}" IsChecked="{Binding Https}" IsEnabled="{Binding CanToggleHttps}" />
+                <ui:TextBlock
+                    Margin="28,0,0,0"
+                    TextWrapping="Wrap"
+                    FontTypography="Caption"
+                    Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                    Text="{Binding HttpsHint}"
+                    Visibility="{Binding HttpsHint, Converter={StaticResource NullToCollapsed}}" />
+                <ui:TextBlock
+                    Margin="28,0,0,0"
+                    TextWrapping="Wrap"
+                    FontTypography="Caption"
+                    Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                    Text="{x:Static res:Strings.RouteForm_HttpsOff}"
+                    Visibility="{Binding HttpsAvailable, Converter={StaticResource FalseToVisible}}" />
+                <ui:InfoBar
+                    Margin="0,8,0,0"
+                    IsOpen="True"
+                    IsClosable="False"
+                    Severity="Warning"
+                    Message="{Binding CoverageWarning}"
+                    Visibility="{Binding CoverageWarning, Converter={StaticResource NullToCollapsed}}"
+                    AutomationProperties.LiveSetting="Polite" />
+                <Expander Margin="0,8,0,0" Header="{x:Static res:Strings.Rules_Title}" IsExpanded="{Binding ShowRules}">
+                    <views:RulesForm Margin="0,8,0,0" DataContext="{Binding Rules}" />
+                </Expander>
 
                 <ui:TextBlock Margin="0,12,0,4" FontTypography="BodyStrong" Text="{x:Static res:Strings.Env_Field}" />
                 <ComboBox

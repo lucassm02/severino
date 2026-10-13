@@ -76,4 +76,48 @@ public sealed class ServiceEditorTests : IDisposable
 
         Assert.Single(form.Ports);
     }
+
+    [Fact]
+    public void Http_marks_and_rules_are_saved_and_unticking_the_last_http_port_drops_https()
+    {
+        var form = new ServiceEditorViewModel(_services, null) { NamesText = "catalogoapi" };
+        form.Ports[0].Port = "8080";
+        form.Ports[0].Host = "192.168.203.100";
+        form.Ports[0].TargetPort = "30080";
+        Assert.False(form.HasHttp);
+        form.Ports[0].Http = true;
+        Assert.True(form.HasHttp);
+        form.Https = true;
+        form.Rules.Cors = true;
+
+        form.SaveCommand.Execute(null);
+
+        var saved = Assert.Single(_config.Current.Services);
+        Assert.True(saved.Ports[0].Http);
+        Assert.True(saved.Https);
+        Assert.True(saved.Rules.Cors);
+
+        var again = new ServiceEditorViewModel(_services, saved);
+        again.Ports[0].Http = false;
+        again.Rules.Cors = false;
+        again.SaveCommand.Execute(null);
+        Assert.False(_config.Current.Services[0].Https);
+    }
+
+    [Fact]
+    public void Bad_rules_open_the_rules_section_with_the_reason()
+    {
+        var form = new ServiceEditorViewModel(_services, null) { NamesText = "catalogoapi" };
+        form.Ports[0].Port = "8080";
+        form.Ports[0].Host = "127.0.0.1";
+        form.Ports[0].TargetPort = "3000";
+        form.Ports[0].Http = true;
+        form.Rules.DelayText = "muito";
+
+        form.SaveCommand.Execute(null);
+
+        Assert.NotNull(form.Rules.Error);
+        Assert.True(form.ShowRules);
+        Assert.Empty(_config.Current.Services);
+    }
 }

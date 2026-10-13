@@ -2035,4 +2035,34 @@ Adicionar esses domínios às exceções do proxy? Eles entram na mesma lista de
   <data name="Requests_StartCapture" xml:space="preserve">
     <value>Capturar a partir das próximas</value>
   </data>
+  <data name="ServiceEditor_Http" xml:space="preserve">
+    <value>HTTP</value>
+  </data>
+  <data name="ServiceEditor_HttpTip" xml:space="preserve">
+    <value>Fala HTTP: passa pelo proxy do Severino, com HTTPS, regras e a aba Requisições</value>
+  </data>
+  <data name="ServiceEditor_HttpName" xml:space="preserve">
+    <value>A porta fala HTTP</value>
+  </data>
+  <data name="ServiceEditor_HttpTitle" xml:space="preserve">
+    <value>HTTP e HTTPS</value>
+  </data>
+  <data name="ServiceEditor_HttpHint" xml:space="preserve">
+    <value>As portas marcadas como HTTP passam pelo proxy do Severino: respondem HTTPS, aceitam regras e as requisições aparecem em Requisições, com detalhes. Apps no WSL continuam indo direto ao destino.</value>
+  </data>
+  <data name="ServiceEditor_NoHttpPort" xml:space="preserve">
+    <value>Marque uma porta como HTTP para usar o HTTPS.</value>
+  </data>
+  <data name="ServiceEditor_HttpsMain" xml:space="preserve">
+    <value>https://{0} vai para a porta {1}, e cada porta HTTP também aceita https:// no próprio número.</value>
+  </data>
+  <data name="ServiceEditor_HttpsEachPort" xml:space="preserve">
+    <value>Cada porta HTTP aceita https:// no próprio número, como https://{0}:8080; a 443 já é do serviço.</value>
+  </data>
+  <data name="Services_OpenIn" xml:space="preserve">
+    <value>Abrir {0}</value>
+  </data>
+  <data name="Services_HttpsTip" xml:space="preserve">
+    <value>As portas HTTP também respondem HTTPS, com a CA local</value>
+  </data>
 </root>

@@ -40,11 +40,14 @@ public sealed partial class ServiceGroupViewModel(ServiceOrigin? origin) : Obser
 public sealed partial class ServiceItemViewModel : ObservableObject
 {
     private readonly Action<ServiceItemViewModel, bool> _setEnabled;
+    private readonly Func<bool> _httpsActive;
 
-    public ServiceItemViewModel(ServiceRoute route, Action<ServiceItemViewModel, bool> setEnabled)
+    /// <param name="httpsActive">The local CA is active, so the service's HTTPS holds.</param>
+    public ServiceItemViewModel(ServiceRoute route, Action<ServiceItemViewModel, bool> setEnabled, Func<bool>? httpsActive = null)
     {
         Route = route;
         _setEnabled = setEnabled;
+        _httpsActive = httpsActive ?? (() => false);
         Health = route.Enabled ? RouteHealthState.Unknown : RouteHealthState.Disabled;
     }
 
@@ -81,7 +84,16 @@ public sealed partial class ServiceItemViewModel : ObservableObject
     /// "80 → gateway.k8s:30080", what the app calls and where it lands. The loopback address the
     /// names point to is Severino's business, so it stays in the tooltip.
     /// </summary>
-    public string Detail => string.Join("   ", Route.Ports.Select(p => Route.PortForward ? $"{p.Port} → port-forward" : p.ToString()));
+    public string Detail => string.Join("   ", Route.Ports.Select(p => (Route.PortForward ? $"{p.Port} → port-forward" : p.ToString()) + (p.Http ? " · http" : "")));
+
+    /// <summary>What the name opens in the browser; empty when nothing there is a web page.</summary>
+    public IReadOnlyList<string> Links => ServiceLinks.For(Route, _httpsActive());
+
+    public bool HasLinks => Links.Count > 0;
+
+    public bool HasHttpsBadge => Route.Https && ServiceHttp.HasHttp(Route);
+
+    public IReadOnlyList<RuleBadge> RuleBadges => ServiceHttp.HasHttp(Route) ? RuleBadge.For(Route.Rules) : [];
 
     public string DetailTooltip => string.Format(Strings.Services_DetailTip, Route.Address,
         Route.Ports.Count == 1 ? Strings.Services_ThePort : Strings.Services_ThePorts) + "\n" + string.Join("\n", Route.Ports);

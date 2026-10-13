@@ -26,10 +26,12 @@ public sealed partial class ServicesViewModel : ListPageViewModel
     private readonly Navigation _navigation;
     private readonly DnsService? _dns;
     private readonly PortForwards? _forwards;
+    private readonly HttpsService? _https;
 
     public ServicesViewModel(ServiceRouteService services, ServiceDiscovery discovery, ConfigService config, HealthMonitor health, DialogService dialogs, Navigation navigation,
-        DnsService? dns = null, PortForwards? forwards = null, ServiceWatcher? watcher = null)
+        DnsService? dns = null, PortForwards? forwards = null, ServiceWatcher? watcher = null, HttpsService? https = null)
     {
+        _https = https;
         _services = services;
         _discovery = discovery;
         _config = config;
@@ -108,6 +110,13 @@ public sealed partial class ServicesViewModel : ListPageViewModel
 
     [RelayCommand]
     private void EditService(ServiceItemViewModel item) => _dialogs.EditService(item.Route);
+
+    [RelayCommand]
+    private static void OpenLink(string? url)
+    {
+        if (!string.IsNullOrEmpty(url))
+            Browser.Open(url);
+    }
 
     [RelayCommand]
     private void CopyServiceName(ServiceItemViewModel item)
@@ -191,7 +200,7 @@ public sealed partial class ServicesViewModel : ListPageViewModel
             {
                 group.Items.Clear();
                 foreach (var service in members)
-                    group.Items.Add(new ServiceItemViewModel(service, (row, on) => _services.SetEnabled(row.Id, on)));
+                    group.Items.Add(new ServiceItemViewModel(service, (row, on) => _services.SetEnabled(row.Id, on), () => _https?.IsActive ?? false));
             }
             foreach (var item in group.Items)
             {

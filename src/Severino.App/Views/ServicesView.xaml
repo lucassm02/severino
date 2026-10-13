@@ -131,9 +131,65 @@
                                                 <TextBlock Grid.Column="0" Style="{StaticResource HealthDot}" />
                                                 <StackPanel Grid.Column="1" VerticalAlignment="Center">
                                                     <TextBlock FontSize="14" TextTrimming="CharacterEllipsis" ToolTip="{Binding AllNames}">
-                                                        <Run FontWeight="SemiBold" Text="{Binding Name, Mode=OneWay}" />
+                                                        <!-- A link when something there opens in a browser; several ports open a menu. -->
+                                                        <Hyperlink Click="OnNameClick">
+                                                            <Hyperlink.Style>
+                                                                <Style TargetType="Hyperlink" BasedOn="{StaticResource RowLink}">
+                                                                    <Setter Property="ToolTip" Value="{x:Static res:Strings.Routes_OpenInBrowser}" />
+                                                                    <Style.Triggers>
+                                                                        <DataTrigger Binding="{Binding HasLinks}" Value="False">
+                                                                            <Setter Property="IsEnabled" Value="False" />
+                                                                            <Setter Property="Foreground" Value="{DynamicResource TextFillColorPrimaryBrush}" />
+                                                                            <Setter Property="ToolTip" Value="{x:Null}" />
+                                                                        </DataTrigger>
+                                                                    </Style.Triggers>
+                                                                </Style>
+                                                            </Hyperlink.Style>
+                                                            <Run FontWeight="SemiBold" Text="{Binding Name, Mode=OneWay}" />
+                                                        </Hyperlink>
                                                         <Run FontSize="12" Foreground="{DynamicResource TextFillColorSecondaryBrush}" Text="{Binding MoreNames, Mode=OneWay, StringFormat='  {0}'}" />
                                                         <InlineUIContainer BaselineAlignment="Center"><ContentControl Content="{Binding}" ContentTemplate="{StaticResource EnvironmentBadge}" Focusable="False" /></InlineUIContainer>
+                                                        <InlineUIContainer BaselineAlignment="Center">
+                                                            <Border
+                                                                Style="{StaticResource Badge}"
+                                                                ToolTip="{x:Static res:Strings.Services_HttpsTip}"
+                                                                AutomationProperties.Name="{x:Static res:Strings.Services_HttpsTip}"
+                                                                Visibility="{Binding HasHttpsBadge, Converter={StaticResource TrueToVisible}}">
+                                                                <TextBlock Text="https">
+                                                                    <TextBlock.Style>
+                                                                        <Style TargetType="TextBlock" BasedOn="{StaticResource BadgeText}">
+                                                                            <Setter Property="Foreground" Value="{DynamicResource SystemFillColorSuccessBrush}" />
+                                                                        </Style>
+                                                                    </TextBlock.Style>
+                                                                </TextBlock>
+                                                            </Border>
+                                                        </InlineUIContainer>
+                                                        <InlineUIContainer BaselineAlignment="Center">
+                                                            <ItemsControl ItemsSource="{Binding RuleBadges}" Focusable="False" ToolTip="{x:Static res:Strings.Rules_BadgeTip}">
+                                                                <ItemsControl.ItemsPanel>
+                                                                    <ItemsPanelTemplate>
+                                                                        <StackPanel Orientation="Horizontal" />
+                                                                    </ItemsPanelTemplate>
+                                                                </ItemsControl.ItemsPanel>
+                                                                <ItemsControl.ItemTemplate>
+                                                                    <DataTemplate DataType="{x:Type vm:RuleBadge}">
+                                                                        <Border Style="{StaticResource Badge}">
+                                                                            <TextBlock Text="{Binding Text}">
+                                                                                <TextBlock.Style>
+                                                                                    <Style TargetType="TextBlock" BasedOn="{StaticResource BadgeText}">
+                                                                                        <Style.Triggers>
+                                                                                            <DataTrigger Binding="{Binding Caution}" Value="True">
+                                                                                                <Setter Property="Foreground" Value="{DynamicResource SystemFillColorCautionBrush}" />
+                                                                                            </DataTrigger>
+                                                                                        </Style.Triggers>
+                                                                                    </Style>
+                                                                                </TextBlock.Style>
+                                                                            </TextBlock>
+                                                                        </Border>
+                                                                    </DataTemplate>
+                                                                </ItemsControl.ItemTemplate>
+                                                            </ItemsControl>
+                                                        </InlineUIContainer>
                                                         <Run FontSize="12" Foreground="{DynamicResource TextFillColorTertiaryBrush}" Text="{Binding Namespace, Mode=OneWay, StringFormat='  ·  {0}'}" />
                                                     </TextBlock>
                                                     <StackPanel Orientation="Horizontal">
@@ -179,6 +235,18 @@
                                                     Click="OnMoreClick">
                                                     <ui:Button.ContextMenu>
                                                         <ContextMenu>
+                                                            <MenuItem
+                                                                Header="{x:Static res:Strings.Routes_OpenInBrowser}"
+                                                                ItemsSource="{Binding Links}"
+                                                                Visibility="{Binding HasLinks, Converter={StaticResource TrueToVisible}}">
+                                                                <MenuItem.ItemContainerStyle>
+                                                                    <Style TargetType="MenuItem" BasedOn="{StaticResource {x:Type MenuItem}}">
+                                                                        <Setter Property="Header" Value="{Binding}" />
+                                                                        <Setter Property="Command" Value="{Binding Data.OpenLinkCommand, Source={StaticResource Root}}" />
+                                                                        <Setter Property="CommandParameter" Value="{Binding}" />
+                                                                    </Style>
+                                                                </MenuItem.ItemContainerStyle>
+                                                            </MenuItem>
                                                             <MenuItem Header="{x:Static res:Strings.Services_CopyName}" Command="{Binding Data.CopyServiceNameCommand, Source={StaticResource Root}}" CommandParameter="{Binding}" />
                                                             <MenuItem Header="{x:Static res:Strings.Common_Edit}" Command="{Binding Data.EditServiceCommand, Source={StaticResource Root}}" CommandParameter="{Binding}" />
                                                             <Separator />
