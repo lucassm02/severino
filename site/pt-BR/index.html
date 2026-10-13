@@ -218,10 +218,11 @@
               <li><strong>Um domínio, vários apps.</strong> meuapp.sev/api vai para a API, o resto vai para o front.</li>
               <li><strong>Curinga.</strong> *.meuapp.sev atende cliente42.meuapp.sev e qualquer outro nome abaixo.</li>
               <li><strong>Grupos.</strong> Uma chave liga ou desliga o projeto inteiro.</li>
+              <li><strong>Senha na porta.</strong> A tela de senha do próprio Severino, Basic Auth ou um cabeçalho obrigatório, quando você quiser.</li>
             </ul>
           </div>
           <img class="captura" src="../assets/app-rotas.png" width="1960" height="1400" loading="lazy"
-               alt="A aba Rotas: docs.sev desligada e o grupo meuapp com meuapp.sev, meuapp.sev/api, o curinga *.meuapp.sev e admin.meuapp.sev, todos respondendo com HTTPS.">
+               alt="A aba Rotas: docs.sev desligada e o grupo meuapp com meuapp.sev, meuapp.sev/api, o curinga *.meuapp.sev e admin.meuapp.sev atrás de senha, todos respondendo com HTTPS.">
         </div>
 
         <div class="painel" id="painel-servicos" role="tabpanel" aria-labelledby="aba-servicos">
@@ -232,10 +233,11 @@
               <li><strong>Vêm prontos.</strong> Importe do Kubernetes e do Docker, no Windows ou no WSL.</li>
               <li><strong>Se corrigem sozinhos.</strong> Container recriado em outra porta volta a responder em segundos.</li>
               <li><strong>Destino por nome.</strong> gateway.k8s em vez do IP do nó, com o IP sempre à vista.</li>
+              <li><strong>HTTPS para APIs também.</strong> Marque a porta como HTTP e https://pedidos.loja responde, com CORS e as regras das rotas.</li>
             </ul>
           </div>
           <img class="captura" src="../assets/app-servicos.png" width="1960" height="1400" loading="lazy"
-               alt="A aba Serviços: pedidos, postgres e redis vindos do Kubernetes pelo gateway.k8s, e o worker vindo do Docker, todos respondendo.">
+               alt="A aba Serviços: pedidos com HTTPS e CORS, postgres e redis vindos do Kubernetes pelo gateway.k8s, e o worker vindo do Docker, todos respondendo.">
         </div>
 
         <div class="painel" id="painel-dns" role="tabpanel" aria-labelledby="aba-dns">
@@ -267,7 +269,25 @@
           <p>O que passou pelo porteiro, inclusive WebSockets e conexões dos serviços. Fica só na memória: nada vai para o disco.</p>
         </div>
         <img class="captura" src="../assets/app-requisicoes.png" width="1960" height="1400" loading="lazy"
-             alt="A aba Requisições, com chamadas para meuapp.sev e admin.meuapp.sev, um WebSocket aberto e conexões TCP para postgres.database e redis.cache.">
+             alt="A aba Requisições, com chamadas para meuapp.sev e admin.meuapp.sev, a chamada da API a pedidos.loja, um WebSocket aberto e conexões TCP para postgres.database e redis.cache.">
+      </div>
+
+      <div class="janela-par">
+        <div class="janela-texto">
+          <h3>Serviço que fala HTTP ganha o que as rotas têm</h3>
+          <p>Marque HTTP na porta e ela passa pelo porteiro: HTTPS da sua CA, CORS, cabeçalhos e falhas simuladas, e cada chamada em Requisições. O Host do app continua chegando ao cluster.</p>
+        </div>
+        <img class="captura captura-estreita" src="../assets/app-servico-http.png" width="1080" height="1664" loading="lazy"
+             alt="O formulário Editar serviço de pedidos: a porta 80 para gateway.k8s:30080 marcada como HTTP, e a seção HTTP e HTTPS com Usar HTTPS ligado: https://pedidos vai para a porta 80.">
+      </div>
+
+      <div class="janela-par">
+        <div class="janela-texto">
+          <h3>Senha na porta, quando você quiser</h3>
+          <p>Para testar o app como o staging protege: a tela de senha do próprio Severino com sessão, Basic Auth ou um cabeçalho como X-Api-Key. Só ficam hashes, nunca a senha.</p>
+        </div>
+        <img class="captura captura-estreita" src="../assets/app-login.png" width="1200" height="1520" loading="lazy"
+             alt="A tela de entrada do Severino para admin.meuapp.sev, com o porteiro, os campos de usuário e senha e o botão Entrar.">
       </div>
     </section>
 

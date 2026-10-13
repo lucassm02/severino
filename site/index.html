@@ -236,10 +236,11 @@
               <li><strong>One domain, several apps.</strong> meuapp.sev/api goes to the API, the rest goes to the front end.</li>
               <li><strong>Wildcards.</strong> *.meuapp.sev answers cliente42.meuapp.sev and any other name below it.</li>
               <li><strong>Groups.</strong> One switch turns the whole project on or off.</li>
+              <li><strong>A password at the door.</strong> Severino's own login page, Basic Auth or a required header, when you want one.</li>
             </ul>
           </div>
           <img class="captura" src="assets/en/app-rotas.png" width="1960" height="1400" loading="lazy"
-               alt="The Routes tab: docs.sev switched off and the meuapp group with meuapp.sev, meuapp.sev/api, the *.meuapp.sev wildcard and admin.meuapp.sev, all responding over HTTPS.">
+               alt="The Routes tab: docs.sev switched off and the meuapp group with meuapp.sev, meuapp.sev/api, the *.meuapp.sev wildcard and admin.meuapp.sev behind a password, all responding over HTTPS.">
         </div>
 
         <div class="painel" id="painel-servicos" role="tabpanel" aria-labelledby="aba-servicos">
@@ -250,10 +251,11 @@
               <li><strong>They come ready.</strong> Import from Kubernetes and Docker, on Windows or in WSL.</li>
               <li><strong>They fix themselves.</strong> A container recreated on another port answers again within seconds.</li>
               <li><strong>Targets by name.</strong> gateway.k8s instead of the node's IP, with the IP always in sight.</li>
+              <li><strong>HTTPS for APIs too.</strong> Mark a port as HTTP and https://pedidos.loja answers, with CORS and the route rules.</li>
             </ul>
           </div>
           <img class="captura" src="assets/en/app-servicos.png" width="1960" height="1400" loading="lazy"
-               alt="The Services tab: pedidos, postgres and redis from Kubernetes through gateway.k8s, and worker from Docker, all responding.">
+               alt="The Services tab: pedidos over HTTPS with CORS, postgres and redis from Kubernetes through gateway.k8s, and worker from Docker, all responding.">
         </div>
 
         <div class="painel" id="painel-dns" role="tabpanel" aria-labelledby="aba-dns">
@@ -285,7 +287,25 @@
           <p>What went past the doorman, WebSockets and service connections included. It stays in memory only: nothing goes to disk.</p>
         </div>
         <img class="captura" src="assets/en/app-requisicoes.png" width="1960" height="1400" loading="lazy"
-             alt="The Requests tab, with calls to meuapp.sev and admin.meuapp.sev, an open WebSocket and TCP connections to postgres.database and redis.cache.">
+             alt="The Requests tab, with calls to meuapp.sev and admin.meuapp.sev, the API's call to pedidos.loja, an open WebSocket and TCP connections to postgres.database and redis.cache.">
+      </div>
+
+      <div class="janela-par">
+        <div class="janela-texto">
+          <h3>Services that speak HTTP get what routes have</h3>
+          <p>Tick HTTP on the port and it goes through the doorman: HTTPS from your CA, CORS, headers and simulated failures, and every call in Requests. The app's Host still reaches the cluster.</p>
+        </div>
+        <img class="captura captura-estreita" src="assets/en/app-servico-http.png" width="1080" height="1664" loading="lazy"
+             alt="The Edit service form for pedidos: port 80 to gateway.k8s:30080 marked HTTP, and the HTTP and HTTPS section with Use HTTPS on: https://pedidos goes to port 80.">
+      </div>
+
+      <div class="janela-par">
+        <div class="janela-texto">
+          <h3>A password at the door, when you want one</h3>
+          <p>To try an app the way staging protects it: Severino's own login page with a session, Basic Auth, or a header like X-Api-Key. Only hashes are kept, never the password.</p>
+        </div>
+        <img class="captura captura-estreita" src="assets/en/app-login.png" width="1200" height="1520" loading="lazy"
+             alt="Severino's sign-in page for admin.meuapp.sev, with the doorman, the user and password fields and the Sign in button.">
       </div>
     </section>
 
