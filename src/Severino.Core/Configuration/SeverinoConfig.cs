@@ -221,6 +221,15 @@ public sealed record ServiceRoute
     /// <summary>A tray notice when the destination stops answering, and when it is back.</summary>
     public bool NotifyHealth { get; set; }
 
+    /// <summary>
+    /// The HTTP ports answer HTTPS too, with the local CA: https://name goes to the main one, and
+    /// https://name:port to that one (see <see cref="Routes.ServiceHttp"/>).
+    /// </summary>
+    public bool Https { get; set; }
+
+    /// <summary>CORS, headers, delay and simulated failure, on the HTTP ports only.</summary>
+    public TrafficRules Rules { get; set; } = new();
+
     /// <summary>Counts only in this environment; empty for all of them (see <see cref="Environments"/>).</summary>
     public string Environment { get; set; } = "";
 
@@ -237,6 +246,12 @@ public sealed record ServicePort
     public string TargetHost { get; set; } = "";
 
     public int TargetPort { get; set; }
+
+    /// <summary>
+    /// Speaks HTTP: goes through the proxy instead of the byte-for-byte tunnel, and gets the
+    /// service's HTTPS and rules. Off unless the person turns it on: h2c gRPC would stop working.
+    /// </summary>
+    public bool Http { get; set; }
 
     public override string ToString() => $"{Port} → {TargetHost}:{TargetPort}";
 }

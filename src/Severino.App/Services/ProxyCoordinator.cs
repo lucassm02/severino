@@ -26,8 +26,8 @@ public sealed class ProxyCoordinator(ConfigService config, ProxyServer proxy, He
         hosts.Start();
         config.Changed += OnConfigChanged;
         ca.Changed += OnCaChanged;
-        await proxy.StartAsync(current.Settings.HttpPort, HttpsPort, current.Routes);
-        await services.UpdateAsync(current.Services);
+        await proxy.StartAsync(current.Settings.HttpPort, HttpsPort, current.Routes, current.Services);
+        await services.UpdateAsync(current.Services, current.Settings.HttpPort, HttpsPort);
         wsl.Start();
         forwards?.Start();
         watcher?.Start();
@@ -39,8 +39,8 @@ public sealed class ProxyCoordinator(ConfigService config, ProxyServer proxy, He
         if (IsPaused)
             return;
         var current = Effective;
-        await proxy.StartAsync(current.Settings.HttpPort, HttpsPort, current.Routes);
-        await services.UpdateAsync(current.Services);
+        await proxy.StartAsync(current.Settings.HttpPort, HttpsPort, current.Routes, current.Services);
+        await services.UpdateAsync(current.Services, current.Settings.HttpPort, HttpsPort);
     }
 
     public bool IsStopped { get; private set; }
@@ -79,8 +79,8 @@ public sealed class ProxyCoordinator(ConfigService config, ProxyServer proxy, He
         PausedChanged?.Invoke(this, EventArgs.Empty);
         hosts.Resume();
         var current = Effective;
-        await proxy.StartAsync(current.Settings.HttpPort, HttpsPort, current.Routes);
-        await services.UpdateAsync(current.Services);
+        await proxy.StartAsync(current.Settings.HttpPort, HttpsPort, current.Routes, current.Services);
+        await services.UpdateAsync(current.Services, current.Settings.HttpPort, HttpsPort);
         await wsl.ResumeAsync();
         forwards?.Resume();
         watcher?.Resume();
@@ -129,10 +129,10 @@ public sealed class ProxyCoordinator(ConfigService config, ProxyServer proxy, He
         var httpsChanged = HttpsPort is { } https ? https != proxy.HttpsStatus.Port || proxy.HttpsStatus.State != ProxyState.Running
                                                   : proxy.HttpsStatus.State == ProxyState.Running;
         if (updated.Settings.HttpPort != proxy.Status.Port || httpsChanged)
-            _ = proxy.StartAsync(updated.Settings.HttpPort, HttpsPort, updated.Routes);
+            _ = proxy.StartAsync(updated.Settings.HttpPort, HttpsPort, updated.Routes, updated.Services);
         else
-            proxy.UpdateRoutes(updated.Routes);
-        _ = services.UpdateAsync(updated.Services);
+            proxy.UpdateRoutes(updated.Routes, updated.Services);
+        _ = services.UpdateAsync(updated.Services, updated.Settings.HttpPort, HttpsPort);
     }
 
     // Activated, reissued or removed: start or stop the HTTPS listener to match.

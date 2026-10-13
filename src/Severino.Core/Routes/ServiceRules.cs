@@ -108,6 +108,13 @@ public static partial class ServiceRules
                 return (null, Strings.Service_TargetIsService);
         }
 
+        if (route.Https && !ServiceHttp.HasHttp(route))
+            return (null, Strings.Service_HttpsNeedsHttp);
+        if (route.Rules.HasAny() && !ServiceHttp.HasHttp(route))
+            return (null, Strings.Service_RulesNeedHttp);
+        if (RouteRules.ValidateRules(route.Rules) is { } rulesError)
+            return (null, rulesError);
+
         return (route with { Names = names }, null);
     }
 }

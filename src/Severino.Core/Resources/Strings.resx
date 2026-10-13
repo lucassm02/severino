@@ -267,4 +267,10 @@
   <data name="Project_NoName" xml:space="preserve">
     <value>This file has no project name (&quot;name&quot;): it looks like a backup. Import it in Settings › Backup instead.</value>
   </data>
+  <data name="Service_HttpsNeedsHttp" xml:space="preserve">
+    <value>HTTPS needs a port marked HTTP.</value>
+  </data>
+  <data name="Service_RulesNeedHttp" xml:space="preserve">
+    <value>Rules only apply to the ports marked HTTP: mark one, or turn the rules off.</value>
+  </data>
 </root>

@@ -4,6 +4,7 @@ using System.Net.Sockets;
 using Microsoft.Extensions.Logging;
 using Severino.Core.Configuration;
 using Severino.Core.Network;
+using Severino.Core.Routes;
 using Severino.Proxy.Resources;
 
 namespace Severino.Proxy;
@@ -15,10 +16,21 @@ public sealed record ServicePortStatus(Guid RouteId, string Name, string Address
 /// Listens on each service route's own loopback address, on every port, and pipes every
 /// connection to its target byte for byte: whatever the app sent, including the HTTP Host or the
 /// TLS SNI, arrives as sent, and any protocol works (HTTP, gRPC, Postgres, Redis…).
+/// A port marked HTTP is piped to the proxy instead, which forwards it with the service's HTTPS
+/// and rules (see <see cref="ServiceHttp"/>): to its HTTPS port when the connection opens with a
+/// TLS handshake, to its HTTP port otherwise.
 /// </summary>
 public sealed class ServiceForwarder(ILoggerFactory loggerFactory, RequestLog? requests = null) : IAsyncDisposable
 {
     private static readonly TimeSpan ConnectTimeout = TimeSpan.FromSeconds(10);
+
+    /// <summary>How long a connection to an HTTP port may stay silent before it is taken as plain HTTP.</summary>
+    private static readonly TimeSpan SniffTimeout = TimeSpan.FromSeconds(30);
+
+    /// <summary>The first byte of a TLS handshake record.</summary>
+    private const byte TlsHandshake = 0x16;
+
+    private static readonly string Loopback = IPAddress.Loopback.ToString();
     private const int BufferSize = 64 * 1024;
 
     private readonly ILogger _logger = loggerFactory.CreateLogger<ServiceForwarder>();
@@ -39,7 +51,9 @@ public sealed class ServiceForwarder(ILoggerFactory loggerFactory, RequestLog? r
     /// open connections survive edits; a changed target applies to new connections. Ports that
     /// failed before are tried again.
     /// </summary>
-    public async Task UpdateAsync(IReadOnlyList<ServiceRoute> services, CancellationToken cancellationToken = default)
+    /// <param name="proxyHttpPort">Where the proxy listens for HTTP on 127.0.0.1; without it the HTTP ports are tunnels like the rest.</param>
+    /// <param name="proxyHttpsPort">Where it listens for HTTPS; without it the services answer no HTTPS.</param>
+    public async Task UpdateAsync(IReadOnlyList<ServiceRoute> services, int? proxyHttpPort = null, int? proxyHttpsPort = null, CancellationToken cancellationToken = default)
     {
         await _gate.WaitAsync(cancellationToken);
         try
@@ -47,8 +61,15 @@ public sealed class ServiceForwarder(ILoggerFactory loggerFactory, RequestLog? r
             var wanted = new Dictionary<Endpoint, Target>();
             foreach (var service in services.Where(s => s.Enabled))
             {
+                var name = service.Names.FirstOrDefault() ?? service.Address;
+                var https = proxyHttpPort is not null && proxyHttpsPort is not null && service.Https;
                 foreach (var port in service.Ports)
-                    wanted[new(service.Address, port.Port)] = new(service.Id, service.Names.FirstOrDefault() ?? service.Address, port.TargetHost, port.TargetPort);
+                {
+                    var via = proxyHttpPort is null || !port.Http ? Via.Tunnel : https ? Via.Sniff : Via.Http;
+                    wanted[new(service.Address, port.Port)] = new(service.Id, name, port.TargetHost, port.TargetPort, via, proxyHttpPort ?? 0, proxyHttpsPort ?? 0);
+                }
+                if (https && ServiceHttp.ExtraTlsPort(service) is { } tls)
+                    wanted[new(service.Address, tls)] = new(service.Id, name, Loopback, proxyHttpsPort!.Value, Via.Tls, proxyHttpPort!.Value, proxyHttpsPort.Value);
             }
             _targets = wanted;
 
@@ -153,25 +174,33 @@ public sealed class ServiceForwarder(ILoggerFactory loggerFactory, RequestLog? r
                 return;
 
             var authority = $"{target.Name}:{endpoint.Port}";
-            var path = $"→ {target.Host}:{target.Port}";
             var started = System.Diagnostics.Stopwatch.GetTimestamp();
+            var (host, port) = target.Via switch
+            {
+                Via.Http => (Loopback, target.ProxyHttp),
+                Via.Tls => (Loopback, target.ProxyHttps),
+                Via.Sniff => (Loopback, await StartsWithTlsAsync(client) ? target.ProxyHttps : target.ProxyHttp),
+                _ => (target.Host, target.Port),
+            };
+            var path = $"→ {host}:{port}";
             Socket upstream;
             try
             {
                 using var timeout = CancellationTokenSource.CreateLinkedTokenSource(_shutdown.Token);
                 timeout.CancelAfter(ConnectTimeout);
-                upstream = await ParallelConnect.ConnectAsync(target.Host, target.Port, timeout.Token);
+                upstream = await ParallelConnect.ConnectAsync(host, port, timeout.Token);
             }
             catch (Exception ex) when (ex is SocketException or OperationCanceledException)
             {
-                _logger.LogInformation("Service {Name} could not reach {Host}:{Port}: {Error}", target.Name, target.Host, target.Port, ex.Message);
+                _logger.LogInformation("Service {Name} could not reach {Host}:{Port}: {Error}", target.Name, host, port, ex.Message);
                 requests?.Add("tcp", authority, "TCP", path, 502, fromProxy: true, duration: System.Diagnostics.Stopwatch.GetElapsedTime(started));
                 return;
             }
 
             using (upstream)
             {
-                var entry = requests?.Add("tcp", authority, "TCP", path, 200);
+                // Through the proxy each request shows up in the log as HTTP: no TCP line as well.
+                var entry = target.Via == Via.Tunnel ? requests?.Add("tcp", authority, "TCP", path, 200) : null;
                 await Task.WhenAll(PumpAsync(client, upstream), PumpAsync(upstream, client));
                 entry?.Close(System.Diagnostics.Stopwatch.GetElapsedTime(started));
             }
@@ -203,9 +232,36 @@ public sealed class ServiceForwarder(ILoggerFactory loggerFactory, RequestLog? r
         }
     }
 
+    /// <summary>Peeks at the first byte without taking it: a TLS handshake starts with 0x16, an HTTP request with a letter.</summary>
+    private async Task<bool> StartsWithTlsAsync(Socket client)
+    {
+        var first = new byte[1];
+        using var timeout = CancellationTokenSource.CreateLinkedTokenSource(_shutdown.Token);
+        timeout.CancelAfter(SniffTimeout);
+        try
+        {
+            return await client.ReceiveAsync(first, SocketFlags.Peek, timeout.Token) == 1 && first[0] == TlsHandshake;
+        }
+        catch (Exception ex) when (ex is SocketException or OperationCanceledException)
+        {
+            return false;
+        }
+    }
+
     private readonly record struct Endpoint(string Address, int Port);
 
-    private sealed record Target(Guid RouteId, string Name, string Host, int Port);
+    /// <summary>How a port's connections leave: straight to the target, or to one of the proxy's ports.</summary>
+    private enum Via
+    {
+        Tunnel,
+        Http,
+        Tls,
+
+        /// <summary>To the proxy's HTTPS port when the connection opens with TLS, to its HTTP port otherwise.</summary>
+        Sniff,
+    }
+
+    private sealed record Target(Guid RouteId, string Name, string Host, int Port, Via Via = Via.Tunnel, int ProxyHttp = 0, int ProxyHttps = 0);
 
     private sealed class Listener(Socket socket) : IDisposable
     {

@@ -267,4 +267,10 @@
   <data name="Project_NoName" xml:space="preserve">
     <value>Este arquivo não tem nome de projeto (&quot;name&quot;): parece um backup. Importe em Configurações › Backup.</value>
   </data>
+  <data name="Service_HttpsNeedsHttp" xml:space="preserve">
+    <value>O HTTPS precisa de uma porta marcada como HTTP.</value>
+  </data>
+  <data name="Service_RulesNeedHttp" xml:space="preserve">
+    <value>As regras só valem nas portas marcadas como HTTP: marque uma ou desligue as regras.</value>
+  </data>
 </root>

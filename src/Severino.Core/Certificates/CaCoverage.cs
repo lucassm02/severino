@@ -14,12 +14,16 @@ public static class CaCoverage
     public static readonly IReadOnlySet<string> ReservedTlds =
         new HashSet<string>(StringComparer.Ordinal) { "test", "localhost", "internal", "example", "invalid" };
 
-    /// <summary>Normalized domains of every route with HTTPS on, enabled or not.</summary>
-    public static IReadOnlyList<string> RequiredDomains(IEnumerable<RouteEntry> routes) =>
+    /// <summary>
+    /// Normalized domains of every route with HTTPS on, enabled or not, and the names of every
+    /// service whose HTTP ports answer HTTPS.
+    /// </summary>
+    public static IReadOnlyList<string> RequiredDomains(IEnumerable<RouteEntry> routes, IEnumerable<ServiceRoute>? services = null) =>
         [.. routes
             .Where(r => r.Https)
             .Select(r => RouteRules.Normalize(r.Domain))
             .OfType<string>()
+            .Concat((services ?? []).Where(s => s.Https && ServiceHttp.HasHttp(s)).SelectMany(s => s.Names))
             // A wildcard needs its base: a name constraint on it covers every name below.
             .Select(d => d.StartsWith("*.", StringComparison.Ordinal) ? d[2..] : d)
             .Distinct(StringComparer.Ordinal)

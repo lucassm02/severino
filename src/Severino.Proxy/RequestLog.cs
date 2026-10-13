@@ -205,7 +205,10 @@ public sealed class RequestLog
         {
             var (responseHeaders, responseCut) = Headers(context.Response.Headers);
             var proxied = context.Features.Get<IReverseProxyFeature>();
-            var routeId = proxied?.Route.Config.RouteId is { } id && Guid.TryParseExact(id, "N", out var guid) ? guid : (Guid?)null;
+            // A service's internal route carries the service's id; a route's id is the route's.
+            var routeConfig = proxied?.Route.Config;
+            var routeId = (routeConfig?.Metadata?.GetValueOrDefault(ProxyConfigMapper.ServiceKey) ?? routeConfig?.RouteId) is { } id
+                && Guid.TryParseExact(id, "N", out var guid) ? guid : (Guid?)null;
             var details = new RequestDetails
             {
                 RequestHeaders = requestHeaders,

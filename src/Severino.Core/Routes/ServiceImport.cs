@@ -60,7 +60,7 @@ public static class ServiceImport
             if (services.FirstOrDefault(s => s.Origin is { } o && SameService(o, candidate.Origin)) is { } existing)
             {
                 // A port-forwarded one keeps its local ports; the rest get the ports of now.
-                plan.Add(new(candidate, existing with { Ports = service.CanImport ? service.Ports : existing.Ports, Origin = candidate.Origin }, existing, [], null));
+                plan.Add(new(candidate, existing with { Ports = service.CanImport ? ServiceHttp.KeepHttp(service.Ports, existing.Ports) : existing.Ports, Origin = candidate.Origin }, existing, [], null));
                 continue;
             }
 
@@ -106,8 +106,8 @@ public static class ServiceImport
                 missing.Add(route);
             else if (route.PortForward)
                 continue; // its targets are local ports of the port-forward, which stay
-            else if (!match.Ports.SequenceEqual(route.Ports))
-                updated.Add(route with { Ports = match.Ports });
+            else if (ServiceHttp.KeepHttp(match.Ports, route.Ports) is var ports && !ports.SequenceEqual(route.Ports))
+                updated.Add(route with { Ports = ports });
         }
         return new(updated, missing);
     }

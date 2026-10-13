@@ -44,6 +44,9 @@ public sealed class ProxyServer(ILoggerFactory loggerFactory, Func<string, X509C
     private Listener? _https;
     private IReadOnlyList<RouteEntry> _routes = [];
 
+    /// <summary>Services whose HTTP ports the forwarder hands to this proxy (see ServiceForwarder).</summary>
+    private IReadOnlyList<ServiceRoute> _services = [];
+
     /// <summary>CORS, delay and failure of the routes that have them, by YARP route id.</summary>
     private IReadOnlyDictionary<string, TrafficRules> _rules = new Dictionary<string, TrafficRules>();
     private int? _httpsPort;
@@ -60,6 +63,13 @@ public sealed class ProxyServer(ILoggerFactory loggerFactory, Func<string, X509C
 
     public Task StartAsync(int httpPort, IReadOnlyList<RouteEntry> routes, CancellationToken cancellationToken = default) =>
         StartAsync(httpPort, null, routes, cancellationToken);
+
+    /// <summary>As the other, with the services whose HTTP ports come through the proxy.</summary>
+    public Task StartAsync(int httpPort, int? httpsPort, IReadOnlyList<RouteEntry> routes, IReadOnlyList<ServiceRoute> services, CancellationToken cancellationToken = default)
+    {
+        _services = services;
+        return StartAsync(httpPort, httpsPort, routes, cancellationToken);
+    }
 
     /// <summary>
     /// Listens on <paramref name="httpPort"/>, and on <paramref name="httpsPort"/> when given.
@@ -98,13 +108,15 @@ public sealed class ProxyServer(ILoggerFactory loggerFactory, Func<string, X509C
         }
     }
 
-    public void UpdateRoutes(IReadOnlyList<RouteEntry> routes)
+    /// <param name="services">The services whose HTTP ports go through the proxy; null keeps the last ones.</param>
+    public void UpdateRoutes(IReadOnlyList<RouteEntry> routes, IReadOnlyList<ServiceRoute>? services = null)
     {
         _routes = routes;
-        _rules = RulesOf(routes);
+        _services = services ?? _services;
+        _rules = RulesOf(routes, _services);
         _http?.Folders.Clear();
         _https?.Folders.Clear();
-        var (yarpRoutes, clusters) = ProxyConfigMapper.Map(routes, Status.Port, _httpsPort);
+        var (yarpRoutes, clusters) = ProxyConfigMapper.Map(routes, Status.Port, _httpsPort, _services);
         _http?.Config.Update(yarpRoutes, clusters);
         _https?.Config.Update(yarpRoutes, clusters);
     }
@@ -136,20 +148,23 @@ public sealed class ProxyServer(ILoggerFactory loggerFactory, Func<string, X509C
         _gate.Dispose();
     }
 
-    /// <summary>The certificate for an SNI name: only routes with HTTPS on, and only names the CA covers.</summary>
+    /// <summary>The certificate for an SNI name: only routes and services with HTTPS on, and only names the CA covers.</summary>
     internal X509Certificate2? CertificateFor(string? serverName)
     {
-        if (certificates is null || serverName is null)
+        // One-label names are services' (catalogoapi), which routes never have.
+        if (certificates is null || serverName is null || !Severino.Contracts.DomainName.TryNormalize(serverName, out var name, out _, allowSingleLabel: true))
             return null;
         // HTTPS is the domain's: any of its routes (a path, or the whole of it) asking for it.
         // A wildcard route gets a leaf for the name actually asked, which the CA covers too.
-        return RouteRules.ForHost(_routes, serverName).Any(r => r.Https) ? certificates(RouteRules.Normalize(serverName)!) : null;
+        var https = RouteRules.ForHost(_routes, serverName).Any(r => r.Https)
+            || _services.Any(s => s.Enabled && s.Https && ServiceHttp.HasHttp(s) && s.Names.Contains(name));
+        return https ? certificates(name) : null;
     }
 
 
     private async Task<Listener?> StartListenerAsync(int port, bool tls, CancellationToken cancellationToken)
     {
-        var (yarpRoutes, clusters) = ProxyConfigMapper.Map(_routes, tls ? Status.Port : port, _httpsPort);
+        var (yarpRoutes, clusters) = ProxyConfigMapper.Map(_routes, tls ? Status.Port : port, _httpsPort, _services);
 
         var builder = WebApplication.CreateSlimBuilder(new WebApplicationOptions
         {
@@ -283,9 +298,18 @@ public sealed class ProxyServer(ILoggerFactory loggerFactory, Func<string, X509C
         }, route.Rules, domain);
     }
 
-    private static Dictionary<string, TrafficRules> RulesOf(IReadOnlyList<RouteEntry> routes) =>
-        routes.Where(r => r.Enabled && (r.Rules.Cors || r.Rules.DelayMs > 0 || r.Rules.FailPercent > 0))
-            .ToDictionary(r => r.Id.ToString("N"), r => r.Rules);
+    private static Dictionary<string, TrafficRules> RulesOf(IReadOnlyList<RouteEntry> routes, IReadOnlyList<ServiceRoute> services)
+    {
+        var rules = routes.Where(r => r.Enabled && Applies(r.Rules)).ToDictionary(r => r.Id.ToString("N"), r => r.Rules);
+        foreach (var service in services.Where(s => s.Enabled && Applies(s.Rules)))
+        {
+            foreach (var port in service.Ports.Where(p => p.Http))
+                rules[ProxyConfigMapper.ServiceRouteId(service, port.Port)] = service.Rules;
+        }
+        return rules;
+
+        static bool Applies(TrafficRules rules) => rules.Cors || rules.DelayMs > 0 || rules.FailPercent > 0;
+    }
 
     private static async Task WriteErrorPageAsync(HttpContext context, Func<Task> next)
     {

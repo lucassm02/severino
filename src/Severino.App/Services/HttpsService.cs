@@ -48,9 +48,9 @@ public sealed class HttpsService(ConfigService config, LocalCa ca, TldDirectory 
     /// <summary>True when the current CA can sign for <paramref name="domain"/>.</summary>
     public bool Covers(string domain) => RouteRules.Normalize(domain) is { } normalized && ca.Covers(normalized);
 
-    /// <summary>Domains of HTTPS routes the current CA cannot sign for.</summary>
+    /// <summary>Domains of HTTPS routes and services the current CA cannot sign for.</summary>
     public IReadOnlyList<string> Uncovered() =>
-        IsActive ? [.. CaCoverage.RequiredDomains(config.Current.Routes).Where(d => !ca.Covers(d))] : [];
+        IsActive ? [.. CaCoverage.RequiredDomains(config.Current.Routes, config.Current.Services).Where(d => !ca.Covers(d))] : [];
 
     /// <summary>
     /// Creates the CA and turns HTTPS on for every route, without redirecting, so nothing that
@@ -75,7 +75,7 @@ public sealed class HttpsService(ConfigService config, LocalCa ca, TldDirectory 
     /// </summary>
     public Task<HttpsActionResult> ReissueAsync(Func<TrustPrompt, Task<bool>> confirm, CancellationToken cancellationToken = default)
     {
-        var domains = CaCoverage.RequiredDomains(config.Current.Routes);
+        var domains = CaCoverage.RequiredDomains(config.Current.Routes, config.Current.Services);
         return domains.Count == 0
             ? Task.FromResult(HttpsActionResult.NoRoutes)
             : IssueAsync(domains, confirm, cancellationToken);
