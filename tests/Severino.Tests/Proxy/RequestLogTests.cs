@@ -59,6 +59,95 @@ public sealed class RequestLogTests
         Assert.Equal(800, all.Select(e => e.Sequence).Distinct().Count());
     }
 
+    private static RequestEntry Post(RequestLog log, string? body, long bytes) => log.Add("https", "meuapp.sev", "POST", "/api/pedidos?x=1", 201,
+        duration: TimeSpan.FromMilliseconds(12), details: new RequestDetails
+        {
+            RequestHeaders = [new("Host", "meuapp.sev"), new("Content-Type", "application/json"), new("Authorization", "Bearer it's"), new("Accept-Encoding", "gzip")],
+            ResponseHeaders = [new("Content-Type", "application/json")],
+            RequestBytes = bytes,
+            RequestBody = body is null ? null : new CapturedBody(System.Text.Encoding.UTF8.GetBytes(body), Cut: false),
+            ResponseBody = new CapturedBody("{\"id\":7}"u8.ToArray(), Cut: false),
+            ResponseBytes = 8,
+        });
+
+    [Fact]
+    public void Curl_carries_method_headers_and_body_quoted_for_each_shell()
+    {
+        var entry = Post(new RequestLog(), "{\"a\":\"o'k\"}", 11);
+
+        var powershell = RequestExport.ToCurl(entry, CurlShell.PowerShell);
+        Assert.StartsWith("curl.exe 'https://meuapp.sev/api/pedidos?x=1'", powershell);
+        Assert.Contains("-X POST", powershell);
+        Assert.Contains("-H 'Authorization: Bearer it''s'", powershell);
+        Assert.Contains("--data-raw '{\"a\":\"o''k\"}'", powershell);
+        Assert.DoesNotContain("Host:", powershell);
+        Assert.DoesNotContain("Accept-Encoding", powershell);
+
+        var bash = RequestExport.ToCurl(entry, CurlShell.Bash);
+        Assert.StartsWith("curl 'https://meuapp.sev/api/pedidos?x=1'", bash);
+        Assert.Contains("-H 'Authorization: Bearer it'\\''s'", bash);
+    }
+
+    [Fact]
+    public void A_request_whose_body_was_not_kept_cannot_be_sent_again()
+    {
+        var log = new RequestLog();
+        Assert.False(RequestExport.CanReplay(Post(log, null, 11)));
+        Assert.True(RequestExport.CanReplay(Post(log, "{}", 2)));
+        Assert.True(RequestExport.CanReplay(log.Add("http", "a.sev", "GET", "/", 200, details: new RequestDetails())));
+        Assert.False(RequestExport.CanReplay(log.Add("tcp", "pedidos:80", "TCP", "→ x", 200)));
+    }
+
+    [Fact]
+    public void Har_has_the_request_response_and_bodies()
+    {
+        var entry = Post(new RequestLog(), "{\"a\":1}", 7);
+
+        using var har = System.Text.Json.JsonDocument.Parse(RequestExport.ToHar([entry], "0.5.1"));
+        var item = har.RootElement.GetProperty("log").GetProperty("entries")[0];
+        var request = item.GetProperty("request");
+        Assert.Equal("https://meuapp.sev/api/pedidos?x=1", request.GetProperty("url").GetString());
+        Assert.Equal("x", request.GetProperty("queryString")[0].GetProperty("name").GetString());
+        Assert.Equal("{\"a\":1}", request.GetProperty("postData").GetProperty("text").GetString());
+        var response = item.GetProperty("response");
+        Assert.Equal(201, response.GetProperty("status").GetInt32());
+        Assert.Equal("{\"id\":7}", response.GetProperty("content").GetProperty("text").GetString());
+        Assert.Equal(12, item.GetProperty("time").GetDouble());
+    }
+
+    [Fact]
+    public void Decodes_gzip_bodies_and_tells_text_types()
+    {
+        using var packed = new MemoryStream();
+        using (var gzip = new System.IO.Compression.GZipStream(packed, System.IO.Compression.CompressionLevel.Fastest, leaveOpen: true))
+            gzip.Write("olá"u8);
+        Assert.Equal("olá", System.Text.Encoding.UTF8.GetString(CapturedBodies.Decode(new CapturedBody(packed.ToArray(), false), "gzip")!));
+
+        Assert.True(CapturedBodies.IsText("application/problem+json; charset=utf-8"));
+        Assert.True(CapturedBodies.IsText("text/html"));
+        Assert.False(CapturedBodies.IsText("image/png"));
+    }
+
+    [Fact]
+    public void Details_mask_credentials_until_asked_and_explain_missing_bodies()
+    {
+        var log = new RequestLog();
+        var details = new RequestDetailsViewModel(new RequestItemViewModel(Post(log, null, 11)), "meuapp.sev/api", bodiesOn: false);
+
+        Assert.Equal("••••••••", details.RequestHeaders.Single(h => h.Name == "Authorization").Shown);
+        details.ShowHidden = true;
+        Assert.Equal("Bearer it's", details.RequestHeaders.Single(h => h.Name == "Authorization").Shown);
+
+        Assert.Null(details.RequestBodyText);
+        Assert.Contains("Guardar corpos", details.RequestBodyNote);
+        Assert.Contains("\"id\": 7", details.ResponseBodyText);
+        Assert.Contains(details.General, l => l.Value == "meuapp.sev/api");
+        Assert.False(details.CanReplay);
+
+        var tcp = new RequestDetailsViewModel(new RequestItemViewModel(log.Add("tcp", "pedidos:80", "TCP", "→ x", 200)), null, bodiesOn: true);
+        Assert.False(tcp.IsHttp);
+    }
+
     [Fact]
     public void View_model_shows_newest_first_holds_while_paused_and_filters()
     {
@@ -144,6 +233,64 @@ public sealed class RequestLogProxyTests : IAsyncLifetime
             },
             e => Assert.Equal(("nada.sev", 404, true), (e.Host, e.Status, e.FromProxy)),
             e => Assert.Equal(("fora.sev", 502, true), (e.Host, e.Status, e.FromProxy)));
+    }
+
+    [Fact]
+    public async Task Keeps_headers_target_and_sizes_but_no_bodies_by_default()
+    {
+        using var client = Client();
+        using var request = new HttpRequestMessage(HttpMethod.Post, $"http://meuapp.sev:{_port}/size") { Content = new StringContent("{\"a\":1}", System.Text.Encoding.UTF8, "application/json") };
+        request.Headers.Add("X-Teste", "sim");
+        await client.SendAsync(request);
+
+        var details = Assert.Single(_log.Since(-1)).Details!;
+        Assert.Contains(details.RequestHeaders, h => h is { Key: "X-Teste", Value: "sim" });
+        Assert.Contains(details.ResponseHeaders, h => h.Key == "Content-Type");
+        Assert.Equal($"http://127.0.0.1:{_backendPort}", details.Target!.TrimEnd('/'));
+        Assert.NotNull(details.RouteId);
+        Assert.Equal(7, details.RequestBytes);
+        Assert.Equal(1, details.ResponseBytes); // "7"
+        Assert.Null(details.RequestBody);
+        Assert.Null(details.ResponseBody);
+    }
+
+    [Fact]
+    public async Task Keeps_text_bodies_when_asked_and_cuts_long_ones()
+    {
+        _log.CaptureBodies = true;
+        using var client = Client();
+        await client.PostAsync($"http://meuapp.sev:{_port}/size", new StringContent("{\"pedido\":42}", System.Text.Encoding.UTF8, "application/json"));
+        var big = new string('x', RequestLog.BodyLimit + 100);
+        var answer = await client.PostAsync($"http://meuapp.sev:{_port}/size", new StringContent(big));
+
+        var entries = _log.Since(-1);
+        var small = entries[0].Details!;
+        Assert.Equal("{\"pedido\":42}", System.Text.Encoding.UTF8.GetString(small.RequestBody!.Bytes));
+        Assert.False(small.RequestBody.Cut);
+        Assert.Equal("13", System.Text.Encoding.UTF8.GetString(small.ResponseBody!.Bytes));
+
+        var cut = entries[1].Details!;
+        Assert.Equal(RequestLog.BodyLimit, cut.RequestBody!.Bytes.Length);
+        Assert.True(cut.RequestBody.Cut);
+        // The tap only copies: the server still got all of it.
+        Assert.Equal((RequestLog.BodyLimit + 100).ToString(), await answer.Content.ReadAsStringAsync());
+        Assert.Equal(RequestLog.BodyLimit + 100, cut.RequestBytes);
+    }
+
+    [Fact]
+    public async Task Replay_sends_the_same_request_again_through_the_proxy()
+    {
+        _log.CaptureBodies = true;
+        using var client = Client();
+        await client.PostAsync($"http://meuapp.sev:{_port}/size", new StringContent("abc"));
+        var first = Assert.Single(_log.Since(-1));
+        Assert.True(RequestExport.CanReplay(first));
+
+        Assert.Equal(200, await RequestExport.ReplayAsync(first, _port, null));
+
+        var again = _log.Since(first.Sequence).Single();
+        Assert.Equal(("POST", "/size", 3L), (again.Method, again.PathAndQuery, again.Details!.RequestBytes));
+        Assert.Equal("3", System.Text.Encoding.UTF8.GetString(again.Details.ResponseBody!.Bytes));
     }
 
     [Fact]

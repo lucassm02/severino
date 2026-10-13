@@ -8,6 +8,10 @@ O formato segue o [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/), e
 
 ## [Unreleased]
 
+### Adicionado
+
+- Detalhes da requisição: clicar numa linha de Requisições abre os cabeçalhos, os tamanhos, para onde ela foi e, com **Guardar corpos** ligado, os primeiros 64 KB de cada corpo de texto. **Copiar como curl** (PowerShell ou bash), **Repetir** e **Exportar HAR**.
+
 ### Corrigido
 
 - Os editores (rota, serviço, entrada DNS) e o assistente de primeiro uso às vezes abriam em branco, só com a moldura e o cursor de texto.

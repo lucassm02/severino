@@ -1,6 +1,7 @@
 using System.Diagnostics;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.Features;
+using Yarp.ReverseProxy.Model;
 
 namespace Severino.Proxy;
 
@@ -10,8 +11,9 @@ public sealed class RequestEntry
     private long _durationTicks = -1;
 
     public RequestEntry(long sequence, DateTimeOffset time, string scheme, string authority, string method, string pathAndQuery,
-        int status, bool fromProxy, bool isWebSocket, TimeSpan? duration)
+        int status, bool fromProxy, bool isWebSocket, TimeSpan? duration, RequestDetails? details = null)
     {
+        Details = details;
         Sequence = sequence;
         Time = time;
         Scheme = scheme;
@@ -44,6 +46,9 @@ public sealed class RequestEntry
 
     public bool IsWebSocket { get; }
 
+    /// <summary>Headers, sizes and maybe bodies; null for a service route's TCP connection.</summary>
+    public RequestDetails? Details { get; }
+
     /// <summary>Null while a WebSocket is still open.</summary>
     public TimeSpan? Duration
     {
@@ -65,7 +70,14 @@ public sealed class RequestLog
 {
     public const int Capacity = 1000;
 
+    /// <summary>How much of each body is kept while <see cref="CaptureBodies"/> is on.</summary>
+    public const int BodyLimit = 64 * 1024;
+
+    /// <summary>Headers kept per request, names and values together.</summary>
+    public const int HeaderLimit = 16 * 1024;
+
     private static readonly object FromProxyKey = new();
+    private volatile bool _captureBodies;
 
     private readonly Lock _gate = new();
     private readonly RequestEntry?[] _ring = new RequestEntry?[Capacity];
@@ -73,6 +85,13 @@ public sealed class RequestLog
     private long _next;
 
     public RequestLog(TimeProvider? time = null) => _time = time ?? TimeProvider.System;
+
+    /// <summary>Keeps the first <see cref="BodyLimit"/> bytes of text bodies, both ways. Off by default: it costs memory.</summary>
+    public bool CaptureBodies
+    {
+        get => _captureBodies;
+        set => _captureBodies = value;
+    }
 
     /// <summary>Marks the response as written by Severino rather than the route's server.</summary>
     public static void MarkFromProxy(HttpContext context) => context.Items[FromProxyKey] = true;
@@ -101,11 +120,11 @@ public sealed class RequestLog
     }
 
     public RequestEntry Add(string scheme, string authority, string method, string pathAndQuery, int status,
-        bool fromProxy = false, bool isWebSocket = false, TimeSpan? duration = null)
+        bool fromProxy = false, bool isWebSocket = false, TimeSpan? duration = null, RequestDetails? details = null)
     {
         lock (_gate)
         {
-            var entry = new RequestEntry(_next, _time.GetLocalNow(), scheme, authority, method, pathAndQuery, status, fromProxy, isWebSocket, duration);
+            var entry = new RequestEntry(_next, _time.GetLocalNow(), scheme, authority, method, pathAndQuery, status, fromProxy, isWebSocket, duration, details);
             _ring[_next % Capacity] = entry;
             _next++;
             return entry;
@@ -120,20 +139,39 @@ public sealed class RequestLog
     {
         var started = Stopwatch.GetTimestamp();
         var request = context.Request;
+        var (requestHeaders, requestCut) = Headers(request.Headers);
         RequestEntry? socket = null;
         var isWebSocket = IsWebSocket(context);
         if (isWebSocket)
         {
             context.Response.OnStarting(() =>
             {
-                socket = Record(webSocket: true, duration: null);
+                socket = Record(webSocket: true, duration: null, null, null);
                 return Task.CompletedTask;
             });
+        }
+
+        // Both bodies go through a tap that counts them and, when asked, keeps the first bytes.
+        // A WebSocket's bytes are not a body: it is left alone.
+        var capture = CaptureBodies ? BodyLimit : 0;
+        TapStream? requestTap = null, responseTap = null;
+        var originalBody = request.Body;
+        var originalResponse = context.Features.Get<IHttpResponseBodyFeature>();
+        StreamResponseBodyFeature? tapped = null;
+        if (!isWebSocket && originalResponse is not null)
+        {
+            requestTap = new TapStream(originalBody, CapturedBodies.IsText(request.ContentType) ? capture : 0);
+            request.Body = requestTap;
+            responseTap = new TapStream(originalResponse.Stream, capture);
+            tapped = new StreamResponseBodyFeature(responseTap, originalResponse);
+            context.Features.Set<IHttpResponseBodyFeature>(tapped);
         }
 
         try
         {
             await next();
+            if (tapped is not null)
+                await tapped.CompleteAsync();
         }
         catch when (!context.Response.HasStarted)
         {
@@ -142,16 +180,59 @@ public sealed class RequestLog
         }
         finally
         {
+            if (tapped is not null)
+            {
+                request.Body = originalBody;
+                context.Features.Set(originalResponse);
+            }
             var elapsed = Stopwatch.GetElapsedTime(started);
             if (socket is not null)
                 socket.Close(elapsed);
             else
-                Record(isWebSocket, duration: elapsed);
+                Record(isWebSocket, duration: elapsed, requestTap, responseTap);
         }
 
-        RequestEntry Record(bool webSocket, TimeSpan? duration) => Add(
-            request.Scheme, request.Host.Value ?? "", request.Method, request.Path.ToUriComponent() + request.QueryString.ToUriComponent(),
-            context.Response.StatusCode, context.Items.ContainsKey(FromProxyKey), webSocket, duration);
+        RequestEntry Record(bool webSocket, TimeSpan? duration, TapStream? sent, TapStream? received)
+        {
+            var (responseHeaders, responseCut) = Headers(context.Response.Headers);
+            var proxied = context.Features.Get<IReverseProxyFeature>();
+            var routeId = proxied?.Route.Config.RouteId is { } id && Guid.TryParseExact(id, "N", out var guid) ? guid : (Guid?)null;
+            var details = new RequestDetails
+            {
+                RequestHeaders = requestHeaders,
+                ResponseHeaders = responseHeaders,
+                HeadersCut = requestCut || responseCut,
+                Target = proxied?.ProxiedDestination?.Model.Config.Address,
+                RouteId = routeId,
+                RequestBytes = sent?.Count ?? request.ContentLength ?? 0,
+                ResponseBytes = received?.Count ?? 0,
+                RequestBody = Body(sent),
+                ResponseBody = CapturedBodies.IsText(context.Response.ContentType) ? Body(received) : null,
+            };
+            return Add(request.Scheme, request.Host.Value ?? "", request.Method, request.Path.ToUriComponent() + request.QueryString.ToUriComponent(),
+                context.Response.StatusCode, context.Items.ContainsKey(FromProxyKey), webSocket, duration, details);
+        }
+    }
+
+    private static CapturedBody? Body(TapStream? tap) =>
+        tap?.Captured is { Length: > 0 } bytes ? new CapturedBody(bytes, tap.Cut) : null;
+
+    /// <summary>Every name and value, one pair per value, until <see cref="HeaderLimit"/>.</summary>
+    private static (IReadOnlyList<KeyValuePair<string, string>> Headers, bool Cut) Headers(IHeaderDictionary headers)
+    {
+        var result = new List<KeyValuePair<string, string>>();
+        var size = 0;
+        foreach (var (name, values) in headers)
+        {
+            foreach (var value in values)
+            {
+                size += name.Length + (value?.Length ?? 0);
+                if (size > HeaderLimit)
+                    return (result, true);
+                result.Add(new(name, value ?? ""));
+            }
+        }
+        return (result, false);
     }
 
     // YARP upgrades on its own, without ASP.NET's WebSocket middleware, so context.WebSockets

@@ -8,6 +8,7 @@
     xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
     xmlns:views="clr-namespace:Severino.App.Views"
     xmlns:vm="clr-namespace:Severino.App.ViewModels"
+    xmlns:proxy="clr-namespace:Severino.Proxy;assembly=Severino.Proxy"
     mc:Ignorable="d"
     d:DataContext="{d:DesignInstance Type=vm:RequestsViewModel}">
     <UserControl.Resources>
@@ -32,6 +33,40 @@
                 </DataTrigger>
             </Style.Triggers>
         </Style>
+
+        <Style x:Key="DetailLabel" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="12" />
+            <Setter Property="Foreground" Value="{DynamicResource TextFillColorSecondaryBrush}" />
+        </Style>
+        <Style x:Key="Mono" TargetType="TextBlock">
+            <Setter Property="FontFamily" Value="Cascadia Mono, Consolas" />
+            <Setter Property="FontSize" Value="12" />
+            <Setter Property="TextWrapping" Value="Wrap" />
+        </Style>
+        <Style x:Key="BodyBox" TargetType="TextBox" BasedOn="{StaticResource {x:Type TextBox}}">
+            <Setter Property="IsReadOnly" Value="True" />
+            <Setter Property="FontFamily" Value="Cascadia Mono, Consolas" />
+            <Setter Property="FontSize" Value="12" />
+            <Setter Property="TextWrapping" Value="NoWrap" />
+            <Setter Property="VerticalContentAlignment" Value="Top" />
+            <Setter Property="HorizontalScrollBarVisibility" Value="Auto" />
+            <Setter Property="VerticalScrollBarVisibility" Value="Auto" />
+        </Style>
+
+        <!-- A header: the name, then the value, which may be long; right-click copies the value. -->
+        <DataTemplate x:Key="Header" DataType="{x:Type vm:HeaderLine}">
+            <TextBlock Margin="0,0,0,4" Style="{StaticResource Mono}">
+                <TextBlock.ContextMenu>
+                    <ContextMenu>
+                        <MenuItem
+                            Header="{x:Static res:Strings.Requests_CopyValue}"
+                            Command="{Binding Data.CopyTextCommand, Source={StaticResource Root}}"
+                            CommandParameter="{Binding Value}" />
+                    </ContextMenu>
+                </TextBlock.ContextMenu>
+                <Run FontWeight="SemiBold" Text="{Binding Name, Mode=OneWay}" /><Run Text=": " /><Run Foreground="{DynamicResource TextFillColorSecondaryBrush}" Text="{Binding Shown, Mode=OneWay}" />
+            </TextBlock>
+        </DataTemplate>
     </UserControl.Resources>
 
     <Grid Margin="0,20,0,0">
@@ -43,6 +78,8 @@
         <Grid Grid.Row="0" Margin="0,0,0,12">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="Auto" />
                 <ColumnDefinition Width="Auto" />
                 <ColumnDefinition Width="Auto" />
                 <ColumnDefinition Width="Auto" />
@@ -63,8 +100,15 @@
                 Text="{Binding HeldText}"
                 Visibility="{Binding HeldText, Converter={StaticResource NullToCollapsed}}"
                 AutomationProperties.LiveSetting="Polite" />
-            <ComboBox
+            <ui:ToggleSwitch
                 Grid.Column="2"
+                Margin="0,0,16,0"
+                VerticalAlignment="Center"
+                Content="{x:Static res:Strings.Requests_KeepBodies}"
+                ToolTip="{x:Static res:Strings.Requests_KeepBodiesTip}"
+                IsChecked="{Binding CaptureBodies}" />
+            <ComboBox
+                Grid.Column="3"
                 MinWidth="200"
                 Margin="0,0,8,0"
                 VerticalAlignment="Center"
@@ -73,7 +117,7 @@
                 DisplayMemberPath="Label"
                 AutomationProperties.Name="{x:Static res:Strings.Requests_FilterName}" />
             <ui:Button
-                Grid.Column="3"
+                Grid.Column="4"
                 Margin="0,0,8,0"
                 VerticalAlignment="Center"
                 Content="{Binding PauseLabel}"
@@ -90,118 +134,308 @@
                 </ui:Button.Style>
             </ui:Button>
             <ui:Button
-                Grid.Column="4"
+                Grid.Column="5"
                 VerticalAlignment="Center"
                 Icon="{ui:SymbolIcon Delete24}"
                 Content="{x:Static res:Strings.Requests_Clear}"
                 Command="{Binding ClearCommand}" />
+            <ui:Button
+                Grid.Column="6"
+                Margin="8,0,0,0"
+                VerticalAlignment="Center"
+                Appearance="Transparent"
+                Icon="{ui:SymbolIcon MoreHorizontal24}"
+                AutomationProperties.Name="{x:Static res:Strings.Requests_ExportHar}"
+                Click="OnMoreClick">
+                <ui:Button.ContextMenu>
+                    <ContextMenu>
+                        <MenuItem
+                            Header="{x:Static res:Strings.Requests_ExportHar}"
+                            ToolTip="{x:Static res:Strings.Requests_ExportHarTip}"
+                            Command="{Binding Data.ExportHarCommand, Source={StaticResource Root}}" />
+                    </ContextMenu>
+                </ui:Button.ContextMenu>
+            </ui:Button>
         </Grid>
 
-        <DataGrid
-            Grid.Row="1"
-            ItemsSource="{Binding View}"
-            AutoGenerateColumns="False"
-            IsReadOnly="True"
-            CanUserAddRows="False"
-            CanUserDeleteRows="False"
-            CanUserReorderColumns="False"
-            CanUserSortColumns="False"
-            SelectionMode="Single"
-            HeadersVisibility="Column"
-            GridLinesVisibility="None"
-            EnableRowVirtualization="True"
-            VirtualizingPanel.IsVirtualizing="True"
-            VirtualizingPanel.VirtualizationMode="Recycling"
-            Visibility="{Binding IsEmpty, Converter={StaticResource FalseToVisible}}"
-            AutomationProperties.Name="{x:Static res:Strings.Tab_Requests}">
-            <!-- On the grid, not the rows: right-click selects the row, and the menu acts on the selection. -->
-            <DataGrid.ContextMenu>
-                <ContextMenu>
-                    <MenuItem
-                        Header="{x:Static res:Strings.Routes_CopyUrl}"
-                        Command="{Binding Data.CopyUrlCommand, Source={StaticResource Root}}"
-                        CommandParameter="{Binding PlacementTarget.SelectedItem, RelativeSource={RelativeSource AncestorType=ContextMenu}}" />
-                    <MenuItem
-                        Header="{x:Static res:Strings.Routes_OpenInBrowser}"
-                        Command="{Binding Data.OpenCommand, Source={StaticResource Root}}"
-                        CommandParameter="{Binding PlacementTarget.SelectedItem, RelativeSource={RelativeSource AncestorType=ContextMenu}}" />
-                </ContextMenu>
-            </DataGrid.ContextMenu>
-            <DataGrid.Columns>
-                <DataGridTextColumn Width="96" Header="{x:Static res:Strings.Requests_Time}" Binding="{Binding Time, Mode=OneTime}">
-                    <DataGridTextColumn.ElementStyle>
-                        <Style TargetType="TextBlock">
-                            <Setter Property="FontFamily" Value="Cascadia Mono, Consolas" />
-                            <Setter Property="FontSize" Value="12" />
-                            <Setter Property="Foreground" Value="{DynamicResource TextFillColorSecondaryBrush}" />
-                        </Style>
-                    </DataGridTextColumn.ElementStyle>
-                </DataGridTextColumn>
-                <DataGridTextColumn Width="76" Header="{x:Static res:Strings.Requests_Method}" Binding="{Binding Method, Mode=OneTime}" />
-                <DataGridTextColumn Width="2*" Header="{x:Static res:Strings.Requests_Domain}" Binding="{Binding Host, Mode=OneTime}">
-                    <DataGridTextColumn.ElementStyle>
-                        <Style TargetType="TextBlock">
-                            <Setter Property="TextTrimming" Value="CharacterEllipsis" />
-                        </Style>
-                    </DataGridTextColumn.ElementStyle>
-                </DataGridTextColumn>
-                <DataGridTextColumn Width="3*" Header="{x:Static res:Strings.Requests_Path}" Binding="{Binding Path, Mode=OneTime}">
-                    <DataGridTextColumn.ElementStyle>
-                        <Style TargetType="TextBlock">
-                            <Setter Property="TextTrimming" Value="CharacterEllipsis" />
-                            <Setter Property="ToolTip" Value="{Binding Path, Mode=OneTime}" />
-                        </Style>
-                    </DataGridTextColumn.ElementStyle>
-                </DataGridTextColumn>
-                <DataGridTemplateColumn Width="128" Header="Status">
-                    <DataGridTemplateColumn.CellTemplate>
-                        <DataTemplate DataType="{x:Type vm:RequestItemViewModel}">
-                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                                <TextBlock Style="{StaticResource StatusText}" Text="{Binding StatusText, Mode=OneTime}" />
-                                <Border
-                                    Margin="8,0,0,0"
-                                    Padding="5,0,5,1"
-                                    VerticalAlignment="Center"
-                                    CornerRadius="4"
-                                    BorderThickness="1"
-                                    BorderBrush="{DynamicResource ControlStrokeColorDefaultBrush}"
-                                    ToolTip="{x:Static res:Strings.Requests_FromSeverinoTip}"
-                                    Visibility="{Binding FromProxy, Converter={StaticResource TrueToVisible}}">
-                                    <TextBlock FontSize="11" Foreground="{DynamicResource TextFillColorSecondaryBrush}" Text="Severino" />
-                                </Border>
-                            </StackPanel>
-                        </DataTemplate>
-                    </DataGridTemplateColumn.CellTemplate>
-                </DataGridTemplateColumn>
-                <DataGridTextColumn Width="80" Header="{x:Static res:Strings.Requests_Duration}" Binding="{Binding DurationText}">
-                    <DataGridTextColumn.ElementStyle>
-                        <Style TargetType="TextBlock">
-                            <Setter Property="HorizontalAlignment" Value="Right" />
-                            <Setter Property="Foreground" Value="{DynamicResource TextFillColorSecondaryBrush}" />
-                        </Style>
-                    </DataGridTextColumn.ElementStyle>
-                </DataGridTextColumn>
-            </DataGrid.Columns>
-        </DataGrid>
+        <Grid Grid.Row="1">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+            <DataGrid
+                Grid.Column="0"
+                ItemsSource="{Binding View}"
+                SelectedItem="{Binding Selected}"
+                AutoGenerateColumns="False"
+                IsReadOnly="True"
+                CanUserAddRows="False"
+                CanUserDeleteRows="False"
+                CanUserReorderColumns="False"
+                CanUserSortColumns="False"
+                SelectionMode="Single"
+                HeadersVisibility="Column"
+                GridLinesVisibility="None"
+                EnableRowVirtualization="True"
+                VirtualizingPanel.IsVirtualizing="True"
+                VirtualizingPanel.VirtualizationMode="Recycling"
+                Visibility="{Binding IsEmpty, Converter={StaticResource FalseToVisible}}"
+                AutomationProperties.Name="{x:Static res:Strings.Tab_Requests}">
+                <!-- On the grid, not the rows: right-click selects the row, and the menu acts on the selection.
+                     With the details open, time and duration are in the panel: their columns make room. -->
+                <DataGrid.ContextMenu>
+                    <ContextMenu>
+                        <MenuItem
+                            Header="{x:Static res:Strings.Routes_CopyUrl}"
+                            Command="{Binding Data.CopyUrlCommand, Source={StaticResource Root}}"
+                            CommandParameter="{Binding PlacementTarget.SelectedItem, RelativeSource={RelativeSource AncestorType=ContextMenu}}" />
+                        <MenuItem
+                            Header="{x:Static res:Strings.Routes_OpenInBrowser}"
+                            Command="{Binding Data.OpenCommand, Source={StaticResource Root}}"
+                            CommandParameter="{Binding PlacementTarget.SelectedItem, RelativeSource={RelativeSource AncestorType=ContextMenu}}" />
+                    </ContextMenu>
+                </DataGrid.ContextMenu>
+                <DataGrid.Columns>
+                    <DataGridTextColumn Width="96" Header="{x:Static res:Strings.Requests_Time}" Binding="{Binding Time, Mode=OneTime}" Visibility="{Binding Data.HasDetails, Source={StaticResource Root}, Converter={StaticResource FalseToVisible}}">
+                        <DataGridTextColumn.ElementStyle>
+                            <Style TargetType="TextBlock">
+                                <Setter Property="FontFamily" Value="Cascadia Mono, Consolas" />
+                                <Setter Property="FontSize" Value="12" />
+                                <Setter Property="Foreground" Value="{DynamicResource TextFillColorSecondaryBrush}" />
+                            </Style>
+                        </DataGridTextColumn.ElementStyle>
+                    </DataGridTextColumn>
+                    <DataGridTextColumn Width="76" Header="{x:Static res:Strings.Requests_Method}" Binding="{Binding Method, Mode=OneTime}" />
+                    <DataGridTextColumn Width="2*" Header="{x:Static res:Strings.Requests_Domain}" Binding="{Binding Host, Mode=OneTime}">
+                        <DataGridTextColumn.ElementStyle>
+                            <Style TargetType="TextBlock">
+                                <Setter Property="TextTrimming" Value="CharacterEllipsis" />
+                            </Style>
+                        </DataGridTextColumn.ElementStyle>
+                    </DataGridTextColumn>
+                    <DataGridTextColumn Width="3*" Header="{x:Static res:Strings.Requests_Path}" Binding="{Binding Path, Mode=OneTime}">
+                        <DataGridTextColumn.ElementStyle>
+                            <Style TargetType="TextBlock">
+                                <Setter Property="TextTrimming" Value="CharacterEllipsis" />
+                                <Setter Property="ToolTip" Value="{Binding Path, Mode=OneTime}" />
+                            </Style>
+                        </DataGridTextColumn.ElementStyle>
+                    </DataGridTextColumn>
+                    <DataGridTemplateColumn Width="128" Header="Status">
+                        <DataGridTemplateColumn.CellTemplate>
+                            <DataTemplate DataType="{x:Type vm:RequestItemViewModel}">
+                                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                    <TextBlock Style="{StaticResource StatusText}" Text="{Binding StatusText, Mode=OneTime}" />
+                                    <Border
+                                        Margin="8,0,0,0"
+                                        Padding="5,0,5,1"
+                                        VerticalAlignment="Center"
+                                        CornerRadius="4"
+                                        BorderThickness="1"
+                                        BorderBrush="{DynamicResource ControlStrokeColorDefaultBrush}"
+                                        ToolTip="{x:Static res:Strings.Requests_FromSeverinoTip}"
+                                        Visibility="{Binding FromProxy, Converter={StaticResource TrueToVisible}}">
+                                        <TextBlock FontSize="11" Foreground="{DynamicResource TextFillColorSecondaryBrush}" Text="Severino" />
+                                    </Border>
+                                </StackPanel>
+                            </DataTemplate>
+                        </DataGridTemplateColumn.CellTemplate>
+                    </DataGridTemplateColumn>
+                    <DataGridTextColumn Width="80" Header="{x:Static res:Strings.Requests_Duration}" Binding="{Binding DurationText}" Visibility="{Binding Data.HasDetails, Source={StaticResource Root}, Converter={StaticResource FalseToVisible}}">
+                        <DataGridTextColumn.ElementStyle>
+                            <Style TargetType="TextBlock">
+                                <Setter Property="HorizontalAlignment" Value="Right" />
+                                <Setter Property="Foreground" Value="{DynamicResource TextFillColorSecondaryBrush}" />
+                            </Style>
+                        </DataGridTextColumn.ElementStyle>
+                    </DataGridTextColumn>
+                </DataGrid.Columns>
+            </DataGrid>
 
-        <StackPanel
-            Grid.Row="1"
-            MaxWidth="420"
-            HorizontalAlignment="Center"
-            VerticalAlignment="Center"
-            Visibility="{Binding IsEmpty, Converter={StaticResource TrueToVisible}}">
-            <ui:SymbolIcon Symbol="DocumentText24" FontSize="40" HorizontalAlignment="Center" />
-            <ui:TextBlock
-                Margin="0,12,0,4"
+            <StackPanel
+                Grid.Column="0"
+                MaxWidth="420"
                 HorizontalAlignment="Center"
-                FontTypography="Subtitle"
-                Text="{x:Static res:Strings.Requests_EmptyTitle}" />
-            <ui:TextBlock
-                HorizontalAlignment="Center"
-                TextAlignment="Center"
-                TextWrapping="Wrap"
-                Foreground="{DynamicResource TextFillColorSecondaryBrush}"
-                Text="{Binding EmptyText}" />
-        </StackPanel>
+                VerticalAlignment="Center"
+                Visibility="{Binding IsEmpty, Converter={StaticResource TrueToVisible}}">
+                <ui:SymbolIcon Symbol="DocumentText24" FontSize="40" HorizontalAlignment="Center" />
+                <ui:TextBlock
+                    Margin="0,12,0,4"
+                    HorizontalAlignment="Center"
+                    FontTypography="Subtitle"
+                    Text="{x:Static res:Strings.Requests_EmptyTitle}" />
+                <ui:TextBlock
+                    HorizontalAlignment="Center"
+                    TextAlignment="Center"
+                    TextWrapping="Wrap"
+                    Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                    Text="{Binding EmptyText}" />
+            </StackPanel>
+            <!-- One request: open while a row is selected, so the list can be walked with it open. -->
+            <Border
+                Grid.Column="1"
+                Width="400"
+                Margin="12,0,0,0"
+                Padding="16,12,16,16"
+                CornerRadius="8"
+                BorderThickness="1"
+                BorderBrush="{DynamicResource ControlStrokeColorDefaultBrush}"
+                Background="{DynamicResource CardBackgroundFillColorDefaultBrush}"
+                DataContext="{Binding Details}"
+                Visibility="{Binding Data.HasDetails, Source={StaticResource Root}, Converter={StaticResource TrueToVisible}}"
+                AutomationProperties.Name="{x:Static res:Strings.Requests_Details}">
+                <DockPanel>
+                    <Grid DockPanel.Dock="Top">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <TextBlock
+                            VerticalAlignment="Center"
+                            FontSize="14"
+                            FontWeight="SemiBold"
+                            TextTrimming="CharacterEllipsis"
+                            Text="{Binding Title}"
+                            ToolTip="{Binding Title}" />
+                        <ui:Button
+                            Grid.Column="1"
+                            Margin="8,0,0,0"
+                            Padding="6"
+                            Appearance="Transparent"
+                            BorderThickness="0"
+                            Icon="{ui:SymbolIcon Dismiss16}"
+                            ToolTip="{x:Static res:Strings.Requests_CloseDetails}"
+                            AutomationProperties.Name="{x:Static res:Strings.Requests_CloseDetails}"
+                            Command="{Binding Data.CloseDetailsCommand, Source={StaticResource Root}}" />
+                    </Grid>
+                    <TextBlock
+                        DockPanel.Dock="Top"
+                        Margin="0,2,0,10"
+                        Style="{StaticResource Mono}"
+                        Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                        Text="{Binding Url}" />
+
+                    <WrapPanel DockPanel.Dock="Top" Visibility="{Binding IsHttp, Converter={StaticResource TrueToVisible}}">
+                        <ui:Button Icon="{ui:SymbolIcon Copy16}" Content="{x:Static res:Strings.Requests_CopyCurl}" Click="OnMoreClick">
+                            <ui:Button.ContextMenu>
+                                <ContextMenu>
+                                    <MenuItem
+                                        Header="{x:Static res:Strings.Requests_CurlPowerShell}"
+                                        Command="{Binding Data.CopyCurlCommand, Source={StaticResource Root}}"
+                                        CommandParameter="{x:Static proxy:CurlShell.PowerShell}" />
+                                    <MenuItem
+                                        Header="{x:Static res:Strings.Requests_CurlBash}"
+                                        Command="{Binding Data.CopyCurlCommand, Source={StaticResource Root}}"
+                                        CommandParameter="{x:Static proxy:CurlShell.Bash}" />
+                                </ContextMenu>
+                            </ui:Button.ContextMenu>
+                        </ui:Button>
+                        <ui:Button
+                            Margin="8,0,0,0"
+                            Icon="{ui:SymbolIcon ArrowRepeatAll16}"
+                            Content="{x:Static res:Strings.Requests_Repeat}"
+                            ToolTip="{x:Static res:Strings.Requests_RepeatTip}"
+                            Command="{Binding Data.RepeatCommand, Source={StaticResource Root}}" />
+                    </WrapPanel>
+                    <TextBlock
+                        DockPanel.Dock="Top"
+                        Margin="0,8,0,0"
+                        TextWrapping="Wrap"
+                        Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                        Text="{Binding Message}"
+                        Visibility="{Binding Message, Converter={StaticResource NullToCollapsed}}"
+                        AutomationProperties.LiveSetting="Polite" />
+
+                    <TabControl Margin="0,12,0,0" SelectedIndex="{Binding Data.DetailsTab, Source={StaticResource Root}}">
+                        <TabItem Header="{x:Static res:Strings.Requests_TabGeneral}">
+                            <ScrollViewer Margin="0,12,0,0" VerticalScrollBarVisibility="Auto">
+                                <StackPanel>
+                                    <ItemsControl ItemsSource="{Binding General}">
+                                        <ItemsControl.ItemTemplate>
+                                            <DataTemplate DataType="{x:Type vm:DetailLine}">
+                                                <Grid Margin="0,0,0,8">
+                                                    <Grid.ColumnDefinitions>
+                                                        <ColumnDefinition Width="96" />
+                                                        <ColumnDefinition Width="*" />
+                                                    </Grid.ColumnDefinitions>
+                                                    <TextBlock Style="{StaticResource DetailLabel}" Text="{Binding Label}" />
+                                                    <TextBlock Grid.Column="1" TextWrapping="Wrap" Text="{Binding Value}" />
+                                                </Grid>
+                                            </DataTemplate>
+                                        </ItemsControl.ItemTemplate>
+                                    </ItemsControl>
+                                    <TextBlock
+                                        TextWrapping="Wrap"
+                                        Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                                        Text="{x:Static res:Strings.Requests_TcpDetails}"
+                                        Visibility="{Binding IsHttp, Converter={StaticResource FalseToVisible}}" />
+                                </StackPanel>
+                            </ScrollViewer>
+                        </TabItem>
+
+                        <TabItem Header="{x:Static res:Strings.Requests_TabHeaders}" Visibility="{Binding IsHttp, Converter={StaticResource TrueToVisible}}">
+                            <ScrollViewer Margin="0,12,0,0" VerticalScrollBarVisibility="Auto">
+                                <StackPanel>
+                                    <CheckBox
+                                        Margin="0,0,0,8"
+                                        Content="{x:Static res:Strings.Requests_ShowHidden}"
+                                        IsChecked="{Binding ShowHidden}"
+                                        Visibility="{Binding HasHidden, Converter={StaticResource TrueToVisible}}" />
+                                    <TextBlock
+                                        Margin="0,0,0,8"
+                                        TextWrapping="Wrap"
+                                        Foreground="{DynamicResource SystemFillColorCautionBrush}"
+                                        Text="{Binding HeadersCutText}"
+                                        Visibility="{Binding HeadersCutText, Converter={StaticResource NullToCollapsed}}" />
+                                    <ui:TextBlock Margin="0,0,0,6" FontTypography="BodyStrong" Text="{x:Static res:Strings.Requests_Sent}" />
+                                    <ItemsControl ItemsSource="{Binding RequestHeaders}" ItemTemplate="{StaticResource Header}" />
+                                    <ui:TextBlock Margin="0,12,0,6" FontTypography="BodyStrong" Text="{x:Static res:Strings.Requests_Received}" />
+                                    <ItemsControl ItemsSource="{Binding ResponseHeaders}" ItemTemplate="{StaticResource Header}" />
+                                </StackPanel>
+                            </ScrollViewer>
+                        </TabItem>
+
+                        <TabItem Header="{x:Static res:Strings.Requests_TabBody}" Visibility="{Binding IsHttp, Converter={StaticResource TrueToVisible}}">
+                            <Grid Margin="0,12,0,0">
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="*" />
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="*" />
+                                </Grid.RowDefinitions>
+                                <StackPanel Grid.Row="0" Margin="0,0,0,6">
+                                    <ui:TextBlock FontTypography="BodyStrong" Text="{x:Static res:Strings.Requests_Sent}" />
+                                    <TextBlock
+                                        TextWrapping="Wrap"
+                                        Style="{StaticResource DetailLabel}"
+                                        Text="{Binding RequestBodyNote}"
+                                        Visibility="{Binding RequestBodyNote, Converter={StaticResource NullToCollapsed}}" />
+                                </StackPanel>
+                                <TextBox
+                                    Grid.Row="1"
+                                    Style="{StaticResource BodyBox}"
+                                    Text="{Binding RequestBodyText, Mode=OneWay}"
+                                    AutomationProperties.Name="{x:Static res:Strings.Requests_Sent}"
+                                    Visibility="{Binding RequestBodyText, Converter={StaticResource NullToCollapsed}}" />
+                                <StackPanel Grid.Row="2" Margin="0,12,0,6">
+                                    <ui:TextBlock FontTypography="BodyStrong" Text="{x:Static res:Strings.Requests_Received}" />
+                                    <TextBlock
+                                        TextWrapping="Wrap"
+                                        Style="{StaticResource DetailLabel}"
+                                        Text="{Binding ResponseBodyNote}"
+                                        Visibility="{Binding ResponseBodyNote, Converter={StaticResource NullToCollapsed}}" />
+                                </StackPanel>
+                                <TextBox
+                                    Grid.Row="3"
+                                    Style="{StaticResource BodyBox}"
+                                    Text="{Binding ResponseBodyText, Mode=OneWay}"
+                                    AutomationProperties.Name="{x:Static res:Strings.Requests_Received}"
+                                    Visibility="{Binding ResponseBodyText, Converter={StaticResource NullToCollapsed}}" />
+                            </Grid>
+                        </TabItem>
+                    </TabControl>
+                </DockPanel>
+            </Border>
+        </Grid>
     </Grid>
 </UserControl>

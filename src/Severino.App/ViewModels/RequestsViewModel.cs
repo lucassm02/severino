@@ -1,6 +1,8 @@
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Globalization;
+using System.IO;
+using System.Net.Http;
 using System.Windows;
 using System.Windows.Data;
 using System.Windows.Threading;
@@ -153,12 +155,103 @@ public sealed partial class RequestsViewModel : ObservableObject
     [RelayCommand]
     private void Clear()
     {
+        Selected = null;
         _log.Clear();
         _held.Clear();
         _open.Clear();
         Items.Clear();
         HeldCount = 0;
         OnPropertyChanged(nameof(IsEmpty));
+    }
+
+    /// <summary>The row whose details are open in the side panel.</summary>
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(HasDetails))]
+    public partial RequestItemViewModel? Selected { get; set; }
+
+    [ObservableProperty]
+    public partial RequestDetailsViewModel? Details { get; private set; }
+
+    public bool HasDetails => Selected is not null;
+
+    /// <summary>The panel's tab, kept while walking the list.</summary>
+    [ObservableProperty]
+    public partial int DetailsTab { get; set; }
+
+    partial void OnSelectedChanged(RequestItemViewModel? value) =>
+        Details = value is null ? null : new RequestDetailsViewModel(value, RouteName(value.Entry.Details?.RouteId), CaptureBodies);
+
+    /// <summary>The log's switch, here so the tab shows it.</summary>
+    public bool CaptureBodies
+    {
+        get => _log.CaptureBodies;
+        set
+        {
+            if (_log.CaptureBodies == value)
+                return;
+            _log.CaptureBodies = value;
+            OnPropertyChanged();
+        }
+    }
+
+    [RelayCommand]
+    private void CloseDetails() => Selected = null;
+
+    [RelayCommand]
+    private void CopyCurl(CurlShell shell)
+    {
+        if (Details is { } details)
+            Clipboard.SetText(RequestExport.ToCurl(details.Item.Entry, shell));
+    }
+
+    [RelayCommand]
+    private async Task RepeatAsync()
+    {
+        if (Details is not { } details)
+            return;
+        if (!details.CanReplay)
+        {
+            details.Message = Strings.Requests_CannotRepeat;
+            return;
+        }
+        try
+        {
+            var https = _proxy.HttpsStatus.State == ProxyState.Running ? _proxy.HttpsStatus.Port : (int?)null;
+            var status = await RequestExport.ReplayAsync(details.Item.Entry, _proxy.Status.Port, https);
+            details.Message = string.Format(Strings.Requests_Repeated, status);
+        }
+        catch (Exception ex) when (ex is HttpRequestException or InvalidOperationException or TaskCanceledException)
+        {
+            details.Message = string.Format(Strings.Requests_RepeatFailed, ex.Message);
+        }
+    }
+
+    /// <summary>The rows on the list, as filtered, into a HAR file.</summary>
+    [RelayCommand]
+    private void ExportHar()
+    {
+        if (DialogService.PickSavePath($"severino-{DateTime.Now:yyyyMMdd-HHmmss}.har", Strings.Requests_HarFilter) is not { } path)
+            return;
+        var entries = View.Cast<RequestItemViewModel>().Select(i => i.Entry);
+        var version = (typeof(RequestsViewModel).Assembly.GetName().Version ?? new Version(0, 0, 0)).ToString(3);
+        try
+        {
+            File.WriteAllText(path, RequestExport.ToHar(entries, version));
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+        {
+            DialogService.ShowMessage(Strings.Requests_ExportHar, string.Format(Strings.Common_CouldNotWriteFile, ex.Message));
+        }
+    }
+
+    private string? RouteName(Guid? id) =>
+        id is { } routeId && _config.Current.Routes.FirstOrDefault(r => r.Id == routeId) is { } route ? route.Domain + route.Path : null;
+
+    [RelayCommand]
+    private static void CopyText(string? text)
+    {
+        if (!string.IsNullOrEmpty(text))
+            Clipboard.SetText(text);
     }
 
     [RelayCommand]

@@ -8,6 +8,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+### Added
+
+- Request details: clicking a line in Requests opens its headers, sizes, where it went and, with **Keep bodies** on, the first 64 KB of each text body. **Copy as curl** (PowerShell or bash), **Repeat** and **Export HAR**.
+
 ### Fixed
 
 - The editors (route, service, DNS entry) and the first-run wizard sometimes opened blank, with only the frame and the text cursor.

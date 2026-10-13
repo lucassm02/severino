@@ -1642,4 +1642,121 @@ Adicionar esses domínios às exceções do proxy? Eles entram na mesma lista de
   <data name="Wsl_Stopped" xml:space="preserve">
     <value>Parada. Recebe os nomes quando iniciar.</value>
   </data>
+  <data name="Requests_KeepBodies" xml:space="preserve">
+    <value>Guardar corpos</value>
+  </data>
+  <data name="Requests_KeepBodiesTip" xml:space="preserve">
+    <value>Guarda os primeiros 64 KB dos corpos de texto, na ida e na volta, a partir das próximas requisições. Só na memória, como o resto do log.</value>
+  </data>
+  <data name="Requests_ExportHar" xml:space="preserve">
+    <value>Exportar HAR</value>
+  </data>
+  <data name="Requests_ExportHarTip" xml:space="preserve">
+    <value>Salva as requisições da lista num arquivo .har que o DevTools do navegador abre</value>
+  </data>
+  <data name="Requests_HarFilter" xml:space="preserve">
+    <value>Arquivo HAR (*.har)|*.har</value>
+  </data>
+  <data name="Requests_Details" xml:space="preserve">
+    <value>Detalhes da requisição</value>
+  </data>
+  <data name="Requests_CloseDetails" xml:space="preserve">
+    <value>Fechar os detalhes</value>
+  </data>
+  <data name="Requests_CopyCurl" xml:space="preserve">
+    <value>Copiar como curl</value>
+  </data>
+  <data name="Requests_CurlPowerShell" xml:space="preserve">
+    <value>Para PowerShell (curl.exe)</value>
+  </data>
+  <data name="Requests_CurlBash" xml:space="preserve">
+    <value>Para bash</value>
+  </data>
+  <data name="Requests_Repeat" xml:space="preserve">
+    <value>Repetir</value>
+  </data>
+  <data name="Requests_RepeatTip" xml:space="preserve">
+    <value>Manda a mesma requisição de novo pelo Severino; ela aparece como uma linha nova</value>
+  </data>
+  <data name="Requests_CannotRepeat" xml:space="preserve">
+    <value>O corpo dela não foi guardado, então não dá para mandar igual. Ligue “Guardar corpos” e tente com a próxima.</value>
+  </data>
+  <data name="Requests_Repeated" xml:space="preserve">
+    <value>Mandada de novo: {0}.</value>
+  </data>
+  <data name="Requests_RepeatFailed" xml:space="preserve">
+    <value>Não deu para mandar de novo: {0}</value>
+  </data>
+  <data name="Requests_TabGeneral" xml:space="preserve">
+    <value>Geral</value>
+  </data>
+  <data name="Requests_TabHeaders" xml:space="preserve">
+    <value>Cabeçalhos</value>
+  </data>
+  <data name="Requests_TabBody" xml:space="preserve">
+    <value>Corpo</value>
+  </data>
+  <data name="Requests_Sent" xml:space="preserve">
+    <value>Ida</value>
+  </data>
+  <data name="Requests_Received" xml:space="preserve">
+    <value>Volta</value>
+  </data>
+  <data name="Requests_Route" xml:space="preserve">
+    <value>Rota</value>
+  </data>
+  <data name="Requests_Target" xml:space="preserve">
+    <value>Foi para</value>
+  </data>
+  <data name="Requests_AnsweredBySeverino" xml:space="preserve">
+    <value>Respondida pelo Severino</value>
+  </data>
+  <data name="Requests_SentBytes" xml:space="preserve">
+    <value>Enviado</value>
+  </data>
+  <data name="Requests_ReceivedBytes" xml:space="preserve">
+    <value>Recebido</value>
+  </data>
+  <data name="Requests_ShowHidden" xml:space="preserve">
+    <value>Mostrar valores ocultos</value>
+  </data>
+  <data name="Requests_HeadersCut" xml:space="preserve">
+    <value>Só os primeiros 16 KB de cabeçalhos foram guardados.</value>
+  </data>
+  <data name="Requests_NoHeaders" xml:space="preserve">
+    <value>Sem cabeçalhos.</value>
+  </data>
+  <data name="Requests_TcpDetails" xml:space="preserve">
+    <value>Uma conexão de serviço passa bytes, não HTTP: não há cabeçalhos nem corpo para mostrar.</value>
+  </data>
+  <data name="Requests_BodyOff" xml:space="preserve">
+    <value>Os corpos não estão sendo guardados. Ligue “Guardar corpos” para vê-los a partir das próximas requisições.</value>
+  </data>
+  <data name="Requests_BodyNotKept" xml:space="preserve">
+    <value>Não foi guardado: passou antes de “Guardar corpos” ser ligado.</value>
+  </data>
+  <data name="Requests_BodyEmpty" xml:space="preserve">
+    <value>Sem corpo.</value>
+  </data>
+  <data name="Requests_BodyNotText" xml:space="preserve">
+    <value>{0}, {1}: não é texto, então não foi guardado.</value>
+  </data>
+  <data name="Requests_BodyCut" xml:space="preserve">
+    <value>Os primeiros 64 KB de {0}.</value>
+  </data>
+  <data name="Requests_BodyUnreadable" xml:space="preserve">
+    <value>Comprimido com {0}; não deu para abrir.</value>
+  </data>
+  <data name="Requests_CopyValue" xml:space="preserve">
+    <value>Copiar o valor</value>
+  </data>
+  <data name="Common_SizeBytes" xml:space="preserve">
+    <value>{0} B</value>
+  </data>
+  <data name="Common_SizeKb" xml:space="preserve">
+    <value>{0:0.#} KB</value>
+  </data>
+  <data name="Common_SizeMb" xml:space="preserve">
+    <value>{0:0.#} MB</value>
+  </data>
 </root>
