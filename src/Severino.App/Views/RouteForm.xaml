@@ -163,7 +163,21 @@
             <ui:TextBlock
                 Style="{StaticResource Hint}"
                 Text="{x:Static res:Strings.RouteForm_GroupHint}" />
+            <ui:TextBlock Margin="0,16,0,6" FontTypography="BodyStrong" Text="{x:Static res:Strings.Env_Field}" />
+            <ComboBox
+                IsEditable="True"
+                IsTextSearchEnabled="False"
+                ItemsSource="{Binding EnvironmentSuggestions}"
+                Text="{Binding Environment, UpdateSourceTrigger=PropertyChanged}"
+                AutomationProperties.Name="{x:Static res:Strings.Env_FieldName}" />
+            <ui:TextBlock
+                Margin="0,4,0,0"
+                TextWrapping="Wrap"
+                FontTypography="Caption"
+                Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                Text="{x:Static res:Strings.Env_FieldHint}" />
         </StackPanel>
+
 
         <!-- The first-run wizard asks about HTTPS its own way, before the CA exists. -->
         <StackPanel Margin="0,16,0,0" Visibility="{Binding ShowHttpsOptions, Converter={StaticResource TrueToVisible}}">

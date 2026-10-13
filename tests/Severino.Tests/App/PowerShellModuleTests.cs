@@ -26,7 +26,7 @@ public sealed class PowerShellModuleTests : IAsyncLifetime
         Directory.CreateDirectory(_dir);
         File.WriteAllText(Path.Combine(_dir, "hosts"), "10.0.0.8 sql.interno\r\n");
         var external = new ExternalHosts(Path.Combine(_dir, "hosts"));
-        _handler = new ControlHandler(new RouteService(_config, external), new DnsService(_config, external, new NoHelper()), new ServiceRouteService(_config, external), external);
+        _handler = new ControlHandler(new RouteService(_config, external), new DnsService(_config, external, new NoHelper()), new ServiceRouteService(_config, external), external, _config);
         _server = new ControlServer(_handler, NullLogger<ControlServer>.Instance, _pipe);
         _server.Start();
         return Task.CompletedTask;
@@ -53,6 +53,27 @@ public sealed class PowerShellModuleTests : IAsyncLifetime
         Assert.True(Send("routes.set-enabled", new JsonObject { ["group"] = "meuapp", ["enabled"] = false })["ok"]!.GetValue<bool>());
         Assert.False(_config.Current.Routes[0].Enabled);
         Assert.Equal("Pedido inválido.", JsonNode.Parse(_handler.Handle("nada"))!["error"]!.GetValue<string>());
+    }
+
+    [Fact]
+    public async Task The_module_switches_environments_and_keeps_one_name_per_environment()
+    {
+        var module = Path.Combine(Root(), "powershell", "Severino", "Severino.psd1");
+        var script =
+            $"Import-Module '{module}'; " +
+            "Set-SeverinoDns sql.banco 192.168.100.8 -Environment producao | Out-Null; " +
+            "Set-SeverinoDns sql.banco 192.168.203.150 -Environment staging | Out-Null; " +
+            "Set-SeverinoEnvironment staging | Out-Null; $e = Get-SeverinoEnvironment; " +
+            "\"$($e.active)|$($e.environments -join ',')\"; " +
+            "try { Set-SeverinoEnvironment homologacao } catch { \"erro: $($_.Exception.Message)\" }";
+
+        var output = await RunPowerShellAsync(script);
+
+        Assert.Contains("staging|producao,staging", output);
+        Assert.Contains("erro: Não há o ambiente homologacao.", output);
+        Assert.Equal(2, _config.Current.DnsEntries.Count);
+        Assert.Equal("staging", _config.Current.Settings.ActiveEnvironment);
+        Assert.Equal(["192.168.203.150"], DnsRules.BlockEntries(Environments.Effective(_config.Current).DnsEntries).Select(e => e.Address));
     }
 
     [Fact]

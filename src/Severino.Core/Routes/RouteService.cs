@@ -7,9 +7,12 @@ public sealed class RouteService(ConfigService config, Dns.ExternalHosts? extern
 {
     public IReadOnlyList<RouteEntry> Routes => config.Current.Routes;
 
+    /// <summary>The environments in use, as suggestions for the editors.</summary>
+    public IReadOnlyList<string> EnvironmentNames => Environments.List(config.Current);
+
     public RouteErrors Validate(RouteEntry route) =>
         RouteRules.Validate(route, Routes, config.Current.Settings.HttpPort, config.Current.Settings.HttpsPort, config.Current.Services,
-            Dns.DnsRules.Names(config.Current.DnsEntries), external?.Names);
+            Dns.DnsRules.Names(config.Current.DnsEntries, route.Environment), external?.Names);
 
     /// <summary>Adds the route, or replaces the one with the same id. Domain is stored normalized.</summary>
     /// <exception cref="ArgumentException">The route does not pass <see cref="Validate"/>.</exception>

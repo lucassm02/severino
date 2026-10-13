@@ -29,6 +29,9 @@ public sealed class DnsService(ConfigService config, ExternalHosts external, IHe
 {
     public IReadOnlyList<DnsEntry> Entries => config.Current.DnsEntries;
 
+    /// <summary>The environments in use, as suggestions for the editors.</summary>
+    public IReadOnlyList<string> EnvironmentNames => Environments.List(config.Current);
+
     /// <summary>
     /// Names that resolve through the hosts and can be a route's or a service's destination:
     /// Severino's enabled entries, then the lines from outside it.

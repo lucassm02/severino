@@ -8,6 +8,9 @@ public sealed class ServiceRouteService(ConfigService config, Dns.ExternalHosts?
 {
     public IReadOnlyList<ServiceRoute> Services => config.Current.Services;
 
+    /// <summary>The environments in use, as suggestions for the editors.</summary>
+    public IReadOnlyList<string> EnvironmentNames => Environments.List(config.Current);
+
     /// <summary>Names an import must leave alone: DNS entries and hosts lines outside Severino.</summary>
     private IEnumerable<string> OtherNames(SeverinoConfig c) =>
         Dns.DnsRules.Names(c.DnsEntries).Concat(external?.Names ?? Enumerable.Empty<string>());
@@ -37,7 +40,7 @@ public sealed class ServiceRouteService(ConfigService config, Dns.ExternalHosts?
     }
 
     public (ServiceRoute? Normalized, string? Error) Validate(ServiceRoute route) =>
-        ServiceRules.Validate(route, Services, config.Current.Routes, Dns.DnsRules.Names(config.Current.DnsEntries), external?.Names);
+        ServiceRules.Validate(route, Services, config.Current.Routes, Dns.DnsRules.Names(config.Current.DnsEntries, route.Environment), external?.Names);
 
     /// <summary>Adds the route, or replaces the one with the same id.</summary>
     /// <exception cref="ArgumentException">The route does not pass <see cref="Validate"/>.</exception>
@@ -91,7 +94,7 @@ public sealed class ServiceRouteService(ConfigService config, Dns.ExternalHosts?
                 var route = services.Any(s => s.Address == original.Address)
                     ? original with { Address = ServiceRules.NextAddress(services) }
                     : original;
-                if (services.Any(s => s.Id == route.Id) || ServiceRules.Validate(route, services, c.Routes, Dns.DnsRules.Names(c.DnsEntries), external?.Names).Error is not null)
+                if (services.Any(s => s.Id == route.Id) || ServiceRules.Validate(route, services, c.Routes, Dns.DnsRules.Names(c.DnsEntries, route.Environment), external?.Names).Error is not null)
                     continue;
                 services.Add(route);
                 restored++;

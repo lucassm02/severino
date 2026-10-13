@@ -258,4 +258,10 @@
   <data name="Rules_BadStatus" xml:space="preserve">
     <value>Uma falha simulada responde com um destes: {0}.</value>
   </data>
+  <data name="Control_UnknownCommand" xml:space="preserve">
+    <value>Comando desconhecido: {0}</value>
+  </data>
+  <data name="Control_NoEnvironment" xml:space="preserve">
+    <value>Não há o ambiente {0}. Os que estão em uso: {1}.</value>
+  </data>
 </root>

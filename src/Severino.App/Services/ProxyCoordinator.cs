@@ -14,9 +14,12 @@ public sealed class ProxyCoordinator(ConfigService config, ProxyServer proxy, He
     /// <summary>HTTPS listens only while the local CA is active and trusted.</summary>
     private int? HttpsPort => ca.Status.State == LocalCaState.Active ? config.Current.Settings.HttpsPort : null;
 
+    /// <summary>What counts now: items of another environment switched off (see <see cref="Environments"/>).</summary>
+    private SeverinoConfig Effective => Environments.Effective(config.Current);
+
     public async Task StartAsync()
     {
-        var current = config.Current;
+        var current = Effective;
         ca.Load();
         health.Update(current.Routes, current.Services);
         health.Start();
@@ -35,8 +38,9 @@ public sealed class ProxyCoordinator(ConfigService config, ProxyServer proxy, He
     {
         if (IsPaused)
             return;
-        await proxy.StartAsync(config.Current.Settings.HttpPort, HttpsPort, config.Current.Routes);
-        await services.UpdateAsync(config.Current.Services);
+        var current = Effective;
+        await proxy.StartAsync(current.Settings.HttpPort, HttpsPort, current.Routes);
+        await services.UpdateAsync(current.Services);
     }
 
     public bool IsStopped { get; private set; }
@@ -74,8 +78,9 @@ public sealed class ProxyCoordinator(ConfigService config, ProxyServer proxy, He
         IsPaused = false;
         PausedChanged?.Invoke(this, EventArgs.Empty);
         hosts.Resume();
-        await proxy.StartAsync(config.Current.Settings.HttpPort, HttpsPort, config.Current.Routes);
-        await services.UpdateAsync(config.Current.Services);
+        var current = Effective;
+        await proxy.StartAsync(current.Settings.HttpPort, HttpsPort, current.Routes);
+        await services.UpdateAsync(current.Services);
         await wsl.ResumeAsync();
         forwards?.Resume();
         watcher?.Resume();
@@ -114,8 +119,9 @@ public sealed class ProxyCoordinator(ConfigService config, ProxyServer proxy, He
         }
     }
 
-    private void OnConfigChanged(object? sender, SeverinoConfig updated)
+    private void OnConfigChanged(object? sender, SeverinoConfig changed)
     {
+        var updated = Environments.Effective(changed);
         health.Update(updated.Routes, updated.Services);
         if (IsPaused)
             return; // ResumeAsync starts from the config of that moment.

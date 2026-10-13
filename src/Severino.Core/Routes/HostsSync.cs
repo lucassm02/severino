@@ -69,7 +69,7 @@ public sealed class HostsSync : IDisposable
             if (_stopped || _paused)
                 return;
 
-            var entries = HostsEntries.For(_config.Current);
+            var entries = HostsEntries.For(Environments.Effective(_config.Current));
             var upToDate = Status.State == HostsSyncState.Synced && _synced is not null && _synced.SequenceEqual(entries);
 
             // Nothing to write: still ping, so a Helper that stopped shows up in the status bar.

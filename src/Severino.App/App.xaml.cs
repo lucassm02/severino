@@ -304,6 +304,7 @@ public partial class App : Application
         services.AddSingleton<StatusBarViewModel>();
         services.AddSingleton<UpdatesViewModel>();
         services.AddSingleton<TrayViewModel>();
+        services.AddSingleton<EnvironmentsViewModel>();
 
         return builder.Build();
     }

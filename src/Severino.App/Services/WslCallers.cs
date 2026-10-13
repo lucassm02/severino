@@ -153,7 +153,7 @@ public sealed class WslCallers(ConfigService config, IWslShell shell, ServiceDis
         }
         try
         {
-            var current = config.Current;
+            var current = Environments.Effective(config.Current);
             var chosen = current.Settings.WslDistros;
             var running = (await discovery.SourcesAsync(cancellationToken)).Where(s => s.IsWsl).Select(s => s.Distro!).ToHashSet(StringComparer.OrdinalIgnoreCase);
 

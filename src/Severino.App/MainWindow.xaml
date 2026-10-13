@@ -25,6 +25,12 @@
             <Setter Property="Padding" Value="4,2" />
             <Setter Property="Foreground" Value="{DynamicResource SystemFillColorCautionBrush}" />
         </Style>
+        <!-- A choice, not a problem: the accent colour, with a chevron saying it opens a list. -->
+        <Style x:Key="StatusChoice" TargetType="ui:Button" BasedOn="{StaticResource StatusLink}">
+            <Setter Property="Foreground" Value="{DynamicResource AccentTextFillColorPrimaryBrush}" />
+            <Setter Property="Icon" Value="{ui:SymbolIcon ChevronDown16}" />
+            <Setter Property="FlowDirection" Value="RightToLeft" />
+        </Style>
     </ui:FluentWindow.Resources>
 
     <Grid>
@@ -109,7 +115,30 @@
             </TabItem>
         </TabControl>
 
-        <StackPanel
+        <!-- The active environment, while some item has one; a click picks another. -->
+        <ui:Button
+            Grid.Row="3"
+            Margin="16,0,16,8"
+            HorizontalAlignment="Right"
+            Style="{StaticResource StatusChoice}"
+            DataContext="{Binding Environments}"
+            Content="{Binding Label}"
+            ToolTip="{x:Static res:Strings.Env_StatusTip}"
+            Visibility="{Binding HasAny, Converter={StaticResource TrueToVisible}, FallbackValue=Collapsed}"
+            Click="OnMoreClick">
+            <ui:Button.ContextMenu>
+                <ContextMenu FlowDirection="LeftToRight" ItemsSource="{Binding Choices}">
+                    <ContextMenu.ItemContainerStyle>
+                        <Style TargetType="MenuItem" BasedOn="{StaticResource {x:Type MenuItem}}">
+                            <Setter Property="Header" Value="{Binding Label}" />
+                            <Setter Property="IsChecked" Value="{Binding IsActive, Mode=OneWay}" />
+                            <Setter Property="Command" Value="{Binding DataContext.SelectCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}" />
+                            <Setter Property="CommandParameter" Value="{Binding Name}" />
+                        </Style>
+                    </ContextMenu.ItemContainerStyle>
+                </ContextMenu>
+            </ui:Button.ContextMenu>
+        </ui:Button>        <StackPanel
             Grid.Row="3"
             Margin="16,0,16,8"
             DataContext="{Binding Status}"

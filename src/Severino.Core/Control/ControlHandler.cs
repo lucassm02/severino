@@ -12,7 +12,7 @@ namespace Severino.Core.Control;
 /// <c>{"command": "routes.add", "args": {...}}</c> → <c>{"ok": true, "data": ...}</c>. Every change
 /// goes through the same services and validations as the app's own screens.
 /// </summary>
-public sealed class ControlHandler(RouteService routes, DnsService dns, ServiceRouteService services, ExternalHosts? external = null)
+public sealed class ControlHandler(RouteService routes, DnsService dns, ServiceRouteService services, ExternalHosts? external = null, ConfigService? config = null)
 {
     public const int MaxMessageBytes = 256 * 1024;
 
@@ -43,7 +43,9 @@ public sealed class ControlHandler(RouteService routes, DnsService dns, ServiceR
                 "dns.set" => SetDns(args),
                 "dns.remove" => RemoveDns(args),
                 "services.list" => Ok(new JsonArray([.. services.Services.Select(Service)])),
-                _ => Fail($"Comando desconhecido: {command}"),
+                "environments.list" => Ok(EnvironmentList()),
+                "environments.set" => SetEnvironment(args),
+                _ => Fail(string.Format(Strings.Control_UnknownCommand, command)),
             };
         }
         catch (ArgumentException ex)
@@ -65,6 +67,7 @@ public sealed class ControlHandler(RouteService routes, DnsService dns, ServiceR
             RedirectToHttps = https && Bool(args, "redirect", true),
             Group = Text(args, "group"),
             Notes = Text(args, "notes"),
+            Environment = Text(args, "environment"),
         });
         return Ok(Route(saved));
     }
@@ -95,8 +98,34 @@ public sealed class ControlHandler(RouteService routes, DnsService dns, ServiceR
     {
         var domain = RouteRules.Normalize(Text(args, "domain")) ?? throw new ArgumentException(Strings.Control_DomainRequired);
         var path = RouteRules.NormalizePath(Text(args, "path")) ?? throw new ArgumentException(Strings.Control_BadPath);
-        return routes.Routes.FirstOrDefault(r => r.Domain == domain && r.Path == path)
+        // The same domain may be in several environments: the one asked, else the one that counts now.
+        var candidates = routes.Routes.Where(r => r.Domain == domain && r.Path == path && InEnvironment(r.Environment, args)).ToList();
+        return candidates.FirstOrDefault(r => config is null || Environments.IsActive(r.Environment, config.Current)) ?? candidates.FirstOrDefault()
             ?? throw new ArgumentException(string.Format(Strings.Control_NoRoute, domain + path));
+    }
+
+    /// <summary>No "environment" argument matches any; one given matches only it, "" being none.</summary>
+    private static bool InEnvironment(string environment, JsonObject args) =>
+        !args.ContainsKey("environment") || Environments.Same(environment, Text(args, "environment"));
+
+    private JsonObject EnvironmentList() => new()
+    {
+        ["active"] = config?.Current.Settings.ActiveEnvironment ?? "",
+        ["environments"] = new JsonArray([.. (config is null ? [] : Environments.List(config.Current)).Select(e => JsonValue.Create(e))]),
+    };
+
+    /// <summary>Switches the environment; "" leaves only the items without one.</summary>
+    private string SetEnvironment(JsonObject args)
+    {
+        if (config is null)
+            return Fail(Strings.Control_BadRequest);
+        var name = Text(args, "name").Trim();
+        var list = Environments.List(config.Current);
+        var known = list.FirstOrDefault(e => Environments.Same(e, name));
+        if (name.Length > 0 && known is null)
+            return Fail(string.Format(Strings.Control_NoEnvironment, name, list.Count > 0 ? string.Join(", ", list) : "—"));
+        config.Update(c => c with { Settings = c.Settings with { ActiveEnvironment = known ?? "" } });
+        return Ok(EnvironmentList());
     }
 
     private JsonObject DnsList() => new()
@@ -108,6 +137,7 @@ public sealed class ControlHandler(RouteService routes, DnsService dns, ServiceR
             ["address"] = e.Address,
             ["enabled"] = e.Enabled,
             ["notes"] = e.Notes,
+            ["environment"] = e.Environment,
         })]),
         ["outside"] = new JsonArray([.. (external?.Lines ?? []).Select(l => new JsonObject
         {
@@ -125,13 +155,14 @@ public sealed class ControlHandler(RouteService routes, DnsService dns, ServiceR
         if (names.Count == 0)
             return Fail(Strings.Rules_NameRequired);
         var first = names[0].Trim().TrimEnd('.').ToLowerInvariant();
-        var existing = dns.Entries.FirstOrDefault(e => e.Names.Contains(first));
+        var existing = dns.Entries.FirstOrDefault(e => e.Names.Contains(first) && InEnvironment(e.Environment, args));
         var saved = dns.Save((existing ?? new DnsEntry()) with
         {
             Names = names,
             Address = Text(args, "address"),
             Enabled = Bool(args, "enabled", true),
             Notes = args.ContainsKey("notes") ? Text(args, "notes") : existing?.Notes ?? "",
+            Environment = args.ContainsKey("environment") ? Text(args, "environment") : existing?.Environment ?? "",
         });
         return Ok(new JsonObject
         {
@@ -145,7 +176,7 @@ public sealed class ControlHandler(RouteService routes, DnsService dns, ServiceR
     private string RemoveDns(JsonObject args)
     {
         var name = Text(args, "name").Trim().TrimEnd('.').ToLowerInvariant();
-        var entry = dns.Entries.FirstOrDefault(e => e.Names.Contains(name)) ?? throw new ArgumentException(string.Format(Strings.Control_NoDnsEntry, name));
+        var entry = dns.Entries.FirstOrDefault(e => e.Names.Contains(name) && InEnvironment(e.Environment, args)) ?? throw new ArgumentException(string.Format(Strings.Control_NoDnsEntry, name));
         dns.Remove(entry.Id);
         return Ok(new JsonObject { ["names"] = new JsonArray([.. entry.Names.Select(n => JsonValue.Create(n))]), ["address"] = entry.Address });
     }
@@ -159,6 +190,7 @@ public sealed class ControlHandler(RouteService routes, DnsService dns, ServiceR
         ["enabled"] = r.Enabled,
         ["https"] = r.Https,
         ["group"] = r.Group,
+        ["environment"] = r.Environment,
     };
 
     private static JsonObject Service(ServiceRoute s) => new()
@@ -169,6 +201,7 @@ public sealed class ControlHandler(RouteService routes, DnsService dns, ServiceR
         ["ports"] = new JsonArray([.. s.Ports.Select(p => JsonValue.Create(p.ToString()))]),
         ["enabled"] = s.Enabled,
         ["portForward"] = s.PortForward,
+        ["environment"] = s.Environment,
         ["origin"] = s.Origin is { } o ? $"{o.Kind} {o.Source} {o.Context} {o.Namespace}/{o.Name}".Trim() : null,
     };
 

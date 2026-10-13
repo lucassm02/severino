@@ -34,17 +34,17 @@ public static class DnsRules
 
         foreach (var name in names)
         {
-            if (config.DnsEntries.Any(d => d.Id != entry.Id && d.Names.Contains(name)))
+            if (config.DnsEntries.Any(d => d.Id != entry.Id && d.Names.Contains(name) && Environments.Clash(d.Environment, entry.Environment)))
                 return (null, string.Format(Strings.Dns_NameInOtherEntry, name));
-            if (config.Routes.Any(r => RouteRules.Normalize(r.Domain) == name))
+            if (config.Routes.Any(r => RouteRules.Normalize(r.Domain) == name && Environments.Clash(r.Environment, entry.Environment)))
                 return (null, string.Format(Strings.Dns_NameIsRoute, name));
-            if (config.Services.Any(s => s.Names.Contains(name)))
+            if (config.Services.Any(s => s.Names.Contains(name) && Environments.Clash(s.Environment, entry.Environment)))
                 return (null, string.Format(Strings.Dns_NameIsService, name));
             if (external?.Contains(name) == true)
                 return (null, string.Format(ExternalClash, name));
         }
 
-        return (entry with { Names = names, Address = address, Notes = entry.Notes.Trim() }, null);
+        return (entry with { Names = names, Address = address, Notes = entry.Notes.Trim(), Environment = entry.Environment.Trim() }, null);
     }
 
     /// <summary>What goes in the DNS block: the enabled entries, one line per name.</summary>
@@ -67,4 +67,8 @@ public static class DnsRules
     /// <summary>The names of every DNS entry, enabled or not: they stay reserved while switched off.</summary>
     public static IReadOnlySet<string> Names(IEnumerable<DnsEntry> entries) =>
         entries.SelectMany(e => e.Names).ToHashSet(StringComparer.Ordinal);
+
+    /// <summary>The names an item of <paramref name="environment"/> cannot take: entries of its environment or of none.</summary>
+    public static IReadOnlySet<string> Names(IEnumerable<DnsEntry> entries, string environment) =>
+        Names(entries.Where(e => Environments.Clash(e.Environment, environment)));
 }

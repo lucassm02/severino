@@ -257,6 +257,7 @@ public sealed partial class RoutesViewModel : ListPageViewModel
         var destinations = _dns?.Destinations() ?? [];
         foreach (var item in Items)
         {
+            item.OtherEnvironment = !Environments.IsActive(item.Route.Environment, config);
             ApplyHealth(item.Id);
             item.HttpsState = !item.Route.Https || !_https.IsActive ? RouteHttpsState.Off
                 : _https.Covers(item.Domain) ? RouteHttpsState.On

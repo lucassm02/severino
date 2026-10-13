@@ -45,7 +45,7 @@ public sealed class HealthNotifier(ConfigService config, HealthMonitor health, P
             _alerts.Reset();
             return;
         }
-        var current = config.Current;
+        var current = Environments.Effective(config.Current);
         var (down, back) = _alerts.Take(time.GetUtcNow(), id => Watched(current, id) is not null && health.IsUp(id) != true);
         // A fall and a return in the same few seconds: the fall is the news.
         var (ids, falling) = down.Count > 0 ? (down, true) : (back, false);

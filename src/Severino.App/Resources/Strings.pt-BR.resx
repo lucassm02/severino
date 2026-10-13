@@ -1882,4 +1882,37 @@ Adicionar esses domínios às exceções do proxy? Eles entram na mesma lista de
   <data name="RouteForm_FolderMissing" xml:space="preserve">
     <value>{0} não existe agora. A rota fica esperando ela aparecer, como depois de um build.</value>
   </data>
+  <data name="Env_Elsewhere" xml:space="preserve">
+    <value>Em outro ambiente</value>
+  </data>
+  <data name="Env_OtherTip" xml:space="preserve">
+    <value>Do ambiente {0}: vale enquanto ele estiver ativo.</value>
+  </data>
+  <data name="Env_ThisTip" xml:space="preserve">
+    <value>Do ambiente {0}, o ativo agora.</value>
+  </data>
+  <data name="Env_Label" xml:space="preserve">
+    <value>Ambiente: {0}</value>
+  </data>
+  <data name="Env_None" xml:space="preserve">
+    <value>Nenhum ambiente</value>
+  </data>
+  <data name="Env_NoneChoice" xml:space="preserve">
+    <value>Nenhum (só os itens sem ambiente)</value>
+  </data>
+  <data name="Env_Tray" xml:space="preserve">
+    <value>Ambiente</value>
+  </data>
+  <data name="Env_StatusTip" xml:space="preserve">
+    <value>Trocar o ambiente: as rotas, serviços e entradas DNS dele passam a valer na hora</value>
+  </data>
+  <data name="Env_Field" xml:space="preserve">
+    <value>Ambiente (opcional)</value>
+  </data>
+  <data name="Env_FieldName" xml:space="preserve">
+    <value>Ambiente</value>
+  </data>
+  <data name="Env_FieldHint" xml:space="preserve">
+    <value>Vale só enquanto esse ambiente estiver ativo, como staging ou producao; o mesmo nome pode existir em ambientes diferentes. Vazio vale sempre.</value>
+  </data>
 </root>

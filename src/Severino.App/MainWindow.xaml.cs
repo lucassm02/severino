@@ -10,4 +10,6 @@ public partial class MainWindow : FluentWindow
         DataContext = viewModel;
         InitializeComponent();
     }
+
+    private void OnMoreClick(object sender, System.Windows.RoutedEventArgs e) => Views.MoreMenu.Open(sender);
 }

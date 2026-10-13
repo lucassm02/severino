@@ -192,6 +192,7 @@ public sealed partial class DnsViewModel : ListPageViewModel
         }
         foreach (var row in Own)
         {
+            row.OtherEnvironment = !Environments.IsActive(row.Entry!.Environment, config);
             row.Pending = row.Entry!.Enabled && pending.Any(p => p.Address == row.Address && row.Names.Contains(p.Name));
             var (routes, services) = DnsRules.UsedBy(row.Names, config);
             row.SetUsedBy(routes.Count, services.Count);

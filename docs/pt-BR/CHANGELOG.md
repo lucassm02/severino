@@ -14,6 +14,7 @@ O formato segue o [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/), e
 - Avisos de saúde: rotas e serviços com **Avisar quando parar de responder** ganham um aviso na bandeja depois de 15 segundos sem resposta, e outro quando voltam. Clicar abre a aba. Configurações › Geral desliga todos.
 - Regras por rota, no **Avançado** da rota: liberar CORS (o Severino responde o preflight), pôr ou tirar cabeçalhos na ida e na volta, esperar antes de repassar e falhar de propósito com 429, 500, 502, 503 ou 504 em parte das requisições. Cada regra ligada aparece como selo no card da rota.
 - Pasta como destino de uma rota: o Severino serve os arquivos dela, com index.html, sem cache e, para apps de página única, páginas desconhecidas indo para o index.html. Rotas por caminho, HTTPS e as regras por rota também valem para pasta.
+- Ambientes: rotas, serviços e entradas DNS podem ser de um, como `producao` ou `staging`, e o mesmo nome pode existir em vários. Só o ambiente ativo vale (com os itens sem ambiente); a barra de status e a bandeja trocam, e hosts, proxy, serviços e WSL acompanham na hora. `Get-SeverinoEnvironment` e `Set-SeverinoEnvironment` no PowerShell.
 
 ### Alterado
 

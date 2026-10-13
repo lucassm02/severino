@@ -85,7 +85,23 @@
                 Visibility="{Binding ScopeHint, Converter={StaticResource NullToCollapsed}}" />
 
             <StackPanel Visibility="{Binding IsOwn, Converter={StaticResource TrueToVisible}}">
-                <TextBlock Margin="0,12,0,4" Text="{x:Static res:Strings.Common_Notes}" />
+                <StackPanel Visibility="{Binding IsOwn, Converter={StaticResource TrueToVisible}}">
+                <ui:TextBlock Margin="0,12,0,4" FontTypography="BodyStrong" Text="{x:Static res:Strings.Env_Field}" />
+                <ComboBox
+                    IsEditable="True"
+                    IsTextSearchEnabled="False"
+                    ItemsSource="{Binding EnvironmentSuggestions}"
+                    Text="{Binding Environment, UpdateSourceTrigger=PropertyChanged}"
+                    AutomationProperties.Name="{x:Static res:Strings.Env_FieldName}" />
+                <ui:TextBlock
+                    Margin="0,4,0,0"
+                    TextWrapping="Wrap"
+                    FontTypography="Caption"
+                    Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                    Text="{x:Static res:Strings.Env_FieldHint}" />
+            </StackPanel>
+
+            <TextBlock Margin="0,12,0,4" Text="{x:Static res:Strings.Common_Notes}" />
                 <ui:TextBox AutomationProperties.Name="{x:Static res:Strings.Common_Notes}" Text="{Binding Notes, UpdateSourceTrigger=PropertyChanged}" />
             </StackPanel>
 

@@ -27,7 +27,7 @@ public sealed class ConfigService(ConfigStore store)
         SeverinoConfig updated;
         lock (_gate)
         {
-            updated = change(_current);
+            updated = Environments.Settle(_current, change(_current));
             if (updated == _current)
                 return updated;
             store.Save(updated);

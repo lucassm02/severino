@@ -51,6 +51,16 @@ public sealed partial class ServiceItemViewModel : ObservableObject
     public ServiceRoute Route { get; private set; }
 
     public Guid Id => Route.Id;
+    /// <summary>The item's environment is not the active one: it does not count until it is.</summary>
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(HealthText), nameof(EnvironmentTip))]
+    public partial bool OtherEnvironment { get; set; }
+
+    public string Environment => Route.Environment;
+
+    public bool HasEnvironment => Route.Environment.Length > 0;
+
+    public string EnvironmentTip => string.Format(OtherEnvironment ? Strings.Env_OtherTip : Strings.Env_ThisTip, Route.Environment);
 
     /// <summary>The shortest name, the one apps usually call.</summary>
     public string Name => Route.Names.Count > 0 ? Route.Names[0] : Strings.Services_NoName;
@@ -62,7 +72,7 @@ public sealed partial class ServiceItemViewModel : ObservableObject
         var n => string.Format(Strings.Services_MoreNames, n - 1),
     };
 
-    public string AllNames => string.Join(Environment.NewLine, Route.Names);
+    public string AllNames => string.Join(System.Environment.NewLine, Route.Names);
 
     /// <summary>Namespace or Compose project it came from.</summary>
     public string? Namespace => Route.Origin is { Namespace.Length: > 0 } o ? o.Namespace : null;
@@ -107,7 +117,7 @@ public sealed partial class ServiceItemViewModel : ObservableObject
     [NotifyPropertyChangedFor(nameof(HealthText))]
     public partial RouteHealthState Health { get; set; }
 
-    public string HealthText => Health switch
+    public string HealthText => OtherEnvironment ? Strings.Env_Elsewhere : Health switch
     {
         RouteHealthState.Up => Strings.Health_Up,
         RouteHealthState.Down => Strings.Health_Down,

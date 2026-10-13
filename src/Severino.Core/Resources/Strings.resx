@@ -258,4 +258,10 @@
   <data name="Rules_BadStatus" xml:space="preserve">
     <value>A simulated failure answers with one of: {0}.</value>
   </data>
+  <data name="Control_UnknownCommand" xml:space="preserve">
+    <value>Unknown command: {0}</value>
+  </data>
+  <data name="Control_NoEnvironment" xml:space="preserve">
+    <value>There is no environment {0}. The ones in use: {1}.</value>
+  </data>
 </root>

@@ -41,6 +41,7 @@ public sealed record ExportedRoute
     public bool NotifyHealth { get; set; }
     public TrafficRules Rules { get; set; } = new();
     public bool SpaFallback { get; set; }
+    public string Environment { get; set; } = "";
 }
 
 public sealed record InvalidImport(string Domain, string Reason);
@@ -75,6 +76,7 @@ public static class RouteTransfer
                 NotifyHealth = r.NotifyHealth,
                 Rules = r.Rules,
                 SpaFallback = r.SpaFallback,
+                Environment = r.Environment,
             })],
         },
         ConfigJsonContext.Default.RouteFile);
@@ -132,11 +134,12 @@ public static class RouteTransfer
                 NotifyHealth = exported.NotifyHealth,
                 Rules = exported.Rules ?? new(),
                 SpaFallback = exported.SpaFallback,
+                Environment = (exported.Environment ?? "").Trim(),
             };
 
             var domain = RouteRules.Normalize(route.Domain);
             var path = RouteRules.NormalizePath(route.Path);
-            if (domain is not null && routes.Any(r => RouteRules.Normalize(r.Domain) == domain && RouteRules.NormalizePath(r.Path) == path))
+            if (domain is not null && routes.Any(r => RouteRules.Normalize(r.Domain) == domain && RouteRules.NormalizePath(r.Path) == path && Environments.Clash(r.Environment, route.Environment)))
             {
                 skipped.Add(domain + path);
                 continue;

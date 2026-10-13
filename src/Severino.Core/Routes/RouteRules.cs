@@ -16,7 +16,8 @@ public static class RouteRules
     /// <summary>
     /// Checks <paramref name="route"/> against the other routes; ignores the one with the same id.
     /// <paramref name="services"/>, <paramref name="dnsNames"/> and <paramref name="external"/> (hosts
-    /// lines outside Severino) hold names a web route cannot take.
+    /// lines outside Severino) hold names a web route cannot take. Items of another environment
+    /// than the route's do not count; <paramref name="dnsNames"/> comes already filtered.
     /// </summary>
     public static RouteErrors Validate(RouteEntry route, IReadOnlyList<RouteEntry> routes, int proxyPort, int? httpsPort = null, IReadOnlyList<ServiceRoute>? services = null,
         IReadOnlySet<string>? dnsNames = null, IReadOnlySet<string>? external = null)
@@ -27,9 +28,10 @@ public static class RouteRules
             pathError = pathReason;
         if (!TryNormalize(route.Domain, out var domain, out var reason))
             domainError = reason;
-        else if (path is not null && routes.Any(r => r.Id != route.Id && Normalize(r.Domain) == domain && NormalizePath(r.Path) == path))
+        else if (path is not null && routes.Any(r => r.Id != route.Id && Normalize(r.Domain) == domain && NormalizePath(r.Path) == path
+                     && Environments.Clash(r.Environment, route.Environment)))
             domainError = path.Length == 0 ? Strings.Route_DomainTaken : string.Format(Strings.Route_PathTaken, domain + path);
-        else if (services?.Any(s => s.Names.Contains(domain)) == true)
+        else if (services?.Any(s => s.Names.Contains(domain) && Environments.Clash(s.Environment, route.Environment)) == true)
             domainError = Strings.Route_IsService;
         else if (dnsNames?.Contains(domain) == true)
             domainError = Strings.Route_IsDns;

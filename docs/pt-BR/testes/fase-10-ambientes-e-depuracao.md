@@ -123,7 +123,40 @@ Set-Content C:\temp\site\guia\index.html '<h1>guia</h1><img src="logo.svg">'
 
 ## Parte 1. Ambientes
 
-Pendente.
+Prova os critérios 1 a 6 da parte 1. Antes, confira que a barra de status não mostra nenhum ambiente (critério 5).
+
+1. **Primeiro ambiente.** Na aba DNS, **Nova entrada** `sql.banco → 192.168.100.8`, com **Ambiente** `producao`. Salve.
+   - Esperado: a entrada ganha o selo **producao**, continua valendo, e a barra de status mostra **Ambiente: producao**.
+2. **Mesmo nome, outro ambiente.** Nova entrada `sql.banco → 192.168.203.150`, ambiente `staging` (a sugestão já lista `producao`).
+   - Esperado: salva sem erro. A de staging aparece esmaecida, "Em outro ambiente". Uma terceira `sql.banco` **sem** ambiente é recusada.
+3. **Trocar pela barra.** Clique em **Ambiente: producao** e escolha **staging**.
+
+   ```powershell
+   ping -n 1 sql.banco
+   ```
+
+   - Esperado: em cerca de um segundo o ping vai para 192.168.203.150; a de producao fica esmaecida; o interruptor dela continua ligado.
+4. **Trocar pela bandeja.** No menu da bandeja, **Ambiente › producao**.
+   - Esperado: volta para 192.168.100.8. O menu marca o ambiente ativo.
+5. **O estado de cada item é dele.** Desligue a de staging, troque para staging e volte.
+   - Esperado: em staging ela continua desligada (nada responde por `sql.banco`); em producao a outra volta como estava.
+6. **Rotas e serviços.** Crie `api.sev → localhost:3000` em producao e `api.sev → localhost:4000` em staging. Troque de ambiente com o navegador aberto em `http://api.sev/`.
+   - Esperado: cada F5 vai para o servidor do ambiente ativo. O mesmo vale para um serviço com o mesmo nome em dois ambientes.
+7. **Nenhum.** Escolha **Nenhum (só os itens sem ambiente)**.
+   - Esperado: nada com ambiente vale; os itens sem ambiente continuam.
+8. **PowerShell.**
+
+   ```powershell
+   Get-SeverinoEnvironment
+   Set-SeverinoEnvironment staging
+   Set-SeverinoDns sql.banco 192.168.203.151 -Environment staging
+   ```
+
+   - Esperado: a lista e o ativo; a troca acontece na janela também; a entrada de staging muda de IP, a de producao não.
+9. **WSL** (se usar). Com uma distro em Configurações › WSL e um serviço por ambiente, troque o ambiente.
+   - Esperado: o `/etc/hosts` da distro segue o ambiente ativo.
+10. **Fim dos ambientes.** Apague as entradas e rotas com ambiente.
+   - Esperado: a barra de status e a bandeja não mostram mais nada de ambiente.
 
 ## Parte 3. Arquivo do projeto
 

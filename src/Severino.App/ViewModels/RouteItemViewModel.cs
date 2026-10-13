@@ -92,6 +92,16 @@ public sealed partial class RouteItemViewModel : ObservableObject
     public partial RouteHttpsState HttpsState { get; set; }
 
     public bool HasHttpsBadge => HttpsState != RouteHttpsState.Off;
+    /// <summary>The item's environment is not the active one: it does not count until it is.</summary>
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(HealthText), nameof(EnvironmentTip))]
+    public partial bool OtherEnvironment { get; set; }
+
+    public string Environment => Route.Environment;
+
+    public bool HasEnvironment => Route.Environment.Length > 0;
+
+    public string EnvironmentTip => string.Format(OtherEnvironment ? Strings.Env_OtherTip : Strings.Env_ThisTip, Route.Environment);
 
     /// <summary>One per rule on, so nobody forgets a delay or a simulated failure.</summary>
     public IReadOnlyList<RuleBadge> RuleBadges => RuleBadge.For(Route.Rules);
@@ -107,7 +117,7 @@ public sealed partial class RouteItemViewModel : ObservableObject
     public partial RouteHealthState Health { get; set; }
 
     /// <summary>Spelled out next to the dot, so the state does not rely on colour alone.</summary>
-    public string HealthText => Health switch
+    public string HealthText => OtherEnvironment ? Strings.Env_Elsewhere : Health switch
     {
         RouteHealthState.Up => Strings.Health_Up,
         RouteHealthState.Down => Strings.Health_Down,

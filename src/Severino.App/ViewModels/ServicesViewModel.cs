@@ -195,6 +195,7 @@ public sealed partial class ServicesViewModel : ListPageViewModel
             }
             foreach (var item in group.Items)
             {
+                item.OtherEnvironment = !Environments.IsActive(item.Route.Environment, config);
                 ApplyHealth(item.Id);
                 item.ApplyForward(_forwards?.StatusOf(item.Id));
                 item.Destination = item.Route.Ports.Select(p => destinations.FirstOrDefault(d => d.Name.Equals(p.TargetHost, StringComparison.OrdinalIgnoreCase)))

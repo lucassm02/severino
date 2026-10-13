@@ -127,7 +127,7 @@
                 <ItemsControl ItemsSource="{Binding Own}">
                     <ItemsControl.ItemTemplate>
                         <DataTemplate DataType="{x:Type vm:DnsRowViewModel}">
-                            <ui:Card Margin="0,0,0,6" Padding="16,10">
+                            <ui:Card Margin="0,0,0,6" Padding="16,10" Style="{StaticResource ItemCard}">
                                 <Grid>
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition Width="*" />
@@ -139,6 +139,7 @@
                                         <TextBlock FontSize="14" TextTrimming="CharacterEllipsis" ToolTip="{Binding AllNames}">
                                             <Run FontWeight="SemiBold" Text="{Binding Name, Mode=OneWay}" />
                                             <Run FontSize="12" Foreground="{DynamicResource TextFillColorSecondaryBrush}" Text="{Binding MoreNames, Mode=OneWay, StringFormat='  {0}'}" />
+                                            <InlineUIContainer BaselineAlignment="Center"><ContentControl Content="{Binding}" ContentTemplate="{StaticResource EnvironmentBadge}" Focusable="False" /></InlineUIContainer>
                                         </TextBlock>
                                         <TextBlock Style="{StaticResource Caption}">
                                             <Run FontFamily="Cascadia Mono, Consolas" Text="{Binding Address, Mode=OneWay}" />

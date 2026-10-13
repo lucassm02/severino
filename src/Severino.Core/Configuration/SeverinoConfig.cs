@@ -35,6 +35,9 @@ public sealed record DnsEntry
 
     public bool Enabled { get; set; } = true;
     public string Notes { get; set; } = "";
+
+    /// <summary>Counts only in this environment; empty for all of them (see <see cref="Environments"/>).</summary>
+    public string Environment { get; set; } = "";
 }
 
 public sealed record AppSettings
@@ -59,6 +62,9 @@ public sealed record AppSettings
 
     /// <summary>The tray tells when a route or service with <c>NotifyHealth</c> stops answering, and when it is back.</summary>
     public bool HealthNotifications { get; set; } = true;
+
+    /// <summary>The environment whose items count; empty for none, when only items without one do.</summary>
+    public string ActiveEnvironment { get; set; } = "";
 }
 
 /// <summary>Flags the app records about itself; not shown as settings.</summary>
@@ -119,6 +125,9 @@ public sealed record RouteEntry
 
     /// <summary>CORS, headers, delay and simulated failure, applied by the proxy on the way.</summary>
     public TrafficRules Rules { get; set; } = new();
+
+    /// <summary>Counts only in this environment; empty for all of them (see <see cref="Environments"/>).</summary>
+    public string Environment { get; set; } = "";
 }
 
 /// <summary>What the proxy does to a route's traffic beyond forwarding it. All off by default.</summary>
@@ -189,6 +198,9 @@ public sealed record ServiceRoute
 
     /// <summary>A tray notice when the destination stops answering, and when it is back.</summary>
     public bool NotifyHealth { get; set; }
+
+    /// <summary>Counts only in this environment; empty for all of them (see <see cref="Environments"/>).</summary>
+    public string Environment { get; set; } = "";
 }
 
 public sealed record ServicePort

@@ -68,12 +68,13 @@ function New-SeverinoRoute {
         [switch] $Https,
         [switch] $NoRedirect,
         [string] $Group = '',
-        [string] $Notes = ''
+        [string] $Notes = '',
+        [string] $Environment = ''
     )
 
     Invoke-SeverinoControl -Command 'routes.add' -Arguments @{
         domain = $Domain; target = $Target; path = $Path; https = [bool]$Https
-        redirect = -not $NoRedirect; group = $Group; notes = $Notes
+        redirect = -not $NoRedirect; group = $Group; notes = $Notes; environment = $Environment
     }
 }
 
@@ -85,11 +86,14 @@ function Remove-SeverinoRoute {
     [CmdletBinding(SupportsShouldProcess)]
     param(
         [Parameter(Mandatory, Position = 0, ValueFromPipelineByPropertyName)] [string] $Domain,
-        [Parameter(ValueFromPipelineByPropertyName)] [string] $Path = ''
+        [Parameter(ValueFromPipelineByPropertyName)] [string] $Path = '',
+        [Parameter(ValueFromPipelineByPropertyName)] [string] $Environment
     )
     process {
         if ($PSCmdlet.ShouldProcess("$Domain$Path", 'Remove route')) {
-            Invoke-SeverinoControl -Command 'routes.remove' -Arguments @{ domain = $Domain; path = $Path }
+            $arguments = @{ domain = $Domain; path = $Path }
+            if ($PSBoundParameters.ContainsKey('Environment')) { $arguments.environment = $Environment }
+            Invoke-SeverinoControl -Command 'routes.remove' -Arguments $arguments
         }
     }
 }
@@ -154,11 +158,13 @@ function Set-SeverinoDns {
         [Parameter(Mandatory, Position = 0)] [string[]] $Name,
         [Parameter(Mandatory, Position = 1)] [string] $Address,
         [switch] $Disabled,
-        [string] $Notes
+        [string] $Notes,
+        [string] $Environment
     )
 
     $arguments = @{ names = @($Name); address = $Address; enabled = -not $Disabled }
     if ($PSBoundParameters.ContainsKey('Notes')) { $arguments.notes = $Notes }
+    if ($PSBoundParameters.ContainsKey('Environment')) { $arguments.environment = $Environment }
     Invoke-SeverinoControl -Command 'dns.set' -Arguments $arguments
 }
 
@@ -168,10 +174,15 @@ function Remove-SeverinoDns {
     Removes the DNS entry of Severino's that has this name.
     #>
     [CmdletBinding(SupportsShouldProcess)]
-    param([Parameter(Mandatory, Position = 0)] [string] $Name)
+    param(
+        [Parameter(Mandatory, Position = 0)] [string] $Name,
+        [string] $Environment
+    )
 
     if ($PSCmdlet.ShouldProcess($Name, 'Remove DNS entry')) {
-        Invoke-SeverinoControl -Command 'dns.remove' -Arguments @{ name = $Name }
+        $arguments = @{ name = $Name }
+        if ($PSBoundParameters.ContainsKey('Environment')) { $arguments.environment = $Environment }
+        Invoke-SeverinoControl -Command 'dns.remove' -Arguments $arguments
     }
 }
 
@@ -186,5 +197,34 @@ function Get-SeverinoService {
     Invoke-SeverinoControl -Command 'services.list'
 }
 
+function Get-SeverinoEnvironment {
+    <#
+    .SYNOPSIS
+    The environments in use and the active one: only its items, and those of none, count.
+    #>
+    [CmdletBinding()]
+    param()
+
+    Invoke-SeverinoControl -Command 'environments.list'
+}
+
+function Set-SeverinoEnvironment {
+    <#
+    .SYNOPSIS
+    Switches the active environment; hosts, proxy, services and WSL follow at once. -None leaves only the items without one.
+    .EXAMPLE
+    Set-SeverinoEnvironment staging
+    .EXAMPLE
+    Set-SeverinoEnvironment -None
+    #>
+    [CmdletBinding(DefaultParameterSetName = 'Name')]
+    param(
+        [Parameter(Mandatory, Position = 0, ParameterSetName = 'Name')] [string] $Name,
+        [Parameter(Mandatory, ParameterSetName = 'None')] [switch] $None
+    )
+
+    Invoke-SeverinoControl -Command 'environments.set' -Arguments @{ name = if ($None) { '' } else { $Name } }
+}
+
 Export-ModuleMember -Function Get-SeverinoRoute, New-SeverinoRoute, Remove-SeverinoRoute, Enable-SeverinoRoute, Disable-SeverinoRoute,
-    Get-SeverinoDns, Set-SeverinoDns, Remove-SeverinoDns, Get-SeverinoService
+    Get-SeverinoDns, Set-SeverinoDns, Remove-SeverinoDns, Get-SeverinoService, Get-SeverinoEnvironment, Set-SeverinoEnvironment

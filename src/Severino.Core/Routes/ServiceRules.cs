@@ -80,8 +80,8 @@ public static partial class ServiceRules
                 names.Add(name);
         }
 
-        var others = services.Where(s => s.Id != route.Id).SelectMany(s => s.Names)
-            .Concat(webRoutes.Select(r => RouteRules.Normalize(r.Domain)).OfType<string>())
+        var others = services.Where(s => s.Id != route.Id && Environments.Clash(s.Environment, route.Environment)).SelectMany(s => s.Names)
+            .Concat(webRoutes.Where(r => Environments.Clash(r.Environment, route.Environment)).Select(r => RouteRules.Normalize(r.Domain)).OfType<string>())
             .ToHashSet(StringComparer.Ordinal);
         if (names.FirstOrDefault(others.Contains) is { } taken)
             return (null, string.Format(Strings.Service_NameTaken, taken));

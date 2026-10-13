@@ -54,7 +54,7 @@ public sealed class DnsSync : IDisposable
         await _gate.WaitAsync(cancellationToken);
         try
         {
-            var entries = DnsRules.BlockEntries(_config.Current.DnsEntries);
+            var entries = DnsRules.BlockEntries(Environments.Effective(_config.Current).DnsEntries);
             var status = await SendAsync(entries, cancellationToken);
             if (status.State == HostsSyncState.Synced)
             {

@@ -37,7 +37,7 @@ public sealed partial class SystemProxy(ConfigService config, TldDirectory tlds,
     }
 
     /// <summary>Enabled route domains a fixed proxy would take.</summary>
-    public IReadOnlyList<string> Uncovered() => ProxyBypass.Uncovered(Read(), RouteRules.ActiveDomains(config.Current.Routes));
+    public IReadOnlyList<string> Uncovered() => ProxyBypass.Uncovered(Read(), RouteRules.ActiveDomains(Environments.Effective(config.Current).Routes));
 
     /// <summary>Watches the settings, since a VPN can turn the proxy on at any time. Registry reads are cheap.</summary>
     public void Start()
@@ -55,7 +55,7 @@ public sealed partial class SystemProxy(ConfigService config, TldDirectory tlds,
 
     /// <summary>Adds bypass entries for every uncovered route domain and remembers which ones it added.</summary>
     public Task<IReadOnlyList<string>> AddExceptionsAsync(CancellationToken cancellationToken = default) =>
-        AddExceptionsForAsync(RouteRules.ActiveDomains(config.Current.Routes), cancellationToken);
+        AddExceptionsForAsync(RouteRules.ActiveDomains(Environments.Effective(config.Current).Routes), cancellationToken);
 
     /// <summary>
     /// The same for <paramref name="domains"/>, routed or not yet: the first-run wizard asks about

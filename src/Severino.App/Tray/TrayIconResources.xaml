@@ -41,6 +41,20 @@
                             IsEnabled="False"
                             Visibility="{Binding Data.HasNoRoutes, Source={StaticResource Menu}, Converter={StaticResource TrueToVisible}}" />
                         <Separator />
+                        <!-- Only while some item has an environment. -->
+                        <MenuItem
+                            Header="{x:Static res:Strings.Env_Tray}"
+                            ItemsSource="{Binding Data.Environments.Choices, Source={StaticResource Menu}}"
+                            Visibility="{Binding Data.Environments.HasAny, Source={StaticResource Menu}, Converter={StaticResource TrueToVisible}, FallbackValue=Collapsed}">
+                            <MenuItem.ItemContainerStyle>
+                                <Style TargetType="MenuItem" BasedOn="{StaticResource {x:Type MenuItem}}">
+                                    <Setter Property="Header" Value="{Binding Label}" />
+                                    <Setter Property="IsChecked" Value="{Binding IsActive, Mode=OneWay}" />
+                                    <Setter Property="Command" Value="{Binding Data.Environments.SelectCommand, Source={StaticResource Menu}}" />
+                                    <Setter Property="CommandParameter" Value="{Binding Name}" />
+                                </Style>
+                            </MenuItem.ItemContainerStyle>
+                        </MenuItem>
                         <MenuItem Header="{Binding Data.PauseLabel, Source={StaticResource Menu}}" Command="{Binding Data.TogglePauseCommand, Source={StaticResource Menu}}" />
                         <MenuItem Header="{x:Static res:Strings.Tray_Exit}" Command="{Binding Data.ExitCommand, Source={StaticResource Menu}}" />
                     </CompositeCollection>

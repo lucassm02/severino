@@ -6,8 +6,9 @@ namespace Severino.App.ViewModels;
 public sealed partial class MainWindowViewModel : ObservableObject
 {
     public MainWindowViewModel(RoutesViewModel routes, ServicesViewModel services, DnsViewModel dns, RequestsViewModel requests, SettingsViewModel settings,
-        StatusBarViewModel status, UpdatesViewModel updates, Navigation navigation)
+        StatusBarViewModel status, UpdatesViewModel updates, Navigation navigation, EnvironmentsViewModel? environments = null)
     {
+        Environments = environments;
         Updates = updates;
         Routes = routes;
         Services = services;
@@ -25,6 +26,9 @@ public sealed partial class MainWindowViewModel : ObservableObject
     public SettingsViewModel Settings { get; }
     public StatusBarViewModel Status { get; }
     public UpdatesViewModel Updates { get; }
+
+    /// <summary>The environment switch at the end of the status bar.</summary>
+    public EnvironmentsViewModel? Environments { get; }
 
     [ObservableProperty]
     public partial int SelectedTab { get; set; }

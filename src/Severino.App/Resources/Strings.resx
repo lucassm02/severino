@@ -1882,4 +1882,37 @@ Add these domains to the proxy exceptions? They go into the same Internet Option
   <data name="RouteForm_FolderMissing" xml:space="preserve">
     <value>{0} does not exist right now. The route waits for it, like after a build.</value>
   </data>
+  <data name="Env_Elsewhere" xml:space="preserve">
+    <value>In another environment</value>
+  </data>
+  <data name="Env_OtherTip" xml:space="preserve">
+    <value>Environment {0}: counts while it is the active one.</value>
+  </data>
+  <data name="Env_ThisTip" xml:space="preserve">
+    <value>Environment {0}, the active one now.</value>
+  </data>
+  <data name="Env_Label" xml:space="preserve">
+    <value>Environment: {0}</value>
+  </data>
+  <data name="Env_None" xml:space="preserve">
+    <value>No environment</value>
+  </data>
+  <data name="Env_NoneChoice" xml:space="preserve">
+    <value>None (only items without one)</value>
+  </data>
+  <data name="Env_Tray" xml:space="preserve">
+    <value>Environment</value>
+  </data>
+  <data name="Env_StatusTip" xml:space="preserve">
+    <value>Switch the environment: its routes, services and DNS entries count right away</value>
+  </data>
+  <data name="Env_Field" xml:space="preserve">
+    <value>Environment (optional)</value>
+  </data>
+  <data name="Env_FieldName" xml:space="preserve">
+    <value>Environment</value>
+  </data>
+  <data name="Env_FieldHint" xml:space="preserve">
+    <value>Counts only while this environment is active, like staging or production; the same name can exist in different environments. Empty counts always.</value>
+  </data>
 </root>

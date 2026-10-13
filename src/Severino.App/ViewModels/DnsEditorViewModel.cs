@@ -27,9 +27,11 @@ public sealed partial class DnsEditorViewModel : ObservableObject
         _entry = entry;
         _line = line;
         var start = entry ?? draft;
-        NamesText = string.Join(Environment.NewLine, start?.Names ?? line?.Names ?? []);
+        NamesText = string.Join(System.Environment.NewLine, start?.Names ?? line?.Names ?? []);
         Address = start?.Address ?? line?.Address ?? "";
         Notes = start?.Notes ?? "";
+        Environment = start?.Environment ?? "";
+        EnvironmentSuggestions = dns.EnvironmentNames;
     }
 
     public bool IsOutside => _line is not null;
@@ -55,6 +57,11 @@ public sealed partial class DnsEditorViewModel : ObservableObject
 
     [ObservableProperty]
     public partial string Notes { get; set; }
+    /// <summary>Empty: counts in every environment.</summary>
+    [ObservableProperty]
+    public partial string Environment { get; set; } = "";
+
+    public IReadOnlyList<string> EnvironmentSuggestions { get; }
 
     [ObservableProperty]
     public partial string? Error { get; set; }
@@ -108,7 +115,7 @@ public sealed partial class DnsEditorViewModel : ObservableObject
 
     private async Task SaveOwnAsync()
     {
-        var draft = (_entry ?? new DnsEntry()) with { Names = Names, Address = Address.Trim(), Notes = Notes };
+        var draft = (_entry ?? new DnsEntry()) with { Names = Names, Address = Address.Trim(), Notes = Notes, Environment = (Environment ?? "").Trim() };
         var (normalized, error) = _dns.Validate(draft);
         if (normalized is null)
         {

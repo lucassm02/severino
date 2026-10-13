@@ -72,7 +72,7 @@ public sealed class ServiceWatcher(ConfigService config, ServiceRefresher refres
 
     private void Sync()
     {
-        var current = config.Current;
+        var current = Environments.Effective(config.Current);
         var desired = _paused || !current.Settings.WatchServices ? [] : current.Services
             .Where(s => s.Enabled && s.Origin is { Source.Length: > 0 } o && o.Source != "paste")
             .Select(s => s.Origin! with { Namespace = "", Name = "" })

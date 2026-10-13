@@ -1,6 +1,7 @@
 <ResourceDictionary
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml">
     <!-- Shared by the Rotas, Serviços and DNS tabs, so a row reads the same in all three. -->
 
     <!-- Dot and label share the colour; the label carries the meaning on its own. -->
@@ -69,4 +70,23 @@
             </Trigger>
         </Style.Triggers>
     </Style>
+    <!-- A row of another environment: there, but faded, until its environment is the active one. -->
+    <Style x:Key="ItemCard" TargetType="ui:Card" BasedOn="{StaticResource {x:Type ui:Card}}">
+        <Style.Triggers>
+            <DataTrigger Binding="{Binding OtherEnvironment}" Value="True">
+                <Setter Property="Opacity" Value="0.55" />
+            </DataTrigger>
+        </Style.Triggers>
+    </Style>
+
+    <!-- The row's environment, for rows that have one; put in an InlineUIContainer next to the name. -->
+    <DataTemplate x:Key="EnvironmentBadge">
+        <Border
+            Style="{StaticResource Badge}"
+            ToolTip="{Binding EnvironmentTip}"
+            AutomationProperties.Name="{Binding EnvironmentTip}"
+            Visibility="{Binding HasEnvironment, Converter={StaticResource TrueToVisible}}">
+            <TextBlock Style="{StaticResource BadgeText}" Foreground="{DynamicResource AccentTextFillColorPrimaryBrush}" Text="{Binding Environment}" />
+        </Border>
+    </DataTemplate>
 </ResourceDictionary>

@@ -94,6 +94,8 @@ public sealed partial class RouteEditorViewModel : ObservableObject
         StripPath = _original.StripPath;
         Group = _original.Group;
         GroupSuggestions = routes.Groups;
+        Environment = _original.Environment;
+        EnvironmentSuggestions = routes.EnvironmentNames;
         ShowAdvanced = PreserveHost || IgnoreTargetCertErrors || NotifyHealth || rules.HasAny() || Notes.Length > 0;
         UpdateHttpsRules();
         IsReady = true;
@@ -307,6 +309,11 @@ public sealed partial class RouteEditorViewModel : ObservableObject
     public partial string Group { get; set; } = "";
 
     public IReadOnlyList<string> GroupSuggestions { get; }
+    /// <summary>Empty: counts in every environment.</summary>
+    [ObservableProperty]
+    public partial string Environment { get; set; } = "";
+
+    public IReadOnlyList<string> EnvironmentSuggestions { get; }
 
     [ObservableProperty]
     public partial string? TargetError { get; set; }
@@ -322,7 +329,7 @@ public sealed partial class RouteEditorViewModel : ObservableObject
     public async Task RefreshPortsAsync()
     {
         // GetExtendedTcpTable plus a command line per process: cheap, but not for the UI thread.
-        var ports = await Task.Run(() => ListeningPorts.List(excludeProcessId: Environment.ProcessId));
+        var ports = await Task.Run(() => ListeningPorts.List(excludeProcessId: System.Environment.ProcessId));
         Ports.Clear();
         foreach (var port in ports)
             Ports.Add(port);
@@ -467,6 +474,7 @@ public sealed partial class RouteEditorViewModel : ObservableObject
         Path = Path,
         StripPath = CanStripPath && StripPath,
         Group = (Group ?? "").Trim(),
+        Environment = (Environment ?? "").Trim(),
         NotifyHealth = NotifyHealth,
         Rules = BuildRules(),
     };

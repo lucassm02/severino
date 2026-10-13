@@ -108,7 +108,7 @@ public sealed class PortForwards(ConfigService config, IPortForwardRunner runner
 
     private void Sync()
     {
-        var desired = _paused ? [] : config.Current.Services
+        var desired = _paused ? [] : Environments.Effective(config.Current).Services
             .Where(s => s.Enabled)
             .Select(PortForwardSpec.For)
             .OfType<PortForwardSpec>()

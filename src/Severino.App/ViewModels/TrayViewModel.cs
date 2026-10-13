@@ -34,8 +34,9 @@ public sealed partial class TrayViewModel : ObservableObject
     private readonly ILogger<TrayViewModel> _logger;
 
     public TrayViewModel(ShellService shell, ConfigService config, HttpsService https, ProxyCoordinator coordinator,
-        StatusBarViewModel status, ILogger<TrayViewModel> logger)
+        StatusBarViewModel status, ILogger<TrayViewModel> logger, EnvironmentsViewModel? environments = null)
     {
+        Environments = environments;
         _shell = shell;
         _config = config;
         _https = https;
@@ -50,6 +51,9 @@ public sealed partial class TrayViewModel : ObservableObject
         // The status bar already updates on the UI thread.
         status.PropertyChanged += OnStatusChanged;
     }
+
+    /// <summary>The "Ambiente" submenu, shown while some item has an environment.</summary>
+    public EnvironmentsViewModel? Environments { get; }
 
     /// <summary>The enabled routes, in the order of the list.</summary>
     public ObservableCollection<TrayRoute> Routes { get; } = [];
@@ -99,7 +103,7 @@ public sealed partial class TrayViewModel : ObservableObject
     private void RefreshRoutes()
     {
         var settings = _config.Current.Settings;
-        var routes = _config.Current.Routes.Where(r => r.Enabled).ToList();
+        var routes = Core.Configuration.Environments.Effective(_config.Current).Routes.Where(r => r.Enabled).ToList();
         Routes.Clear();
         foreach (var route in routes)
         {

@@ -55,13 +55,15 @@ public sealed partial class ServiceEditorViewModel : ObservableObject
         _services = services;
         IsNew = existing is null;
         _original = existing ?? (draft ?? new ServiceRoute()) with { Address = ServiceRules.NextAddress(services.Services) };
-        NamesText = string.Join(Environment.NewLine, _original.Names);
+        NamesText = string.Join(System.Environment.NewLine, _original.Names);
         foreach (var port in _original.Ports)
             Ports.Add(ServicePortRow.From(port));
         if (Ports.Count == 0)
             Ports.Add(new ServicePortRow());
         Notes = _original.Notes;
         NotifyHealth = _original.NotifyHealth;
+        Environment = _original.Environment;
+        EnvironmentSuggestions = services.EnvironmentNames;
         HostSuggestions = [new Core.Dns.DnsDestination("127.0.0.1", Strings.Common_ThisMachine, Outside: false), .. destinations ?? []];
     }
 
@@ -93,6 +95,11 @@ public sealed partial class ServiceEditorViewModel : ObservableObject
 
     [ObservableProperty]
     public partial bool NotifyHealth { get; set; }
+    /// <summary>Empty: counts in every environment.</summary>
+    [ObservableProperty]
+    public partial string Environment { get; set; } = "";
+
+    public IReadOnlyList<string> EnvironmentSuggestions { get; }
 
     [ObservableProperty]
     public partial string? Error { get; set; }
@@ -127,7 +134,7 @@ public sealed partial class ServiceEditorViewModel : ObservableObject
             ports.Add(port);
         }
 
-        var route = _original with { Names = names, Ports = ports, Notes = Notes.Trim(), NotifyHealth = NotifyHealth };
+        var route = _original with { Names = names, Ports = ports, Notes = Notes.Trim(), NotifyHealth = NotifyHealth, Environment = (Environment ?? "").Trim() };
         var (_, error) = _services.Validate(route);
         if (error is not null)
         {

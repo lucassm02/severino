@@ -119,7 +119,7 @@
                             <ItemsControl ItemsSource="{Binding Items}">
                                 <ItemsControl.ItemTemplate>
                                     <DataTemplate DataType="{x:Type vm:ServiceItemViewModel}">
-                                        <ui:Card Margin="0,0,0,6" Padding="16,10">
+                                        <ui:Card Margin="0,0,0,6" Padding="16,10" Style="{StaticResource ItemCard}">
                                             <Grid>
                                                 <Grid.ColumnDefinitions>
                                                     <ColumnDefinition Width="24" />
@@ -133,6 +133,7 @@
                                                     <TextBlock FontSize="14" TextTrimming="CharacterEllipsis" ToolTip="{Binding AllNames}">
                                                         <Run FontWeight="SemiBold" Text="{Binding Name, Mode=OneWay}" />
                                                         <Run FontSize="12" Foreground="{DynamicResource TextFillColorSecondaryBrush}" Text="{Binding MoreNames, Mode=OneWay, StringFormat='  {0}'}" />
+                                                        <InlineUIContainer BaselineAlignment="Center"><ContentControl Content="{Binding}" ContentTemplate="{StaticResource EnvironmentBadge}" Focusable="False" /></InlineUIContainer>
                                                         <Run FontSize="12" Foreground="{DynamicResource TextFillColorTertiaryBrush}" Text="{Binding Namespace, Mode=OneWay, StringFormat='  ·  {0}'}" />
                                                     </TextBlock>
                                                     <StackPanel Orientation="Horizontal">

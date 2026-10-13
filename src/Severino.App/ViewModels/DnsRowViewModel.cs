@@ -32,6 +32,16 @@ public sealed partial class DnsRowViewModel : ObservableObject
 
     public bool IsOutside => Line is not null;
     public bool IsOwn => Entry is not null;
+    /// <summary>The item's environment is not the active one: it does not count until it is.</summary>
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(StateText), nameof(EnvironmentTip))]
+    public partial bool OtherEnvironment { get; set; }
+
+    public string Environment => (Entry?.Environment ?? "");
+
+    public bool HasEnvironment => (Entry?.Environment ?? "").Length > 0;
+
+    public string EnvironmentTip => string.Format(OtherEnvironment ? Strings.Env_OtherTip : Strings.Env_ThisTip, (Entry?.Environment ?? ""));
     public bool IsRemoved => Line?.Removed == true;
     public bool CanEdit => IsOwn || (IsOutside && !IsRemoved);
 
@@ -39,7 +49,7 @@ public sealed partial class DnsRowViewModel : ObservableObject
     public string Address => Entry?.Address ?? Line!.Address;
     public string Name => Names.Count > 0 ? Names[0] : Strings.Services_NoName;
     public string? MoreNames => Names.Count switch { <= 1 => null, 2 => Strings.Services_OneMoreName, var n => string.Format(Strings.Services_MoreNames, n - 1) };
-    public string AllNames => string.Join(Environment.NewLine, Names);
+    public string AllNames => string.Join(System.Environment.NewLine, Names);
 
     /// <summary>How far the address reaches, said plainly.</summary>
     public string ScopeText => !DnsAddress.TryClassify(Address, out _, out var scope) ? Strings.Dns_InvalidAddress
@@ -89,6 +99,7 @@ public sealed partial class DnsRowViewModel : ObservableObject
     }
 
     public string StateText => IsOutside ? (IsRemoved ? Strings.Dns_StateRemoved : Strings.Dns_StateInHosts)
+        : OtherEnvironment ? Strings.Env_Elsewhere
         : Pending ? Strings.Dns_StatePending
         : Entry!.Enabled ? Strings.Dns_StateActive
         : Strings.Routes_HealthOff;

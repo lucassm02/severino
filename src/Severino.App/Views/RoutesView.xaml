@@ -114,7 +114,7 @@
                                 <ItemsControl ItemsSource="{Binding Items}">
                                     <ItemsControl.ItemTemplate>
                                         <DataTemplate DataType="{x:Type vm:RouteItemViewModel}">
-                                            <ui:Card Margin="0,0,0,6" Padding="16,10">
+                                            <ui:Card Margin="0,0,0,6" Padding="16,10" Style="{StaticResource ItemCard}">
                                                 <Grid>
                                                     <Grid.ColumnDefinitions>
                                                         <ColumnDefinition Width="24" />
@@ -132,7 +132,8 @@
                                                                 CommandParameter="{Binding}"
                                                                 ToolTip="{x:Static res:Strings.Routes_OpenInBrowser}">
                                                                 <Run Text="{Binding DisplayName, Mode=OneWay}" />
-                                                            </Hyperlink>
+                                                            </Hyperlink>                                                            <InlineUIContainer BaselineAlignment="Center"><ContentControl Content="{Binding}" ContentTemplate="{StaticResource EnvironmentBadge}" Focusable="False" /></InlineUIContainer>
+
                                                             <InlineUIContainer BaselineAlignment="Center">
                                                                 <Border
                                                                     Style="{StaticResource Badge}"
