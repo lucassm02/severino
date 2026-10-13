@@ -1855,4 +1855,31 @@ Adicionar esses domínios às exceções do proxy? Eles entram na mesma lista de
   <data name="Rules_BadgeTip" xml:space="preserve">
     <value>As regras da rota, em Editar › Avançado</value>
   </data>
+  <data name="RouteForm_TargetServer" xml:space="preserve">
+    <value>Servidor</value>
+  </data>
+  <data name="RouteForm_TargetFolder" xml:space="preserve">
+    <value>Pasta</value>
+  </data>
+  <data name="RouteForm_FolderPlaceholder" xml:space="preserve">
+    <value>C:\projetos\site\dist</value>
+  </data>
+  <data name="RouteForm_PickFolderButton" xml:space="preserve">
+    <value>Escolher…</value>
+  </data>
+  <data name="RouteForm_PickFolder" xml:space="preserve">
+    <value>A pasta que esta rota serve</value>
+  </data>
+  <data name="RouteForm_SpaFallback" xml:space="preserve">
+    <value>Mandar caminhos desconhecidos para o index.html</value>
+  </data>
+  <data name="RouteForm_SpaFallbackHint" xml:space="preserve">
+    <value>Para apps React, Vue e Angular, que cuidam das próprias páginas: /painel/relatorios recebe o index.html quando não há arquivo com esse nome.</value>
+  </data>
+  <data name="RouteForm_FolderNotFull" xml:space="preserve">
+    <value>Escolha a pasta, ou escreva o caminho completo, como C:\projetos\site\dist.</value>
+  </data>
+  <data name="RouteForm_FolderMissing" xml:space="preserve">
+    <value>{0} não existe agora. A rota fica esperando ela aparecer, como depois de um build.</value>
+  </data>
 </root>

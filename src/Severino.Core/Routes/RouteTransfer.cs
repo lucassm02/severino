@@ -40,6 +40,7 @@ public sealed record ExportedRoute
     public string Group { get; set; } = "";
     public bool NotifyHealth { get; set; }
     public TrafficRules Rules { get; set; } = new();
+    public bool SpaFallback { get; set; }
 }
 
 public sealed record InvalidImport(string Domain, string Reason);
@@ -73,6 +74,7 @@ public static class RouteTransfer
                 Group = r.Group,
                 NotifyHealth = r.NotifyHealth,
                 Rules = r.Rules,
+                SpaFallback = r.SpaFallback,
             })],
         },
         ConfigJsonContext.Default.RouteFile);
@@ -129,6 +131,7 @@ public static class RouteTransfer
                 Group = (exported.Group ?? "").Trim(),
                 NotifyHealth = exported.NotifyHealth,
                 Rules = exported.Rules ?? new(),
+                SpaFallback = exported.SpaFallback,
             };
 
             var domain = RouteRules.Normalize(route.Domain);

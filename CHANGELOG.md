@@ -13,6 +13,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - Request details: clicking a line in Requests opens its headers, sizes, where it went and, with **Keep bodies** on, the first 64 KB of each text body. **Copy as curl** (PowerShell or bash), **Repeat** and **Export HAR**.
 - Health notices: routes and services with **Tell me when it stops answering** get a tray notice after 15 seconds without an answer, and another when they are back. Clicking it opens the tab. Settings › General turns them all off.
 - Route rules, in the route's **Advanced**: allow CORS (Severino answers the preflight), set or remove headers both ways, wait before forwarding, and fail on purpose with 429, 500, 502, 503 or 504 in part of the requests. Each rule on shows as a badge on the route's card.
+- A folder as a route's target: Severino serves its files itself, with index.html, no cache and, for single-page apps, unknown pages sent to index.html. Path routes, HTTPS and the route rules work with folders too.
 
 ### Changed
 

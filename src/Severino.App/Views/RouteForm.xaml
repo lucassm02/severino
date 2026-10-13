@@ -54,13 +54,39 @@
             </ItemsControl.ItemTemplate>
         </ItemsControl>
         <!-- Only with a path: whether the destination sees it. -->
-        <StackPanel Margin="0,8,0,0" Visibility="{Binding HasPath, Converter={StaticResource TrueToVisible}}">
+        <StackPanel Margin="0,8,0,0" Visibility="{Binding CanStripPath, Converter={StaticResource TrueToVisible}}">
             <CheckBox Content="{Binding Path}" ContentStringFormat="{x:Static res:Strings.RouteForm_StripPath}" IsChecked="{Binding StripPath}" />
             <ui:TextBlock Margin="28,0,0,0" Style="{StaticResource Hint}" Text="{Binding Path, StringFormat={x:Static res:Strings.RouteForm_StripPathHint}}" />
         </StackPanel>
 
         <ui:TextBlock Margin="0,16,0,6" Style="{StaticResource FieldLabel}" Text="{x:Static res:Strings.ServiceEditor_Target}" />
-        <Grid>
+        <!-- A server to forward to, or a folder Severino serves itself. -->
+        <StackPanel Margin="0,0,0,8" Orientation="Horizontal">
+            <RadioButton Content="{x:Static res:Strings.RouteForm_TargetServer}" GroupName="TargetKind" IsChecked="{Binding IsServer}" />
+            <RadioButton Margin="16,0,0,0" Content="{x:Static res:Strings.RouteForm_TargetFolder}" GroupName="TargetKind" IsChecked="{Binding IsFolder}" />
+        </StackPanel>
+        <StackPanel Visibility="{Binding IsFolder, Converter={StaticResource TrueToVisible}}">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <ui:TextBox
+                    PlaceholderText="{x:Static res:Strings.RouteForm_FolderPlaceholder}"
+                    AutomationProperties.Name="{x:Static res:Strings.RouteForm_TargetFolder}"
+                    Text="{Binding FolderPath, UpdateSourceTrigger=PropertyChanged}" />
+                <ui:Button
+                    Grid.Column="1"
+                    Margin="8,0,0,0"
+                    VerticalAlignment="Stretch"
+                    Icon="{ui:SymbolIcon FolderOpen24}"
+                    Content="{x:Static res:Strings.RouteForm_PickFolderButton}"
+                    Command="{Binding PickFolderCommand}" />
+            </Grid>
+            <CheckBox Margin="0,8,0,0" Content="{x:Static res:Strings.RouteForm_SpaFallback}" IsChecked="{Binding SpaFallback}" />
+            <ui:TextBlock Margin="28,0,0,0" Style="{StaticResource Hint}" Text="{x:Static res:Strings.RouteForm_SpaFallbackHint}" />
+        </StackPanel>
+        <Grid Visibility="{Binding IsServer, Converter={StaticResource TrueToVisible}}">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="104" />
                 <ColumnDefinition Width="Auto" />

@@ -87,4 +87,22 @@
   <data name="Error_SimulatedText" xml:space="preserve">
     <value>To stop it, edit the route in Severino: Advanced › Rules.</value>
   </data>
+  <data name="Error_FolderMissingTitle" xml:space="preserve">
+    <value>The folder is not there</value>
+  </data>
+  <data name="Error_FolderMissingLead" xml:space="preserve">
+    <value>{0} serves the folder {1}, which does not exist right now.</value>
+  </data>
+  <data name="Error_FolderMissingText" xml:space="preserve">
+    <value>If it comes from a build, run the build again; if it moved, edit the route in Severino.</value>
+  </data>
+  <data name="Error_FileNotFoundTitle" xml:space="preserve">
+    <value>File not found</value>
+  </data>
+  <data name="Error_FileNotFoundLead" xml:space="preserve">
+    <value>There is no {0} in {1}.</value>
+  </data>
+  <data name="Error_FileNotFoundText" xml:space="preserve">
+    <value>For a single-page app, turn on “Send unknown paths to index.html” in the route of {0}.</value>
+  </data>
 </root>

@@ -1855,4 +1855,31 @@ Add these domains to the proxy exceptions? They go into the same Internet Option
   <data name="Rules_BadgeTip" xml:space="preserve">
     <value>The route&apos;s rules, in Edit › Advanced</value>
   </data>
+  <data name="RouteForm_TargetServer" xml:space="preserve">
+    <value>Server</value>
+  </data>
+  <data name="RouteForm_TargetFolder" xml:space="preserve">
+    <value>Folder</value>
+  </data>
+  <data name="RouteForm_FolderPlaceholder" xml:space="preserve">
+    <value>C:\projects\site\dist</value>
+  </data>
+  <data name="RouteForm_PickFolderButton" xml:space="preserve">
+    <value>Choose…</value>
+  </data>
+  <data name="RouteForm_PickFolder" xml:space="preserve">
+    <value>The folder this route serves</value>
+  </data>
+  <data name="RouteForm_SpaFallback" xml:space="preserve">
+    <value>Send unknown paths to index.html</value>
+  </data>
+  <data name="RouteForm_SpaFallbackHint" xml:space="preserve">
+    <value>For React, Vue and Angular apps, which route pages themselves: /painel/relatorios gets index.html when there is no such file.</value>
+  </data>
+  <data name="RouteForm_FolderNotFull" xml:space="preserve">
+    <value>Choose the folder, or write its full path, like C:\projects\site\dist.</value>
+  </data>
+  <data name="RouteForm_FolderMissing" xml:space="preserve">
+    <value>{0} does not exist right now. The route waits for it, like after a build.</value>
+  </data>
 </root>

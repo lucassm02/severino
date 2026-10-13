@@ -94,7 +94,32 @@ Prova os critérios 1 a 4 da parte 5. Use o DevTools do navegador (F12, aba Netw
 
 ## Parte 6. Pasta como destino
 
-Pendente.
+Prova os critérios 1 a 6 da parte 6. Prepare uma pasta com um site estático:
+
+```powershell
+New-Item -ItemType Directory -Force C:\temp\site\guia | Out-Null
+Set-Content C:\temp\site\index.html '<h1>início</h1><a href="guia/">guia</a>'
+Set-Content C:\temp\site\guia\index.html '<h1>guia</h1><img src="logo.svg">'
+```
+
+1. **Escolher.** **Nova rota**, `docs.sev`, destino **Pasta**, **Escolher…** e aponte `C:\temp\site`. Salve.
+   - Esperado: o card mostra `→ C:\temp\site` e a rota aparece como respondendo.
+2. **Servir.** Abra `http://docs.sev/`.
+   - Esperado: "início". O link "guia" abre a página da pasta `guia`. `http://docs.sev/guia` (sem a barra) leva a `http://docs.sev/guia/` com 307, visível na aba Requisições.
+3. **Sem cache.** Mude o `index.html` e aperte F5.
+   - Esperado: a mudança aparece na hora. Nos detalhes da requisição, `Cache-Control: no-cache` na volta.
+4. **Não encontrado.** Abra `http://docs.sev/painel/relatorios`.
+   - Esperado: a página "Arquivo não encontrado", que sugere a opção de app de página única.
+5. **App de página única.** Ligue **Mandar caminhos desconhecidos para o index.html** e abra o mesmo endereço.
+   - Esperado: "início". `http://docs.sev/falta.js` continua 404: só páginas caem no `index.html`.
+6. **Caminho.** Crie também `meuapp.sev/docs` como pasta `C:\temp\site`. Abra `http://meuapp.sev/docs/guia/`.
+   - Esperado: "guia".
+7. **Pasta que some.** Renomeie `C:\temp\site` para `C:\temp\site2`.
+   - Esperado: em até 5 segundos a rota aparece como fora do ar; abrir dá a página "A pasta não está lá", com o caminho. Volte o nome: a rota volta sozinha.
+8. **Regras.** Ligue **Liberar CORS** e um cabeçalho na volta, como `X-Build: 42`.
+   - Esperado: os dois aparecem nas respostas da pasta.
+9. **HTTPS.** Com a CA ativa, marque **Usar HTTPS** e abra `https://docs.sev/`.
+   - Esperado: abre sem aviso de certificado.
 
 ## Parte 1. Ambientes
 

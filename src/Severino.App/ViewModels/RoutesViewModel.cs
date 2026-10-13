@@ -289,6 +289,7 @@ public sealed partial class RoutesViewModel : ListPageViewModel
         search.Length == 0
         || (route.Domain + route.Path).Contains(search, StringComparison.OrdinalIgnoreCase)
         || route.Group.Contains(search, StringComparison.OrdinalIgnoreCase)
+        || (RouteRules.FolderOf(route.Target) is { } folder && folder.Contains(search, StringComparison.OrdinalIgnoreCase))
         || (Uri.TryCreate(route.Target, UriKind.Absolute, out var target) && target.Host.Contains(search, StringComparison.OrdinalIgnoreCase));
 
     private void ApplyHealth(Guid routeId)

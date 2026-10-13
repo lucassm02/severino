@@ -105,8 +105,11 @@ public sealed record RouteEntry
     /// <summary>"/api" to take only that part of the domain; empty for all of it. The longest matching path wins.</summary>
     public string Path { get; set; } = "";
 
-    /// <summary>Sends "/api/pedidos" to the target as "/pedidos".</summary>
+    /// <summary>Sends "/api/pedidos" to the target as "/pedidos". A folder always gets the path without the route's part.</summary>
     public bool StripPath { get; set; }
+
+    /// <summary>A folder target: paths with no file get the folder's index.html, for single-page apps.</summary>
+    public bool SpaFallback { get; set; }
 
     /// <summary>A label shared by routes switched on and off together, like "meuapp"; empty for none.</summary>
     public string Group { get; set; } = "";

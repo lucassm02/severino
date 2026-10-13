@@ -37,7 +37,9 @@ public sealed class HealthMonitor : IAsyncDisposable
         var probes = new List<Probe>();
         foreach (var route in routes.Where(r => r.Enabled))
         {
-            if (RouteRules.TryParseTarget(route.Target, out var target, out _))
+            if (RouteRules.FolderOf(route.Target) is { } folder)
+                probes.Add(new(route.Id, "", 0, folder));
+            else if (RouteRules.TryParseTarget(route.Target, out var target, out _))
                 probes.Add(new(route.Id, target.IdnHost, target.Port));
         }
         foreach (var service in (services ?? []).Where(s => s.Enabled && s.Ports.Count > 0))
@@ -82,7 +84,8 @@ public sealed class HealthMonitor : IAsyncDisposable
 
     private async Task CheckAsync(Probe probe, CancellationToken cancellationToken)
     {
-        var up = await CanConnectAsync(probe.Host, probe.Port, cancellationToken);
+        // A folder answers while it exists.
+        var up = probe.Folder is { } folder ? Directory.Exists(folder) : await CanConnectAsync(probe.Host, probe.Port, cancellationToken);
         if (cancellationToken.IsCancellationRequested || !_probes.Contains(probe))
             return;
 
@@ -98,7 +101,7 @@ public sealed class HealthMonitor : IAsyncDisposable
             Changed?.Invoke(this, new RouteHealth(probe.Id, up));
     }
 
-    private sealed record Probe(Guid Id, string Host, int Port);
+    private sealed record Probe(Guid Id, string Host, int Port, string? Folder = null);
 
     /// <summary>True when a TCP connection to <paramref name="host"/>:<paramref name="port"/> opens within a second.</summary>
     public static async Task<bool> CanConnectAsync(string host, int port, CancellationToken cancellationToken)

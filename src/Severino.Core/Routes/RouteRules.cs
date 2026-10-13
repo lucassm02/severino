@@ -81,9 +81,29 @@ public static class RouteRules
     // RFC 9110 token: letters, digits and !#$%&'*+-.^_`|~
     private static bool IsTokenChar(char c) => char.IsAsciiLetterOrDigit(c) || "!#$%&'*+-.^_`|~".Contains(c);
 
+    /// <summary>The folder a route serves, for a target like <c>file:///C:/projetos/site/dist</c>; null for a server.</summary>
+    public static string? FolderOf(string? target) =>
+        Uri.TryCreate(target, UriKind.Absolute, out var uri) && uri.IsFile && !uri.IsUnc && System.IO.Path.IsPathFullyQualified(uri.LocalPath)
+            ? uri.LocalPath
+            : null;
+
+    /// <summary>The target for a folder: <c>C:\projetos\site\dist</c> as <c>file:///C:/projetos/site/dist</c>.</summary>
+    public static string FolderTarget(string folder) =>
+        System.IO.Path.IsPathFullyQualified(folder.Trim()) ? new Uri(System.IO.Path.GetFullPath(folder.Trim())).AbsoluteUri : folder;
+
+    /// <summary>
+    /// A server (<c>http://</c> or <c>https://</c>, no query) or a local folder (<c>file:///C:/…</c>).
+    /// The folder does not have to exist yet: the route waits for it, like for a server.
+    /// </summary>
     public static bool TryParseTarget(string? value, out Uri target, out string? error)
     {
         target = null!;
+        if (FolderOf(value) is not null)
+        {
+            target = new Uri(value!);
+            error = null;
+            return true;
+        }
         if (!Uri.TryCreate(value, UriKind.Absolute, out var uri) || uri.HostNameType == UriHostNameType.Unknown || uri.Host.Length == 0)
         {
             error = Strings.Route_TargetRequired;

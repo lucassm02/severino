@@ -22,6 +22,9 @@ public static class ProxyConfigMapper
 
         foreach (var route in routes.Where(r => r.Enabled))
         {
+            // A folder is served by the proxy itself, not forwarded: no cluster (see ProxyServer.ServeFolderAsync).
+            if (RouteRules.FolderOf(route.Target) is not null)
+                continue;
             if (!RouteRules.Validate(route, routes, proxyPort, httpsPort).IsValid || !RouteRules.TryParseTarget(route.Target, out var target, out _))
                 continue;
 

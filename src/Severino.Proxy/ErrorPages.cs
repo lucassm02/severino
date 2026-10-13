@@ -53,6 +53,16 @@ public static class ErrorPages
             $"<p class=\"lead\">{Format(Strings.Error_TimeoutLead, $"<strong>{Html.Encode(domain)}</strong>", $"<code>{Html.Encode(Display(target))}</code>", ProxyConfigMapper.ActivityTimeout.TotalMinutes.ToString("0"))}</p>" +
             $"<p>{Html.Encode(Strings.Error_TimeoutText)}</p>");
 
+    public static string FolderMissing(string domain, string folder) =>
+        Page(Strings.Error_FolderMissingTitle, 502,
+            $"<p class=\"lead\">{Format(Strings.Error_FolderMissingLead, $"<strong>{Html.Encode(domain)}</strong>", $"<code>{Html.Encode(folder)}</code>")}</p>" +
+            $"<p>{Html.Encode(Strings.Error_FolderMissingText)}</p>");
+
+    public static string FileNotFound(string domain, string path, string folder) =>
+        Page(Strings.Error_FileNotFoundTitle, 404,
+            $"<p class=\"lead\">{Format(Strings.Error_FileNotFoundLead, $"<code>{Html.Encode(path)}</code>", $"<code>{Html.Encode(folder)}</code>")}</p>" +
+            $"<p>{Html.Encode(string.Format(Strings.Error_FileNotFoundText, domain))}</p>");
+
     /// <summary>A failure the route asked for: it says so, so nobody hunts a bug that is not there.</summary>
     public static string Simulated(string domain, int status, int percent) =>
         Page(Strings.Error_SimulatedTitle, status,

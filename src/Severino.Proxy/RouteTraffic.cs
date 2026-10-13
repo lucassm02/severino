@@ -12,15 +12,17 @@ namespace Severino.Proxy;
 internal static class RouteTraffic
 {
     /// <param name="rules">By YARP route id; routes without rules are missing.</param>
-    public static async Task ApplyAsync(HttpContext context, Func<Task> next, IReadOnlyDictionary<string, TrafficRules> rules)
+    public static Task ApplyAsync(HttpContext context, Func<Task> next, IReadOnlyDictionary<string, TrafficRules> rules)
     {
         var route = context.GetReverseProxyFeature().Route.Config;
         if (!rules.TryGetValue(route.RouteId, out var rule))
-        {
-            await next();
-            return;
-        }
+            return next();
+        return ApplyAsync(context, next, rule, route.Metadata?.GetValueOrDefault(ProxyConfigMapper.DomainKey) ?? context.Request.Host.Host);
+    }
 
+    /// <summary>CORS, the delay and the failure of <paramref name="rule"/>, then <paramref name="next"/> unless it failed.</summary>
+    public static async Task ApplyAsync(HttpContext context, Func<Task> next, TrafficRules rule, string domain)
+    {
         if (rule.Cors)
         {
             if (AnswerPreflight(context))
@@ -42,7 +44,6 @@ internal static class RouteTraffic
 
         if (rule.FailPercent > 0 && Random.Shared.Next(100) < rule.FailPercent)
         {
-            var domain = route.Metadata?.GetValueOrDefault(ProxyConfigMapper.DomainKey) ?? context.Request.Host.Host;
             RequestLog.MarkFromProxy(context);
             context.Response.StatusCode = rule.FailStatus;
             if (rule.FailStatus == StatusCodes.Status429TooManyRequests)
@@ -53,6 +54,27 @@ internal static class RouteTraffic
         }
 
         await next();
+    }
+
+    /// <summary>
+    /// The response header rules, for answers that do not go through YARP (a folder's files):
+    /// set when the answer starts, an empty value taking the header out.
+    /// </summary>
+    public static void SetResponseHeaders(HttpContext context, IReadOnlyList<HeaderRule> headers)
+    {
+        if (headers.Count == 0)
+            return;
+        context.Response.OnStarting(() =>
+        {
+            foreach (var header in headers)
+            {
+                if (header.Value.Length == 0)
+                    context.Response.Headers.Remove(header.Name.Trim());
+                else
+                    context.Response.Headers[header.Name.Trim()] = header.Value;
+            }
+            return Task.CompletedTask;
+        });
     }
 
     /// <summary>An OPTIONS with Origin and Access-Control-Request-Method: Severino says yes, without bothering the server.</summary>

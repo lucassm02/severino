@@ -1,5 +1,6 @@
 using System.Collections.ObjectModel;
 using System.Globalization;
+using System.IO;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Severino.App.Resources;
@@ -60,17 +61,20 @@ public sealed partial class RouteEditorViewModel : ObservableObject
 
         // The address is written as it is read: meuapp.sev/api.
         Domain = _original.Domain + _original.Path;
-        if (Uri.TryCreate(_original.Target, UriKind.Absolute, out var target))
+        Scheme = Uri.UriSchemeHttp;
+        TargetHost = "localhost";
+        TargetPort = "3000";
+        if (RouteRules.FolderOf(_original.Target) is { } folder)
+        {
+            IsFolder = true;
+            FolderPath = folder;
+            SpaFallback = _original.SpaFallback;
+        }
+        else if (Uri.TryCreate(_original.Target, UriKind.Absolute, out var target))
         {
             Scheme = target.Scheme;
             TargetHost = target.Host;
             TargetPort = target.Port.ToString();
-        }
-        else
-        {
-            Scheme = Uri.UriSchemeHttp;
-            TargetHost = "localhost";
-            TargetPort = "3000";
         }
         Https = _original.Https;
         RedirectToHttps = _original.RedirectToHttps;
@@ -163,6 +167,37 @@ public sealed partial class RouteEditorViewModel : ObservableObject
     [ObservableProperty]
     public partial string TargetPort { get; set; }
 
+    /// <summary>The route serves a local folder instead of forwarding to a server.</summary>
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(IsServer), nameof(CanStripPath))]
+    public partial bool IsFolder { get; set; }
+
+    public bool IsServer
+    {
+        get => !IsFolder;
+        set => IsFolder = !value;
+    }
+
+    [ObservableProperty]
+    public partial string FolderPath { get; set; } = "";
+
+    /// <summary>Unknown pages get the folder's index.html, for React, Vue and Angular apps.</summary>
+    [ObservableProperty]
+    public partial bool SpaFallback { get; set; }
+
+    [RelayCommand]
+    private void PickFolder()
+    {
+        var dialog = new Microsoft.Win32.OpenFolderDialog { Title = Strings.RouteForm_PickFolder };
+        if (Directory.Exists(FolderPath))
+            dialog.InitialDirectory = FolderPath;
+        if (dialog.ShowDialog(System.Windows.Application.Current?.Windows.OfType<System.Windows.Window>().FirstOrDefault(w => w.IsActive)) == true)
+            FolderPath = dialog.FolderName;
+    }
+
+    partial void OnIsFolderChanged(bool value) => OnTargetChanged();
+    partial void OnFolderPathChanged(string value) => OnTargetChanged();
+
     [ObservableProperty]
     public partial bool PreserveHost { get; set; }
 
@@ -242,6 +277,9 @@ public sealed partial class RouteEditorViewModel : ObservableObject
     /// <summary>The address has a path, so "tirar o caminho" applies.</summary>
     public bool HasPath => Path.Length > 0;
 
+    /// <summary>A folder always gets the path without the route's part: nothing to choose.</summary>
+    public bool CanStripPath => HasPath && !IsFolder;
+
     [ObservableProperty]
     public partial bool StripPath { get; set; }
 
@@ -301,6 +339,7 @@ public sealed partial class RouteEditorViewModel : ObservableObject
         OnPropertyChanged(nameof(SaveLabel));
         OnPropertyChanged(nameof(Path));
         OnPropertyChanged(nameof(HasPath));
+        OnPropertyChanged(nameof(CanStripPath));
         if (IsReady)
         {
             ScheduleDomainCheck();
@@ -338,7 +377,7 @@ public sealed partial class RouteEditorViewModel : ObservableObject
         _kindSwitch = default;
         KindHint = null;
         KindSwitchLabel = null;
-        if (!IsNew || IsWizard || !int.TryParse(TargetPort?.Trim(), out var port))
+        if (!IsNew || IsWizard || IsFolder || !int.TryParse(TargetPort?.Trim(), out var port))
             return;
         var name = NormalizedDomain ?? SplitAddress().Domain;
         var host = TargetHost?.Trim() ?? "";
@@ -367,11 +406,11 @@ public sealed partial class RouteEditorViewModel : ObservableObject
         var route = Build();
         var errors = _routes.Validate(route);
         DomainError = errors.Domain ?? errors.Path;
-        TargetError = errors.Target;
+        TargetError = IsFolder && !System.IO.Path.IsPathFullyQualified(FolderPath?.Trim() ?? "") ? Strings.RouteForm_FolderNotFull : errors.Target;
         RulesError = errors.Rules;
         if (errors.Rules is not null)
             ShowAdvanced = true;
-        if (!errors.IsValid)
+        if (!errors.IsValid || TargetError is not null)
             return;
 
         // The lookup may still be running if the user typed and saved quickly; a name that turns
@@ -418,14 +457,15 @@ public sealed partial class RouteEditorViewModel : ObservableObject
     private RouteEntry Build() => _original with
     {
         Domain = SplitAddress().Domain,
-        Target = $"{Scheme}://{FormatHost(TargetHost?.Trim() ?? "")}:{TargetPort?.Trim()}",
+        Target = IsFolder ? RouteRules.FolderTarget(FolderPath ?? "") : $"{Scheme}://{FormatHost(TargetHost?.Trim() ?? "")}:{TargetPort?.Trim()}",
+        SpaFallback = IsFolder && SpaFallback,
         Https = Https,
         RedirectToHttps = Https && RedirectToHttps,
         PreserveHost = PreserveHost,
         IgnoreTargetCertErrors = IgnoreTargetCertErrors,
         Notes = Notes ?? "",
         Path = Path,
-        StripPath = HasPath && StripPath,
+        StripPath = CanStripPath && StripPath,
         Group = (Group ?? "").Trim(),
         NotifyHealth = NotifyHealth,
         Rules = BuildRules(),
@@ -490,6 +530,14 @@ public sealed partial class RouteEditorViewModel : ObservableObject
     {
         _portCheck?.Cancel();
         PortWarning = null;
+        if (IsFolder)
+        {
+            var folder = FolderPath?.Trim() ?? "";
+            PortWarning = folder.Length > 0 && System.IO.Path.IsPathFullyQualified(folder) && !Directory.Exists(folder)
+                ? string.Format(Strings.RouteForm_FolderMissing, folder)
+                : null;
+            return;
+        }
         if (!RouteRules.TryParseTarget(Build().Target, out var target, out _))
             return;
 

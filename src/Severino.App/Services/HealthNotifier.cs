@@ -63,7 +63,7 @@ public sealed class HealthNotifier(ConfigService config, HealthMonitor health, P
             return null;
         if (current.Routes.FirstOrDefault(r => r.Id == id) is { Enabled: true, NotifyHealth: true } route)
         {
-            var target = RouteRules.TryParseTarget(route.Target, out var uri, out _) ? uri.Authority : route.Target;
+            var target = RouteRules.FolderOf(route.Target) ?? (RouteRules.TryParseTarget(route.Target, out var uri, out _) ? uri.Authority : route.Target);
             return new(route.Domain + route.Path, target, AppTab.Routes, route.Domain);
         }
         if (current.Services.FirstOrDefault(s => s.Id == id) is { Enabled: true, NotifyHealth: true, Names.Count: > 0, Ports.Count: > 0 } service)

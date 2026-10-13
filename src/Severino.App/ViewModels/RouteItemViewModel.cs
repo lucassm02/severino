@@ -1,6 +1,7 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using Severino.App.Resources;
 using Severino.Core.Configuration;
+using Severino.Core.Routes;
 
 namespace Severino.App.ViewModels;
 
@@ -74,8 +75,8 @@ public sealed partial class RouteItemViewModel : ObservableObject
 
     /// <summary>The domain, with the path when the route takes only part of it: meuapp.sev/api.</summary>
     public string DisplayName => Route.Domain + Route.Path;
-    public string TargetDisplay => Uri.TryCreate(Route.Target, UriKind.Absolute, out var uri)
-        ? (uri.Scheme == Uri.UriSchemeHttps ? "https://" : "") + uri.Authority
+    public string TargetDisplay => RouteRules.FolderOf(Route.Target) is { } folder ? folder
+        : Uri.TryCreate(Route.Target, UriKind.Absolute, out var uri) ? (uri.Scheme == Uri.UriSchemeHttps ? "https://" : "") + uri.Authority
         : Route.Target;
 
     /// <summary>The DNS name the target goes by, when it does: shown with its IP, linking to the DNS tab.</summary>

@@ -102,6 +102,8 @@ public sealed class ProxyServer(ILoggerFactory loggerFactory, Func<string, X509C
     {
         _routes = routes;
         _rules = RulesOf(routes);
+        _http?.Folders.Clear();
+        _https?.Folders.Clear();
         var (yarpRoutes, clusters) = ProxyConfigMapper.Map(routes, Status.Port, _httpsPort);
         _http?.Config.Update(yarpRoutes, clusters);
         _https?.Config.Update(yarpRoutes, clusters);
@@ -185,6 +187,8 @@ public sealed class ProxyServer(ILoggerFactory loggerFactory, Func<string, X509C
             app.Use(requests.RecordAsync);
         if (!tls)
             app.Use(RedirectToHttpsAsync);
+        var folders = new FolderSites(app);
+        app.Use((context, next) => ServeFolderAsync(context, next, folders));
         app.MapReverseProxy(pipeline =>
         {
             pipeline.Use((context, next) => RouteTraffic.ApplyAsync(context, next, _rules));
@@ -205,7 +209,7 @@ public sealed class ProxyServer(ILoggerFactory loggerFactory, Func<string, X509C
 
         _logger.LogInformation("Proxy listening on loopback port {Port} ({Scheme})", port, tls ? "https" : "http");
         SetStatus(tls, new ProxyStatus(ProxyState.Running, port));
-        return new Listener(app, app.Services.GetRequiredService<InMemoryConfigProvider>(), port);
+        return new Listener(app, app.Services.GetRequiredService<InMemoryConfigProvider>(), port, folders);
     }
 
     /// <summary>
@@ -232,6 +236,7 @@ public sealed class ProxyServer(ILoggerFactory loggerFactory, Func<string, X509C
             return;
         await listener.App.StopAsync();
         await listener.App.DisposeAsync();
+        listener.Folders.Dispose();
     }
 
     private ProxyStatus DescribeBindFailure(int port, IOException ex)
@@ -248,6 +253,34 @@ public sealed class ProxyServer(ILoggerFactory loggerFactory, Func<string, X509C
                 string.Format(Strings.Proxy_PortReserved, port));
 
         return new ProxyStatus(ProxyState.Failed, port, ex.Message);
+    }
+
+    /// <summary>
+    /// A route whose target is a folder: answered here, before YARP, with the route's rules
+    /// (all but the request headers, which have no server to go to).
+    /// </summary>
+    private Task ServeFolderAsync(HttpContext context, Func<Task> next, FolderSites folders)
+    {
+        var route = RouteRules.Find(_routes, context.Request.Host.Host, context.Request.Path.Value);
+        if (route is null || RouteRules.FolderOf(route.Target) is not { } folder)
+            return next();
+
+        var domain = RouteRules.Normalize(route.Domain) ?? context.Request.Host.Host;
+        var prefix = RouteRules.NormalizePath(route.Path) ?? "";
+        RequestLog.MarkFolder(context, route.Id, folder);
+        RouteTraffic.SetResponseHeaders(context, route.Rules.ResponseHeaders);
+        return RouteTraffic.ApplyAsync(context, () =>
+        {
+            // The static file middlewares only serve requests no endpoint took, and the 404
+            // fallback takes every path without a dot: this request is the folder's.
+            context.SetEndpoint(null);
+            if (Directory.Exists(folder))
+                return folders.For(route.Id, folder, prefix, route.SpaFallback, domain)(context);
+            RequestLog.MarkFromProxy(context);
+            context.Response.StatusCode = StatusCodes.Status502BadGateway;
+            context.Response.ContentType = "text/html; charset=utf-8";
+            return context.Response.WriteAsync(ErrorPages.FolderMissing(domain, folder));
+        }, route.Rules, domain);
     }
 
     private static Dictionary<string, TrafficRules> RulesOf(IReadOnlyList<RouteEntry> routes) =>
@@ -295,5 +328,5 @@ public sealed class ProxyServer(ILoggerFactory loggerFactory, Func<string, X509C
         StatusChanged?.Invoke(this, status);
     }
 
-    private sealed record Listener(WebApplication App, InMemoryConfigProvider Config, int Port);
+    private sealed record Listener(WebApplication App, InMemoryConfigProvider Config, int Port, FolderSites Folders);
 }

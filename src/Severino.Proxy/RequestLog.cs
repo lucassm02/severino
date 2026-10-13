@@ -77,6 +77,8 @@ public sealed class RequestLog
     public const int HeaderLimit = 16 * 1024;
 
     private static readonly object FromProxyKey = new();
+    private static readonly object FolderKey = new();
+    private static readonly object RouteKey = new();
     private volatile bool _captureBodies;
 
     private readonly Lock _gate = new();
@@ -95,6 +97,13 @@ public sealed class RequestLog
 
     /// <summary>Marks the response as written by Severino rather than the route's server.</summary>
     public static void MarkFromProxy(HttpContext context) => context.Items[FromProxyKey] = true;
+
+    /// <summary>A folder route answered: where the files came from, since YARP did not forward it.</summary>
+    public static void MarkFolder(HttpContext context, Guid routeId, string folder)
+    {
+        context.Items[FolderKey] = folder;
+        context.Items[RouteKey] = routeId;
+    }
 
     /// <summary>Entries newer than <paramref name="sequence"/> still in the buffer, oldest first.</summary>
     public IReadOnlyList<RequestEntry> Since(long sequence)
@@ -202,8 +211,8 @@ public sealed class RequestLog
                 RequestHeaders = requestHeaders,
                 ResponseHeaders = responseHeaders,
                 HeadersCut = requestCut || responseCut,
-                Target = proxied?.ProxiedDestination?.Model.Config.Address,
-                RouteId = routeId,
+                Target = proxied?.ProxiedDestination?.Model.Config.Address ?? context.Items[FolderKey] as string,
+                RouteId = routeId ?? context.Items[RouteKey] as Guid?,
                 RequestBytes = sent?.Count ?? request.ContentLength ?? 0,
                 ResponseBytes = received?.Count ?? 0,
                 RequestBody = Body(sent),
