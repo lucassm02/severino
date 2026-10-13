@@ -302,6 +302,7 @@ O `Contracts` existe para que app e serviço usem exatamente o mesmo validador. 
 | 7. Versão nova | O app consulta a última release no GitHub uma vez por dia, avisa na janela e na bandeja, e atualiza com um clique: baixa o instalador, confere o SHA-256, instala em silêncio e abre de novo ([spec](specs/fase-7-atualizacoes.md)) | Com uma versão antiga instalada, o aviso aparece, e "Atualizar agora" deixa o app na versão nova sem perder rotas nem configurações |
 | 8. winget | Pacote `lucassm02.Severino` no catálogo do winget, instalador que instala, atualiza e desinstala em silêncio, e envio automático de cada release ([spec](specs/fase-8-winget.md)) | `winget install lucassm02.Severino` instala sem perguntar nada, e cada release chega ao catálogo sozinha |
 | 9. Inglês e português | Repositório com o inglês na raiz e os documentos em português em `docs/pt-BR/`; app, instalador e páginas de erro nos dois idiomas, seguindo o Windows ou escolhidos nas Configurações ([spec](specs/fase-9-idiomas.md)) | Com o Windows em inglês, nenhum texto em português aparece no app nem no instalador, e o README da raiz está em inglês |
+| 10. Ambientes e depuração | Ambientes (o mesmo nome por ambiente, trocado na barra de status e na bandeja), detalhes de requisição com curl, repetir e HAR, `severino.json` por projeto, CA confiável no WSL, regras por rota (CORS, cabeçalhos, atraso, falha simulada), pasta como destino, avisos de saúde na bandeja ([spec](specs/fase-10-ambientes-e-depuracao.md)) | Os critérios do spec |
 
 ## 8. Riscos restantes
 
