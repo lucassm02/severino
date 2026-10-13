@@ -8,6 +8,8 @@ O formato segue o [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/), e
 
 ## [Unreleased]
 
+## [0.7.1] - 2026-10-13
+
 ### Corrigido
 
 - O editor de serviço avisava que um nome de uma parte só, como `pedidos`, estava fora da CA mesmo quando a CA o cobria.
@@ -84,7 +86,8 @@ Primeira versão publicada.
 - Instalador para Windows 10 e 11, 64 bits.
 - Site em <https://lucassm02.github.io/severino/>, em inglês e em português, com vídeo de apresentação e imagens para redes sociais.
 
-[Unreleased]: https://github.com/lucassm02/severino/compare/v0.7.0...HEAD
+[Unreleased]: https://github.com/lucassm02/severino/compare/v0.7.1...HEAD
+[0.7.1]: https://github.com/lucassm02/severino/compare/v0.7.0...v0.7.1
 [0.7.0]: https://github.com/lucassm02/severino/compare/v0.6.0...v0.7.0
 [0.6.0]: https://github.com/lucassm02/severino/compare/v0.5.1...v0.6.0
 [0.5.1]: https://github.com/lucassm02/severino/compare/v0.5.0...v0.5.1

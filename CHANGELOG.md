@@ -8,6 +8,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+## [0.7.1] - 2026-10-13
+
 ### Fixed
 
 - The service editor warned that a one-label name, like `pedidos`, was outside the CA even when the CA covered it.
@@ -84,7 +86,8 @@ First published version.
 - Installer for Windows 10 and 11, 64-bit.
 - Website at <https://lucassm02.github.io/severino/>, in English and Portuguese, with an intro video and social media images.
 
-[Unreleased]: https://github.com/lucassm02/severino/compare/v0.7.0...HEAD
+[Unreleased]: https://github.com/lucassm02/severino/compare/v0.7.1...HEAD
+[0.7.1]: https://github.com/lucassm02/severino/compare/v0.7.0...v0.7.1
 [0.7.0]: https://github.com/lucassm02/severino/compare/v0.6.0...v0.7.0
 [0.6.0]: https://github.com/lucassm02/severino/compare/v0.5.1...v0.6.0
 [0.5.1]: https://github.com/lucassm02/severino/compare/v0.5.0...v0.5.1
